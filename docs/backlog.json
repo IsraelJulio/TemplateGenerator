@@ -102,7 +102,8 @@
       "id": "T03",
       "order": 3,
       "title": "Motor ZIP e template Simples com CRUD em memoria",
-      "state": "pending",
+      "state": "in_progress",
+      "startedAt": "2026-09-12",
       "dependsOn": ["T01"],
       "roles": ["backend", "template-engineer", "qa"],
       "skills": ["dotnet-templates", "verify-mvp"],
@@ -129,7 +130,7 @@
         "Testes de path traversal, nome invalido e download concorrente."
       ],
       "blockers": [],
-      "report": null
+      "report": "docs/reports/T03.md"
     },
     {
       "id": "T04",
