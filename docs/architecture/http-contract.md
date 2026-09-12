@@ -53,6 +53,9 @@ Devolve opções, rótulos em português, padrões e restrições.
 As restrições são **dados**, não código. Acrescentar uma restrição não deve exigir mudança no
 frontend.
 
+O catálogo **não** descreve a árvore de pastas do ZIP, e por isso a "estrutura prevista" da tela é
+hoje projeção do cliente — ver [ADR-0010](../decisions/adr-0010-estrutura-prevista-e-projecao.md).
+
 ## `POST /api/templates`
 
 **Requisição** (`application/json`):

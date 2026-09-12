@@ -44,14 +44,47 @@ e licença**. Dependência nova sem linha aqui é reprovada pelo `reviewer`.
 
 ## Fontes
 
-A definir em T02, com os arquivos e as licenças versionados junto:
+Fixadas em T02. Hospedadas localmente, **sem CDN**, em `src/web/public/fonts/`, com o texto da
+licença ao lado dos arquivos. Ambas são variáveis (eixo de peso 400–700), no subset **latino**
+(`U+0000–00FF` e afins), que cobre todos os acentos do português.
 
-| Fonte | Origem | Licença |
-|---|---|---|
-| Newsreader | `productiontype/Newsreader` | SIL OFL 1.1 — **confirmar o texto na cópia** |
-| Public Sans | `uswds/public-sans` | SIL OFL 1.1 — **confirmar o texto na cópia** |
+### Newsreader
 
-Ambas hospedadas localmente, sem CDN.
+- **Origem do desenho:** `productiontype/Newsreader`
+- **Origem do binário:** Google Fonts, família `Newsreader`, **versão `v26`** do catálogo, subset
+  `latin` — é o corte que a API do Google serve já em `woff2` variável
+- **Commit de origem do texto da licença:** `cfcb4f7af0e52c25e8df2a2431814c8e5fe2e155`
+- **Local:** `src/web/public/fonts/newsreader/`
+- **Licença:** SIL Open Font License 1.1, preservada em `OFL.txt` (4.394 B) — texto conferido na
+  cópia: *"Copyright 2020 The Newsreader Project Authors"*
+- **Arquivo:** `newsreader-latin-variable.woff2` (132.000 B)
+  - `sha256 6e4f2958c3a7c4a80acde4e5a679abe7e01bc1e30b92be3c7a8b696ef401d101`
+  - `sha256 fdfad38143ec470553cae82a1e45320bdd1b9ec70415d37bd0171051d8a4ded8` (`OFL.txt`)
+- **Uso:** títulos, rótulos de campo e nome do projeto no resumo
+
+### Public Sans
+
+- **Origem do desenho:** `uswds/public-sans`
+- **Origem do binário:** Google Fonts, família `Public Sans`, **versão `v21`** do catálogo, subset
+  `latin`
+- **Commit de origem dos textos de licença:** `d3df3455fb94643925f816276e81b231bc31619f`
+- **Local:** `src/web/public/fonts/public-sans/`
+- **Licença:** SIL Open Font License 1.1, preservada em `OFL.txt` (4.390 B) — texto conferido na
+  cópia: *"Copyright 2015 The Public Sans Project Authors"*
+- **Arquivo:** `public-sans-latin-variable.woff2` (26.832 B)
+  - `sha256 5ed4d31c988e73b258894244f209069ebe77dc7e564861954b21198b6de90d68`
+  - `sha256 157a9e77f7580246e97c769490e2e977ae94399f9d30f4556015c41fe8c28bac` (`OFL.txt`)
+  - `sha256 82f0d3cad45f264192db156360b4a710fe7060885f6aa261e6539f13cb9eb0d9` (`LICENSE.md`)
+- **Uso:** corpo, controles, resumo e árvore de estrutura
+
+> **Por que Public Sans carrega dois arquivos de licença.** O `LICENSE.md` do repositório de
+> origem (6.709 B) foi copiado junto porque diz uma coisa que o `OFL.txt` sozinho não diz: a
+> família é uma *Modified Version* da Libre Franklin, e as modificações da GSA, por serem obra do
+> governo dos EUA, estão em **CC0 1.0**, não sob a OFL. O próprio documento conclui, com estas
+> palavras, que na prática o uso se dá **sob a OFL 1.1** — que é a licença registrada acima. Sem o
+> `LICENSE.md`, um auditor futuro veria só metade da procedência.
+
+Nenhuma das duas entra em ZIP gerado: são da plataforma, não dos projetos gerados.
 
 ## Pacotes NuGet — plataforma
 

@@ -1,7 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 import { API_BASE_URL } from './api-base-url';
+import { HealthProbe } from './catalog-diagnosis';
 import { readAttachmentFileName } from './content-disposition';
 import {
   GeneratedTemplate,
@@ -25,6 +26,22 @@ export class TemplateCatalogService {
   /** `GET /api/template-options` — fields, labels, defaults and constraints. */
   loadCatalog(): Observable<TemplateOptionsCatalog> {
     return this.http.get<TemplateOptionsCatalog>(`${this.baseUrl}/api/template-options`);
+  }
+
+  /**
+   * `GET /api/health` — the tie-breaker between "the API is down" and "that
+   * route is not there". It never fails: a refused connection is an answer.
+   */
+  probeHealth(): Observable<HealthProbe> {
+    return this.http
+      .get(`${this.baseUrl}/api/health`, { observe: 'response', responseType: 'text' })
+      .pipe(
+        map((response) => ({ reached: true, status: response.status })),
+        catchError((error: unknown) => {
+          const status = error instanceof HttpErrorResponse ? error.status : 0;
+          return of({ reached: status !== 0, status });
+        }),
+      );
   }
 
   /** `POST /api/templates` — the ZIP, with the file name the API chose. */

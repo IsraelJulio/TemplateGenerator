@@ -1,5 +1,9 @@
 # Projetos gerados
 
+> A tela já mostra uma **projeção** desta árvore, derivada no frontend enquanto não há ZIP real;
+> amarrá-la ao pacote gerado — e decidir o nome da pasta do projeto Web API na arquitetura Simples —
+> é obrigação de T03/T04. Ver [ADR-0010](../decisions/adr-0010-estrutura-prevista-e-projecao.md).
+
 ## Conteúdo obrigatório de todo ZIP
 
 - `<ProjectName>.sln`

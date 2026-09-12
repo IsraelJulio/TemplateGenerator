@@ -1,7 +1,9 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   OnInit,
   computed,
   inject,
@@ -9,6 +11,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
+import { CatalogFailure, diagnoseCatalogFailure } from '../../core/catalog/catalog-diagnosis';
 import {
   CatalogAvailability,
   OptionAvailability,
@@ -17,11 +20,14 @@ import {
   violationsByField,
 } from '../../core/catalog/constraints';
 import {
+  GenerationFailure,
+  describeGenerationFailure,
+} from '../../core/catalog/generation-failure';
+import {
   TemplateCatalogService,
   readProblemDetailsBlob,
 } from '../../core/catalog/template-catalog.service';
 import { OptionValue, TemplateOptionsCatalog } from '../../core/catalog/template-options.model';
-import { describeProjectNameProblem } from '../../core/validation/project-name.validator';
 import {
   PROJECT_NAME,
   RenderableField,
@@ -31,19 +37,26 @@ import {
   renderableFields,
   toTemplateRequest,
 } from '../../core/form/template-form.builder';
+import { describeProjectNameProblem } from '../../core/validation/project-name.validator';
+import { CatalogOutage } from './catalog-outage';
+import { ConfigSummary } from './config-summary';
 
 type CatalogStatus = 'loading' | 'ready' | 'unavailable';
 
 /**
- * The configuration screen.
+ * A tela de configuração.
  *
- * Everything it renders — fields, labels, values, defaults and which option is
- * unavailable — comes from the catalog. The finished visual design and the
- * eight screen states are T02; this is the working skeleton.
+ * Tudo que ela renderiza — campos, rótulos, valores, padrões e qual opção está
+ * indisponível — vem do catálogo. Os oito estados de
+ * `docs/design/visual-spec.md` estão aqui: carregando, inicial com padrões,
+ * validação inline, opção incompatível com motivo, explicação de cada opção,
+ * geração em andamento, falha preservando as escolhas, download concluído e
+ * catálogo indisponível (este último desdobrado pelo diagnóstico de
+ * `catalog-diagnosis.ts`).
  */
 @Component({
   selector: 'tg-configurator',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CatalogOutage, ConfigSummary],
   templateUrl: './configurator.html',
   styleUrl: './configurator.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,10 +64,12 @@ type CatalogStatus = 'loading' | 'ready' | 'unavailable';
 export class Configurator implements OnInit {
   private readonly catalogService = inject(TemplateCatalogService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly projectNameKey = PROJECT_NAME;
 
   protected readonly status = signal<CatalogStatus>('loading');
+  protected readonly catalogFailure = signal<CatalogFailure | null>(null);
   protected readonly catalog = signal<TemplateOptionsCatalog | null>(null);
   protected readonly form = signal<TemplateForm | null>(null);
   protected readonly selection = signal<Selection>({});
@@ -64,7 +79,7 @@ export class Configurator implements OnInit {
   protected readonly projectNameTouched = signal(false);
 
   protected readonly generating = signal(false);
-  protected readonly generationError = signal<string | null>(null);
+  protected readonly generationFailure = signal<GenerationFailure | null>(null);
   protected readonly generatedFileName = signal<string | null>(null);
 
   /** The catalog fields, in catalog order. */
@@ -102,16 +117,33 @@ export class Configurator implements OnInit {
 
   protected loadCatalog(): void {
     this.status.set('loading');
+    this.catalogFailure.set(null);
+
     this.catalogService
       .loadCatalog()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (catalog) => this.applyCatalog(catalog),
-        error: () => {
-          this.catalog.set(null);
-          this.form.set(null);
-          this.status.set('unavailable');
-        },
+        error: (error: unknown) => this.diagnose(error),
+      });
+  }
+
+  /**
+   * The catalog call alone cannot tell "the API is down" from "that route is
+   * not there" — both arrive as a failed request. `GET /api/health` breaks the
+   * tie, so a failure is only reported after probing it.
+   */
+  private diagnose(error: unknown): void {
+    const optionsStatus = error instanceof HttpErrorResponse ? error.status : 0;
+
+    this.catalogService
+      .probeHealth()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((health) => {
+        this.catalog.set(null);
+        this.form.set(null);
+        this.catalogFailure.set(diagnoseCatalogFailure(optionsStatus, health));
+        this.status.set('unavailable');
       });
   }
 
@@ -121,6 +153,9 @@ export class Configurator implements OnInit {
     form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.selection.set(readSelection(form));
       this.projectName.set(String(form.controls[PROJECT_NAME].value));
+      // Uma mensagem do servidor sobre o valor anterior deixou de valer.
+      this.generationFailure.set(null);
+      this.generatedFileName.set(null);
     });
 
     this.catalog.set(catalog);
@@ -136,8 +171,14 @@ export class Configurator implements OnInit {
     return this.availability()[field]?.find((option) => option.value === value);
   }
 
+  /**
+   * What to show inline under a field: the catalog constraint it breaks now,
+   * plus whatever the API addressed to that same field on the last attempt.
+   */
   protected messagesFor(field: string): readonly string[] {
-    return this.constraintMessages()[field] ?? [];
+    const local = this.constraintMessages()[field] ?? [];
+    const fromApi = this.generationFailure()?.fieldErrors[field] ?? [];
+    return [...local, ...fromApi.filter((message) => !local.includes(message))];
   }
 
   protected submit(): void {
@@ -148,12 +189,20 @@ export class Configurator implements OnInit {
 
     form.markAllAsTouched();
     this.projectNameTouched.set(true);
+
     if (form.invalid || this.hasConstraintViolation()) {
+      if (form.controls[PROJECT_NAME].invalid) {
+        // Atributo em vez de `#id`: o seletor não depende de o id ser um
+        // identificador CSS válido, e não precisa de `CSS.escape`.
+        this.host.nativeElement
+          .querySelector<HTMLInputElement>(`input[id="${PROJECT_NAME}"]`)
+          ?.focus();
+      }
       return;
     }
 
     this.generating.set(true);
-    this.generationError.set(null);
+    this.generationFailure.set(null);
     this.generatedFileName.set(null);
 
     this.catalogService
@@ -167,11 +216,12 @@ export class Configurator implements OnInit {
         },
         error: (error: unknown) => {
           this.generating.set(false);
+          const status = error instanceof HttpErrorResponse ? error.status : 0;
+          const retryAfter =
+            error instanceof HttpErrorResponse ? error.headers.get('Retry-After') : null;
+
           void readProblemDetailsBlob(error).then((problem) => {
-            const firstFieldError = Object.values(problem?.errors ?? {})[0]?.[0];
-            this.generationError.set(
-              firstFieldError ?? problem?.title ?? 'Não foi possível gerar o projeto.',
-            );
+            this.generationFailure.set(describeGenerationFailure(status, problem, retryAfter));
           });
         },
       });

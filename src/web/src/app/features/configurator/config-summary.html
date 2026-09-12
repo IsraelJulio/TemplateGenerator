@@ -1,0 +1,45 @@
+<section class="summary" aria-labelledby="resumo-titulo">
+  <h2 class="summary__title" id="resumo-titulo">Resumo da configuração</h2>
+
+  <p class="summary__name" [class.summary__name--empty]="displayName() === null">
+    {{ displayName() ?? 'Sem nome ainda' }}
+  </p>
+
+  <dl class="choices">
+    @for (choice of choices(); track choice.key) {
+      <div class="choices__row">
+        <dt class="choices__label">{{ choice.label }}</dt>
+        <dd class="choices__value">
+          {{ choice.valueLabel }}
+          @if (choice.description) {
+            <span class="choices__description">{{ choice.description }}</span>
+          }
+        </dd>
+      </div>
+    }
+  </dl>
+
+  <h3 class="summary__subtitle" id="estrutura-titulo">Estrutura prevista</h3>
+  <p class="summary__caveat">
+    O que o ZIP deve conter para esta combinação, segundo a documentação dos projetos gerados. O
+    motor de geração entra em outra etapa, então confira a árvore contra o pacote quando ele
+    existir.
+  </p>
+
+  <ul class="tree" aria-labelledby="estrutura-titulo">
+    @for (line of structure(); track line.path) {
+      <li
+        class="tree__line"
+        [class.tree__line--directory]="line.node.kind === 'directory'"
+        [style.--depth]="line.depth"
+      >
+        <span class="tree__name"
+          >{{ line.node.name }}{{ line.node.kind === 'directory' ? '/' : '' }}</span
+        >
+        @if (line.node.note) {
+          <span class="tree__note">{{ line.node.note }}</span>
+        }
+      </li>
+    }
+  </ul>
+</section>

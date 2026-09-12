@@ -1,0 +1,19 @@
+<div class="outage" role="alert">
+  <h2 class="outage__title">{{ failure().title }}</h2>
+  <p class="outage__hint">{{ failure().hint }}</p>
+  <p class="outage__hint">
+    Sem o catálogo não dá para montar o formulário: as opções, os padrões e as regras de
+    compatibilidade são todos dele.
+  </p>
+
+  <dl class="probe">
+    @for (item of failure().evidence; track item.call) {
+      <div class="probe__row">
+        <dt class="probe__call">{{ item.call }}</dt>
+        <dd class="probe__result">{{ item.result }}</dd>
+      </div>
+    }
+  </dl>
+
+  <button class="outage__retry" type="button" (click)="retry.emit()">Tentar de novo</button>
+</div>

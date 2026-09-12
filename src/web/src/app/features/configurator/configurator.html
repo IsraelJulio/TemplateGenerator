@@ -1,105 +1,199 @@
-<main class="page">
-  <h1>Gerador de projetos .NET</h1>
+<div class="shell">
+  <header class="masthead">
+    <h1 class="masthead__title">Gerador de projetos .NET</h1>
+    <p class="masthead__lede">
+      Escolha a combinação, confira o que vai no pacote e baixe um projeto que compila sem edição.
+    </p>
+    @if (catalog(); as loaded) {
+      <p class="masthead__version">Catálogo {{ loaded.templateVersion }}</p>
+    }
+  </header>
 
   @switch (status()) {
+    <!-- ------------------------------------------------- carregando -->
     @case ('loading') {
-      <p role="status">Carregando as opções…</p>
-    }
-
-    @case ('unavailable') {
-      <div role="alert" class="notice notice-error">
-        <p>O catálogo de opções não respondeu. Sem ele não dá para montar o formulário.</p>
-        <button type="button" (click)="loadCatalog()">Tentar de novo</button>
+      <div class="panel panel--quiet">
+        <p role="status">Carregando as opções…</p>
       </div>
     }
 
+    <!-- ------------------------------ catálogo indisponível (estado 8) -->
+    @case ('unavailable') {
+      @if (catalogFailure(); as failure) {
+        <tg-catalog-outage [failure]="failure" (retry)="loadCatalog()" />
+      }
+    }
+
+    <!-- ------------------------------------------------------- pronto -->
     @case ('ready') {
       @if (form(); as templateForm) {
-        <form [formGroup]="templateForm" (ngSubmit)="submit()" novalidate>
-          <div class="field">
-            <label [attr.for]="projectNameKey">Nome do projeto</label>
-            <input
-              [id]="projectNameKey"
-              type="text"
-              [formControlName]="projectNameKey"
-              autocomplete="off"
-              placeholder="Acme.Billing.Api"
-              (blur)="projectNameTouched.set(true)"
-              [attr.aria-invalid]="projectNameError() ? 'true' : null"
-              [attr.aria-describedby]="projectNameError() ? projectNameKey + '-error' : null"
-            />
-            @if (projectNameError(); as message) {
-              <p class="error" [id]="projectNameKey + '-error'">{{ message }}</p>
-            }
-          </div>
-
-          @for (item of fields(); track item.key) {
-            <fieldset class="field">
-              <legend>{{ item.field.label }}</legend>
-
-              @if (item.field.description) {
-                <p class="hint">{{ item.field.description }}</p>
+        <div class="layout">
+          <form
+            class="panel config"
+            [formGroup]="templateForm"
+            (ngSubmit)="submit()"
+            [attr.aria-busy]="generating() ? 'true' : null"
+            novalidate
+          >
+            <!-- Nome do projeto: entrada livre, fora do catálogo por contrato. -->
+            <div class="field">
+              <label class="field__label" [attr.for]="projectNameKey">Nome do projeto</label>
+              <p class="field__hint" [id]="projectNameKey + '-hint'">
+                Vira o namespace do C# e a pasta dentro do ZIP. Letras sem acento, dígitos e "_",
+                com os segmentos separados por ponto.
+              </p>
+              <input
+                class="text-input"
+                [id]="projectNameKey"
+                type="text"
+                [formControlName]="projectNameKey"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Acme.Billing.Api"
+                (blur)="projectNameTouched.set(true)"
+                [attr.aria-invalid]="projectNameError() ? 'true' : null"
+                [attr.aria-describedby]="
+                  projectNameError()
+                    ? projectNameKey + '-hint ' + projectNameKey + '-error'
+                    : projectNameKey + '-hint'
+                "
+              />
+              @if (projectNameError(); as message) {
+                <p class="field__error" [id]="projectNameKey + '-error'" role="alert">
+                  {{ message }}
+                </p>
               }
+            </div>
 
-              @if (item.isToggle) {
-                <label class="toggle">
-                  <input
-                    type="checkbox"
-                    [formControlName]="item.key"
-                    [attr.data-field]="item.key"
-                  />
-                  Ativar {{ item.field.label }}
-                </label>
-              } @else {
-                @for (option of item.field.values; track option.value) {
-                  <label class="option">
-                    <input
-                      type="radio"
-                      [formControlName]="item.key"
-                      [value]="option.value"
-                      [attr.data-field]="item.key"
-                      [attr.data-value]="option.value"
-                      [attr.disabled]="availabilityOf(item.key, option.value)?.disabled ? '' : null"
-                      [attr.aria-describedby]="
-                        availabilityOf(item.key, option.value)?.reason
-                          ? item.key + '-' + option.value + '-reason'
-                          : null
-                      "
-                    />
-                    <span>{{ option.label }}</span>
-                    @if (option.description) {
-                      <span class="hint">{{ option.description }}</span>
-                    }
-                    @if (availabilityOf(item.key, option.value); as state) {
-                      @if (state.disabled && state.reason) {
-                        <span class="reason" [id]="item.key + '-' + option.value + '-reason'">
-                          {{ state.reason }}
-                        </span>
+            <!-- Um bloco por campo do catálogo, na ordem em que ele os envia. -->
+            @for (item of fields(); track item.key) {
+              <div class="field">
+                <!--
+                  A divisória fica no bloco, não no <fieldset>: a borda de topo
+                  de um fieldset é desenhada na mesma faixa da <legend> e a
+                  risca sairia por cima do rótulo.
+                -->
+                <fieldset class="field__group">
+                  <legend class="field__label">{{ item.field.label }}</legend>
+
+                  @if (item.field.description) {
+                    <p class="field__hint">{{ item.field.description }}</p>
+                  }
+
+                  @if (item.isToggle) {
+                    <label class="option option--switch">
+                      <input
+                        type="checkbox"
+                        [formControlName]="item.key"
+                        [attr.data-field]="item.key"
+                      />
+                      <span class="option__label">Incluir no projeto</span>
+                    </label>
+                  } @else {
+                    <div class="options">
+                      @for (option of item.field.values; track option.value) {
+                        <label class="option">
+                          <!--
+                            `name` é a chave do campo no catálogo. Sem ele os
+                            botões não formam um grupo de rádio de verdade: o
+                            navegador não move a seleção com as setas e o leitor
+                            de tela não anuncia "opção n de N".
+                          -->
+                          <input
+                            type="radio"
+                            [attr.name]="item.key"
+                            [formControlName]="item.key"
+                            [value]="option.value"
+                            [attr.data-field]="item.key"
+                            [attr.data-value]="option.value"
+                            [attr.disabled]="
+                              availabilityOf(item.key, option.value)?.disabled ? '' : null
+                            "
+                            [attr.aria-describedby]="
+                              availabilityOf(item.key, option.value)?.reason
+                                ? item.key + '-' + option.value + '-reason'
+                                : null
+                            "
+                          />
+                          <span class="option__label">{{ option.label }}</span>
+                          @if (option.description) {
+                            <span class="option__description">{{ option.description }}</span>
+                          }
+                          @if (availabilityOf(item.key, option.value); as state) {
+                            @if (state.disabled && state.reason) {
+                              <span
+                                class="option__reason"
+                                [id]="item.key + '-' + option.value + '-reason'"
+                              >
+                                Indisponível agora: {{ state.reason }}
+                              </span>
+                            }
+                          }
+                        </label>
                       }
-                    }
-                  </label>
-                }
+                    </div>
+                  }
+
+                  @for (message of messagesFor(item.key); track message) {
+                    <p class="field__error" role="alert">{{ message }}</p>
+                  }
+                </fieldset>
+              </div>
+            }
+
+            <div class="actions">
+              <!-- Falha na geração: as escolhas acima continuam intactas (RF-06). -->
+              @if (generationFailure(); as failure) {
+                <div
+                  class="notice"
+                  [class.notice--pending]="failure.notImplemented"
+                  [class.notice--error]="!failure.notImplemented"
+                  role="alert"
+                >
+                  <p class="notice__title">{{ failure.title }}</p>
+                  @if (failure.detail) {
+                    <p class="notice__detail">{{ failure.detail }}</p>
+                  }
+                  <p class="notice__detail">Nenhuma escolha foi perdida.</p>
+                </div>
               }
 
-              @for (message of messagesFor(item.key); track message) {
-                <p class="error" role="alert">{{ message }}</p>
+              <!-- Download concluído. -->
+              @if (generatedFileName(); as fileName) {
+                <div class="notice notice--done" role="status">
+                  <p class="notice__title">Download concluído.</p>
+                  <p class="notice__detail">{{ fileName }} foi salvo pelo navegador.</p>
+                </div>
               }
-            </fieldset>
-          }
 
-          <button type="submit" [disabled]="generating()">
-            {{ generating() ? 'Gerando…' : 'Gerar projeto' }}
-          </button>
-        </form>
+              <button class="button" type="submit" [disabled]="generating()">
+                {{ generating() ? 'Gerando…' : 'Gerar projeto' }}
+              </button>
 
-        @if (generationError(); as message) {
-          <p class="error" role="alert">{{ message }}</p>
-        }
+              @if (generating()) {
+                <p class="actions__status" role="status">
+                  Montando o pacote. O botão fica bloqueado até terminar, para não gerar dois
+                  downloads.
+                </p>
+              } @else {
+                <p class="actions__status">
+                  O pacote é montado na hora, com os arquivos listados ao lado.
+                </p>
+              }
+            </div>
+          </form>
 
-        @if (generatedFileName(); as fileName) {
-          <p role="status">Download de {{ fileName }} concluído.</p>
-        }
+          <aside class="aside">
+            @if (catalog(); as loaded) {
+              <tg-config-summary
+                [catalog]="loaded"
+                [selection]="selection()"
+                [projectName]="projectName()"
+              />
+            }
+          </aside>
+        </div>
       }
     }
   }
-</main>
+</div>

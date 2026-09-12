@@ -1,0 +1,127 @@
+:host {
+  display: block;
+}
+
+.summary {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+}
+
+.summary__title {
+  font-size: var(--size-section);
+}
+
+.summary__name {
+  margin: var(--space-1) 0 var(--space-5);
+  font-family: var(--font-display);
+  font-size: var(--size-lead);
+  font-weight: 500;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.summary__name--empty {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* --------------------------------------------------------------- escolhas */
+
+.choices {
+  margin: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.choices__row {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.choices__label {
+  color: var(--ink-soft);
+  font-size: var(--size-small);
+  line-height: 1.4;
+  padding-top: 0.1rem;
+}
+
+.choices__value {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.choices__description {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--ink-soft);
+  font-size: var(--size-hint);
+  font-weight: 400;
+}
+
+@media (max-width: 26rem) {
+  .choices__row {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+}
+
+/* -------------------------------------------------------------- estrutura */
+
+.summary__subtitle {
+  margin-top: var(--space-6);
+  font-size: var(--size-section);
+}
+
+.summary__caveat {
+  margin: var(--space-2) 0 var(--space-4);
+  color: var(--ink-soft);
+  font-size: var(--size-hint);
+  max-width: 46ch;
+}
+
+.tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--size-small);
+  line-height: 1.7;
+  /* Nome e caminho longos não podem empurrar a página na horizontal. */
+  overflow-x: auto;
+}
+
+.tree__line {
+  --indent: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--space-3);
+  padding-left: calc(var(--depth) * var(--indent) + 0.7rem);
+  /* Uma guia vertical por nível de ancestral, a partir da profundidade 1. */
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--rule-strong) 0 1px,
+    transparent 1px var(--indent)
+  );
+  background-size: calc(var(--depth) * var(--indent)) 100%;
+  background-repeat: no-repeat;
+}
+
+.tree__name {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tree__line--directory > .tree__name {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.tree__note {
+  color: var(--ink-soft);
+  font-size: var(--size-hint);
+}

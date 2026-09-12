@@ -73,7 +73,9 @@
       "id": "T02",
       "order": 2,
       "title": "Especificacao visual, componentes e estados da tela",
-      "state": "pending",
+      "state": "done",
+      "startedAt": "2026-09-12",
+      "finishedAt": "2026-09-12",
       "dependsOn": ["T01"],
       "roles": ["frontend", "reviewer"],
       "skills": ["frontend-design"],
@@ -88,13 +90,13 @@
         "Resumo lateral mostra arquitetura, funcionalidades e estrutura prevista do projeto.",
         "A tela distingue 'API fora do ar' de 'rota ausente' usando GET /api/health, que foi criado em T01 exatamente para isso e ainda nao e consumido pelo frontend."
       ],
+      "report": "docs/reports/T02.md",
       "verifications": [
         "Testes de formulario e de componentes passando.",
         "Inspecao em navegador com conteudo real, em desktop e celular, com captura de tela no relatorio.",
         "Percorrer a tela inteira por teclado."
       ],
-      "blockers": [],
-      "report": null
+      "blockers": []
     },
     {
       "id": "T03",
@@ -115,7 +117,9 @@
         "Projeto extraido compila e roda; /health publico e CRUD de Item completo.",
         "Dados perdidos apos reinicio, conforme RF-16.",
         "Comandos do README executam sem modificar codigo-fonte.",
-        "Limite de requisicoes e de geracoes simultaneas ativo, com 429 e Retry-After."
+        "Limite de requisicoes e de geracoes simultaneas ativo, com 429 e Retry-After.",
+        "O download pela tela salva um ZIP de verdade no navegador. Em T02 o estado 'download concluido' so pode ser demonstrado com duble de rede, porque o contrato responde 501 ate esta tarefa; com o 200 real, o fluxo precisa ser exercitado ponta a ponta sem duble.",
+        "A arvore da 'estrutura prevista' que a tela mostra e conferida contra o conteudo real do ZIP de simple/none/none, por teste que falha se divergirem. Motivo em ADR-0010: hoje a arvore e projecao do cliente e nada garante que bate com o pacote — o mesmo padrao que em T01 deixou a fixture divergir do payload real em tres pontos sem quebrar teste algum."
       ],
       "verifications": [
         "Camada 1 para as combinacoes ja suportadas.",
@@ -141,7 +145,8 @@
         "Domain sem referencia de projeto e sem pacote de infraestrutura.",
         "Dependencias respeitam o diagrama de docs/architecture/generated-projects.md.",
         "Teste arquitetural falha diante de qualquer aresta fora do diagrama.",
-        "A API exposta e indistinguivel da versao Simples: mesmo /health e mesmo CRUD."
+        "A API exposta e indistinguivel da versao Simples: mesmo /health e mesmo CRUD.",
+        "A arvore prevista pela tela para clean e conferida contra o ZIP real (ADR-0010). Inclui decidir o nome da pasta do projeto de API: T02 deixou em aberto, de proposito, o '.Api' dobrado que aparece como src/<Nome>.Api.Api quando o nome ja termina em .Api, por ser palpite de quem escreve os templates, nao de quem desenha a tela."
       ],
       "verifications": [
         "Camada 1 nas combinacoes clean disponiveis.",
@@ -271,6 +276,7 @@
         "Envio duplicado nao gera dois downloads (RF-07).",
         "Erro de validacao preserva as escolhas e mostra mensagem em portugues no campo certo (RF-06).",
         "Fluxo Playwright preenche a tela, baixa e inspeciona o ZIP baixado.",
+        "O 'overflow-x: hidden' do body foi removido e a ausencia de rolagem horizontal segue comprovada por medicao nas sete larguras. Motivo, do reviewer de T02: essa propriedade escondeu por tres rodadas um transbordo real de 495px em telas de 320 e 416; com o 'min-width: 0' no lugar ela deixou de ser necessaria como rede, e sem ela a proxima regressao aparece como barra de rolagem em vez de recorte mudo.",
         "Existe um snapshot versionado do JSON de GET /api/template-options: um teste no backend afirma o payload contra ele, e a fixture do frontend deriva do mesmo arquivo. Motivo: em T01 a fixture divergiu do payload real em tres pontos (type, when escalar, description ausente) sem quebrar teste algum, porque o codigo tolera as duas formas na leitura — a deriva so apareceu em conferencia manual."
       ],
       "verifications": [
