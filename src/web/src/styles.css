@@ -1,0 +1,31 @@
+/*
+ * Global baseline only. Tokens, typography and the visual direction of
+ * docs/design/visual-spec.md are defined in T02.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Arial,
+    sans-serif;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+
+img {
+  max-width: 100%;
+}

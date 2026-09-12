@@ -1,0 +1,57 @@
+<Project>
+
+  <!--
+    Propriedades comuns a todos os projetos .NET da plataforma.
+    Só vale para src/ e tests/ — src/web/ é Angular e não tem projeto MSBuild.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Nenhum aviso é tolerado: a plataforma compila limpa ou não compila. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors></WarningsNotAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!--
+      IDE0005 (using desnecessário) só é aplicado na compilação quando o arquivo de documentação
+      XML é gerado — é uma exigência do Roslyn, não uma escolha nossa. Geramos o arquivo e
+      dispensamos a obrigação de documentar todo membro público (CS1591/CS1573): documentação
+      aqui é para explicar decisão, não para cumprir cota.
+    -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+
+    <!--
+      Globalização invariante: o gerador é stateless e toda comparação/ordenação de caminho é
+      ordinal por exigência de determinismo (ADR-0003). Depender da cultura da máquina seria
+      exatamente o tipo de variação que o SHA-256 do ZIP precisa não ter.
+    -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Nada aqui é publicado no NuGet. -->
+    <IsPackable>false</IsPackable>
+
+    <!-- Compilação determinística também na plataforma. -->
+    <Deterministic>true</Deterministic>
+
+    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
+  </PropertyGroup>
+
+  <!--
+    Os testes arquiteturais e estruturais precisam localizar a raiz do repositório sem depender
+    do diretório de trabalho de quem rodou `dotnet test`. A raiz é gravada como metadado do
+    assembly de teste, e só dele.
+  -->
+  <ItemGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+    <AssemblyMetadata Include="RepositoryRoot" Value="$(RepositoryRoot)" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+</Project>

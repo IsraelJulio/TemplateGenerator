@@ -3,8 +3,9 @@
 Configure um projeto .NET em uma tela e baixe um ZIP compilável, com exemplos funcionais e um
 README específico para aquela combinação.
 
-**Estado atual:** preparação concluída (T00). A implementação começa em T01 — ainda não há
-código de aplicação no repositório.
+**Estado atual:** estrutura e contrato de pé (T01). A API responde o catálogo e valida a
+configuração; a tela consome o catálogo. **O motor de geração ainda não existe** — uma
+configuração válida responde `501`, e isso vira o ZIP em T03.
 
 ## Para pessoas
 
@@ -51,4 +52,43 @@ pedir aprovação. Ver [`docs/interop.md`](docs/interop.md), seção 3.
 
 ## Como rodar
 
-A ser preenchido em T01 e verificado em T11, num checkout limpo.
+São **dois processos**, em dois terminais. O frontend fala com a API por um proxy, então a API
+precisa estar no ar primeiro.
+
+### 1. API geradora
+
+```bash
+dotnet run --project src/TemplateGenerator.Api --launch-profile http
+```
+
+Sobe em `http://localhost:5080`. Confira:
+
+```bash
+curl http://localhost:5080/api/health          # {"status":"ok"}
+curl http://localhost:5080/api/template-options
+```
+
+### 2. Tela
+
+```bash
+cd src/web
+npm ci          # ci, não install — ver ADR-0009
+npm start
+```
+
+Abre em `http://localhost:4200`. O `proxy.conf.json` encaminha `/api` para a porta 5080 — se
+você mudar a porta da API, mude o proxy junto.
+
+### Verificar
+
+```bash
+dotnet build                 # zero erro, zero warning (TreatWarningsAsErrors está ligado)
+dotnet test                  # 129 testes
+cd src/web && npm test       # 42 testes
+```
+
+### O que esperar hoje
+
+Preencher a tela e clicar em **Gerar projeto** responde `501 Not Implemented`, com a explicação
+no corpo. Isso é o comportamento correto de T01: a configuração é validada de verdade, mas o
+motor de geração chega em T03. A tela ainda está sem acabamento visual — isso é T02.

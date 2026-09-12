@@ -1,0 +1,70 @@
+/* Raw working layout. The visual direction of docs/design/visual-spec.md is T02. */
+
+.page {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.field {
+  margin: 0 0 1.5rem;
+  padding: 0;
+  border: 0;
+}
+
+legend,
+label {
+  font-weight: 600;
+}
+
+.option,
+.toggle {
+  display: block;
+  margin: 0.25rem 0;
+  font-weight: 400;
+}
+
+.option:has(input:disabled) {
+  opacity: 0.7;
+}
+
+.hint,
+.reason {
+  display: block;
+  margin: 0.125rem 0 0 1.5rem;
+  font-size: 0.875rem;
+}
+
+.error {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: #8a1c1c;
+}
+
+input[type='text'] {
+  display: block;
+  width: 100%;
+  max-width: 26rem;
+  padding: 0.5rem;
+  font: inherit;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+button[disabled] {
+  cursor: progress;
+}
+
+.notice {
+  padding: 1rem;
+  border: 1px solid currentColor;
+}
+
+:focus-visible {
+  outline: 2px solid #1b4332;
+  outline-offset: 2px;
+}

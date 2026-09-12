@@ -1,0 +1,105 @@
+<main class="page">
+  <h1>Gerador de projetos .NET</h1>
+
+  @switch (status()) {
+    @case ('loading') {
+      <p role="status">Carregando as opções…</p>
+    }
+
+    @case ('unavailable') {
+      <div role="alert" class="notice notice-error">
+        <p>O catálogo de opções não respondeu. Sem ele não dá para montar o formulário.</p>
+        <button type="button" (click)="loadCatalog()">Tentar de novo</button>
+      </div>
+    }
+
+    @case ('ready') {
+      @if (form(); as templateForm) {
+        <form [formGroup]="templateForm" (ngSubmit)="submit()" novalidate>
+          <div class="field">
+            <label [attr.for]="projectNameKey">Nome do projeto</label>
+            <input
+              [id]="projectNameKey"
+              type="text"
+              [formControlName]="projectNameKey"
+              autocomplete="off"
+              placeholder="Acme.Billing.Api"
+              (blur)="projectNameTouched.set(true)"
+              [attr.aria-invalid]="projectNameError() ? 'true' : null"
+              [attr.aria-describedby]="projectNameError() ? projectNameKey + '-error' : null"
+            />
+            @if (projectNameError(); as message) {
+              <p class="error" [id]="projectNameKey + '-error'">{{ message }}</p>
+            }
+          </div>
+
+          @for (item of fields(); track item.key) {
+            <fieldset class="field">
+              <legend>{{ item.field.label }}</legend>
+
+              @if (item.field.description) {
+                <p class="hint">{{ item.field.description }}</p>
+              }
+
+              @if (item.isToggle) {
+                <label class="toggle">
+                  <input
+                    type="checkbox"
+                    [formControlName]="item.key"
+                    [attr.data-field]="item.key"
+                  />
+                  Ativar {{ item.field.label }}
+                </label>
+              } @else {
+                @for (option of item.field.values; track option.value) {
+                  <label class="option">
+                    <input
+                      type="radio"
+                      [formControlName]="item.key"
+                      [value]="option.value"
+                      [attr.data-field]="item.key"
+                      [attr.data-value]="option.value"
+                      [attr.disabled]="availabilityOf(item.key, option.value)?.disabled ? '' : null"
+                      [attr.aria-describedby]="
+                        availabilityOf(item.key, option.value)?.reason
+                          ? item.key + '-' + option.value + '-reason'
+                          : null
+                      "
+                    />
+                    <span>{{ option.label }}</span>
+                    @if (option.description) {
+                      <span class="hint">{{ option.description }}</span>
+                    }
+                    @if (availabilityOf(item.key, option.value); as state) {
+                      @if (state.disabled && state.reason) {
+                        <span class="reason" [id]="item.key + '-' + option.value + '-reason'">
+                          {{ state.reason }}
+                        </span>
+                      }
+                    }
+                  </label>
+                }
+              }
+
+              @for (message of messagesFor(item.key); track message) {
+                <p class="error" role="alert">{{ message }}</p>
+              }
+            </fieldset>
+          }
+
+          <button type="submit" [disabled]="generating()">
+            {{ generating() ? 'Gerando…' : 'Gerar projeto' }}
+          </button>
+        </form>
+
+        @if (generationError(); as message) {
+          <p class="error" role="alert">{{ message }}</p>
+        }
+
+        @if (generatedFileName(); as fileName) {
+          <p role="status">Download de {{ fileName }} concluído.</p>
+        }
+      }
+    }
+  }
+</main>

@@ -31,15 +31,44 @@ combinações sem subir a API.
 | `dotnet-ef` | 10.0.12 | global tool |
 | Node | 24.18.1 | instalado |
 | Angular CLI | 22.1.2 | instalado |
-| `Microsoft.EntityFrameworkCore.Sqlite` | 10.0.12 | NuGet |
-| `Npgsql.EntityFrameworkCore.PostgreSQL` | 10.0.3 | NuGet |
-| `Microsoft.AspNetCore.OpenApi` | 10.0.12 | NuGet |
-| `Swashbuckle.AspNetCore` | 10.2.3 | NuGet, **apenas UI** — ver [ADR-0001](../decisions/adr-0001-swagger.md) |
 | PostgreSQL | 18, serviço nativo `postgresql-x64-18` | instalado |
+
+### Pacotes da plataforma (`Directory.Packages.props`, fixados em T01)
+
+| Pacote | Versão | Licença |
+|---|---|---|
+| `Microsoft.AspNetCore.OpenApi` | 10.0.12 | MIT |
+| `Microsoft.AspNetCore.Mvc.Testing` | 10.0.12 | MIT |
+| `Microsoft.NET.Test.Sdk` | 18.10.0 | MIT |
+| `xunit.v3` | 3.2.2 | Apache-2.0 |
+| `xunit.runner.visualstudio` | 3.1.5 | Apache-2.0 |
+
+### Pacotes dos projetos gerados (a partir de T03)
+
+Versões literais nos `.csproj` compostos pelos templates — **fora** do `Directory.Packages.props`,
+porque o ZIP precisa ser autocontido.
+
+| Pacote | Versão | Observação |
+|---|---|---|
+| `Microsoft.EntityFrameworkCore.Sqlite` | 10.0.12 | |
+| `Npgsql.EntityFrameworkCore.PostgreSQL` | 10.0.3 | |
+| `Swashbuckle.AspNetCore` | 10.2.3 | **apenas UI** — ver [ADR-0001](../decisions/adr-0001-swagger.md) |
 
 Versões **exatas**, sem intervalo e sem `*`. Um `Directory.Packages.props` centraliza as versões
 da plataforma. Os projetos gerados carregam versões literais nos `.csproj` — eles precisam ser
-autocontidos.
+autocontidos, e por isso **não** aparecem no `Directory.Packages.props`.
+
+No frontend a regra se cumpre de outra forma: lockfile versionado + `npm ci`. Ver
+[ADR-0009](../decisions/adr-0009-fixacao-de-versoes-npm.md).
+
+## Armadilha operacional: limpeza de `bin/`
+
+Um `dotnet clean` ou uma limpeza recursiva de `bin/` e `obj/` na raiz **apaga também
+`src/web/node_modules/**/bin/`**, inclusive `@angular/cli/bin/ng.js`. O sintoma é `npm test`
+falhando com `MODULE_NOT_FOUND` logo depois de um build .NET, e a recuperação custa um
+`npm ci` inteiro. Aconteceu em T01.
+
+Qualquer script de limpeza no repositório **precisa excluir `node_modules`**.
 
 ## Decisões estruturais
 

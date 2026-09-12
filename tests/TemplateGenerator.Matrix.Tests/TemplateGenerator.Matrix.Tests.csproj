@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    As quatro camadas da matriz (ADR-0002 e docs/quality/test-strategy.md).
+    Referencia apenas a biblioteca de geração: as camadas 1 a 4 exercitam as 32 combinações
+    SEM subir a Api — é exatamente isso que a fronteira de TemplateGenerator.Generation compra.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>TemplateGenerator.Matrix.Tests</RootNamespace>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TemplateGenerator.Generation\TemplateGenerator.Generation.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -42,11 +42,31 @@ atualize os dois.**
 
 - Ser um identificador C# válido por segmento, segmentos separados por `.`
   (ex.: `Acme.Billing.Api`).
-- Cada segmento: começa com letra ou `_`, seguido de letras, dígitos ou `_`.
+- Cada segmento: começa com letra **ASCII** (`A-Z`, `a-z`) ou `_`, seguido de letras ASCII,
+  dígitos ou `_`.
 - Não colidir com palavra reservada do C# em nenhum segmento.
 - Entre 1 e 100 caracteres no total.
 - Não conter `/`, `\`, `..`, caractere de controle, nem nome reservado do Windows
   (`CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`).
+
+### Por que ASCII e não Unicode
+
+O C# aceita `Cotação.Api` como identificador, e a interface do produto é em português — a
+tentação de permitir acentos é real. Foi **decidido restringir a ASCII** mesmo assim.
+
+O nome vira duas coisas fora do C#: **diretório dentro do ZIP** e **nome de arquivo no
+`Content-Disposition`**. Unicode nos dois exige a flag UTF-8 nas entradas do ZIP e codificação
+RFC 5987 no header, e cada um é uma chance a mais de extração errada em ferramenta antiga, além
+de um detalhe a mais no determinismo do [ADR-0003](../decisions/adr-0003-zip-deterministico.md).
+
+A mensagem de erro precisa dizer o que fazer, não só recusar: *"Use apenas letras sem acento,
+dígitos e `_`."*
+
+### Espaço em branco
+
+O servidor **apara espaços nas pontas** antes de validar, igual ao frontend. Duas validações com
+comportamentos diferentes para a mesma entrada produzem divergência entre quem usa a tela e quem
+chama a API direto — e essa divergência é mais cara que a rigidez.
 
 A mesma regra vale no frontend (feedback imediato) e no backend (fonte de verdade). O backend
 rejeita com `ProblemDetails` mesmo que o frontend tenha deixado passar.

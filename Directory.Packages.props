@@ -1,0 +1,31 @@
+<Project>
+
+  <!--
+    Gerenciamento central de versões da PLATAFORMA (RNF-06).
+
+    Regras:
+      - Toda versão é exata. Nunca intervalo (`[1.0,2.0)`), nunca curinga (`10.*`).
+      - Só entra aqui o que a plataforma (Api, Generation e os projetos de teste) consome hoje.
+      - As versões dos PROJETOS GERADOS não moram aqui: o ZIP precisa ser autocontido e carrega
+        versões literais nos `.csproj` compostos pelos templates. A tabela canônica dessas
+        versões está em docs/architecture/platform.md e é assunto de T03 em diante.
+  -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup Label="API da plataforma">
+    <!-- Documento OpenAPI nativo do .NET 10. Ver ADR-0001. -->
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup Label="Testes">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <!-- WebApplicationFactory para os testes de integração da Api. -->
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+  </ItemGroup>
+
+</Project>

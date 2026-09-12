@@ -44,7 +44,9 @@
       "id": "T01",
       "order": 1,
       "title": "Estrutura .NET/Angular, versoes e contratos basicos",
-      "state": "pending",
+      "state": "done",
+      "startedAt": "2026-09-12",
+      "finishedAt": "2026-09-12",
       "dependsOn": ["T00"],
       "roles": ["architect", "backend", "frontend"],
       "skills": [],
@@ -65,7 +67,7 @@
         "Chamar os dois endpoints e conferir contrato e ProblemDetails."
       ],
       "blockers": [],
-      "report": null
+      "report": "docs/reports/T01.md"
     },
     {
       "id": "T02",
@@ -83,7 +85,8 @@
         "Os oito estados de visual-spec.md implementados, incluindo catalogo indisponivel.",
         "Opcao incompativel aparece desabilitada com o motivo visivel, nunca apenas ausente.",
         "Navegacao completa por teclado.",
-        "Resumo lateral mostra arquitetura, funcionalidades e estrutura prevista do projeto."
+        "Resumo lateral mostra arquitetura, funcionalidades e estrutura prevista do projeto.",
+        "A tela distingue 'API fora do ar' de 'rota ausente' usando GET /api/health, que foi criado em T01 exatamente para isso e ainda nao e consumido pelo frontend."
       ],
       "verifications": [
         "Testes de formulario e de componentes passando.",
@@ -108,6 +111,7 @@
         "Nenhum comando executado, nenhum pacote restaurado e nada compilado durante a requisicao (RNF-01).",
         "Path traversal, caminho duplicado e nome invalido rejeitados com ProblemDetails (RNF-03).",
         "Manifesto presente com templateVersion e opcoes escolhidas (RF-22).",
+        "Todo PackageReference nos .csproj gerados carrega versao exata, sem intervalo e sem curinga, verificado por teste da camada 1 (RNF-06). Essas versoes ficam literais nos templates, fora do Directory.Packages.props da plataforma, e por isso nao sao cobertas pelo gerenciamento central — ver relatorio de T01.",
         "Projeto extraido compila e roda; /health publico e CRUD de Item completo.",
         "Dados perdidos apos reinicio, conforme RF-16.",
         "Comandos do README executam sem modificar codigo-fonte.",
@@ -266,7 +270,8 @@
         "Envio gera e baixa o ZIP, com estado de geracao em andamento visivel (RF-05).",
         "Envio duplicado nao gera dois downloads (RF-07).",
         "Erro de validacao preserva as escolhas e mostra mensagem em portugues no campo certo (RF-06).",
-        "Fluxo Playwright preenche a tela, baixa e inspeciona o ZIP baixado."
+        "Fluxo Playwright preenche a tela, baixa e inspeciona o ZIP baixado.",
+        "Existe um snapshot versionado do JSON de GET /api/template-options: um teste no backend afirma o payload contra ele, e a fixture do frontend deriva do mesmo arquivo. Motivo: em T01 a fixture divergiu do payload real em tres pontos (type, when escalar, description ausente) sem quebrar teste algum, porque o codigo tolera as duas formas na leitura — a deriva so apareceu em conferencia manual."
       ],
       "verifications": [
         "Testes de integracao do frontend.",
@@ -292,7 +297,9 @@
         "Camada 3 passa nas combinacoes de execucao, com e sem Swagger.",
         "Nomes invalidos, a combinacao proibida e downloads concorrentes tratados corretamente.",
         "Nenhuma dependencia desmarcada e nenhuma referencia arquitetural indevida em nenhuma combinacao.",
-        "Parecer de seguranca e de licencas do reviewer, escrito, sem pendencia aberta."
+        "Parecer de seguranca e de licencas do reviewer, escrito, sem pendencia aberta.",
+        "Existe teste de guarda de RNF-06 para a plataforma: falha diante de intervalo ou curinga no Directory.Packages.props. Hoje 'versao exata' na plataforma e so convencao — o backlog ja cobre os .csproj gerados em T03, mas nao a plataforma.",
+        "A auditoria de licencas npm e um script que FALHA fora da lista permitida, nao uma tabela mantida a mao. Em T01 eram 502 dependencias transitivas; esse numero nao se mantem manualmente."
       ],
       "verifications": [
         "Executar as camadas 1, 2 e 3 completas.",

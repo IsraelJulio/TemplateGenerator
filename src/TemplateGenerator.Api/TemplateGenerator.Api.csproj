@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>TemplateGenerator.Api</RootNamespace>
+    <!-- Minimal APIs, sem controllers (docs/architecture/platform.md). -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Documento OpenAPI nativo do .NET 10; habilitado só em Development. Ver ADR-0001. -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TemplateGenerator.Generation\TemplateGenerator.Generation.csproj" />
+  </ItemGroup>
+
+</Project>

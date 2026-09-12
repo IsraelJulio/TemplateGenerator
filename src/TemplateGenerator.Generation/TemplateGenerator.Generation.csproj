@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    FRONTEIRA ARQUITETURAL (docs/architecture/platform.md).
+
+    Esta biblioteca é PURA: entra configuração, sai um fluxo de bytes.
+
+    É PROIBIDO neste projeto:
+      - `Microsoft.NET.Sdk.Web` ou qualquer `FrameworkReference` de `Microsoft.AspNetCore.App`;
+      - qualquer provider de banco (EF Core, Npgsql, Microsoft.Data.Sqlite, SqlClient, ...).
+
+    A proibição não é honra: `tests/TemplateGenerator.Generation.Tests/Architecture/
+    GenerationBoundaryTests.cs` inspeciona o grafo de restore e as referências do assembly e
+    falha se alguém acrescentar uma dessas dependências aqui.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>TemplateGenerator.Generation</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Os arquivos de template são conteúdo versionado (docs/architecture/generation-engine.md),
+      nunca strings em C#. Ficam fora da compilação; T03 define como são lidos e empacotados.
+    -->
+    <None Include="Templates\**\*" />
+  </ItemGroup>
+
+</Project>

@@ -53,11 +53,71 @@ A definir em T02, com os arquivos e as licenças versionados junto:
 
 Ambas hospedadas localmente, sem CDN.
 
-## Pacotes NuGet
+## Pacotes NuGet — plataforma
 
-Versões exatas em [`architecture/platform.md`](architecture/platform.md). Todos MIT ou
-Apache 2.0; `Npgsql.EntityFrameworkCore.PostgreSQL` é PostgreSQL License. Confirmar cada licença
-ao fixar a versão, no papel `reviewer`.
+Fixados em T01, no `Directory.Packages.props`. Versões exatas, sem intervalo nem curinga
+(RNF-06), conferidas pelo `reviewer`:
+
+| Pacote | Versão | Licença |
+|---|---|---|
+| `Microsoft.AspNetCore.OpenApi` | 10.0.12 | MIT |
+| `Microsoft.AspNetCore.Mvc.Testing` | 10.0.12 | MIT |
+| `Microsoft.NET.Test.Sdk` | 18.10.0 | MIT |
+| `xunit.v3` | 3.2.2 | Apache-2.0 |
+| `xunit.runner.visualstudio` | 3.1.5 | Apache-2.0 |
+
+## Pacotes NuGet — projetos gerados
+
+Entram a partir de T03 e **não** aparecem no `Directory.Packages.props`: são versões literais nos
+`.csproj` compostos pelos templates, porque o ZIP precisa ser autocontido. Licenças a confirmar
+ao fixar cada versão:
+
+| Pacote | Versão prevista | Licença |
+|---|---|---|
+| `Microsoft.EntityFrameworkCore.Sqlite` | 10.0.12 | MIT |
+| `Npgsql.EntityFrameworkCore.PostgreSQL` | 10.0.3 | PostgreSQL License |
+| `Swashbuckle.AspNetCore` | 10.2.3 | MIT |
+
+## Pacotes npm — plataforma
+
+502 pacotes no `package-lock.json` (T01), contando transitivas. Auditoria do lockfile:
+
+| Licença | Pacotes |
+|---|---|
+| MIT | 431 |
+| ISC | 25 |
+| BSD-2-Clause | 12 |
+| **MPL-2.0** | **12** |
+| Apache-2.0 | 10 |
+| BSD-3-Clause | 6 |
+| MIT-0 (2) / CC-BY-4.0 / CC0-1.0 / BlueOak-1.0.0 / 0BSD | 6 |
+| **Total** | **502** |
+
+**Nenhum pacote sem licença declarada.** A coluna conta **pacotes**, não nomes de licença — a
+última linha agrupa 5 licenças distintas em 6 pacotes, porque `MIT-0` aparece duas vezes. A
+tabela tem de somar exatamente o total; se não somar, está errada.
+
+### Decisão sobre os 12 MPL-2.0
+
+Os doze são `lightningcss` 1.33.0 e seus binários por plataforma, todos marcados `dev` no
+lockfile — fazem parte do toolchain de build do Angular.
+
+MPL-2.0 é *copyleft fraco*, com obrigação **por arquivo**: recai sobre modificações nos arquivos
+do próprio `lightningcss`, não sobre código que apenas o usa como ferramenta. Nós não o
+modificamos, não o redistribuímos e ele não entra em nenhum ZIP gerado.
+
+**Decisão: aceito**, como **exceção explícita à RNF-09** — não como reclassificação da MPL-2.0
+como permissiva, que ela não é. Um copyleft fraco restrito a arquivos de uma ferramenta de build
+que não redistribuímos não cria obrigação sobre este projeto.
+
+> **Esta decisão expira se a plataforma passar a ser redistribuída junto com suas dependências**
+> (um pacote incluindo `node_modules`, uma imagem, um instalador). Ela se apoia inteiramente em
+> "não redistribuímos", e o ZIP gerado — único canal de distribuição do projeto — não contém
+> `lightningcss`. Se essa premissa mudar, a decisão precisa ser refeita, não herdada.
+
+> ⚠️ **502 dependências transitivas não se mantêm à mão.** Esta tabela é um retrato de T01. A
+> manutenção precisa virar script de auditoria que **falhe** diante de licença fora da lista
+> permitida — está registrado como tarefa em `backlog.json`.
 
 ## Ferramentas do ambiente
 
