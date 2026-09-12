@@ -1,4 +1,7 @@
 using TemplateGenerator.Api.Endpoints;
+using TemplateGenerator.Api.Generation;
+using TemplateGenerator.Generation;
+using TemplateGenerator.Generation.Engine;
 
 // Composição mínima da API geradora.
 //
@@ -10,6 +13,13 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // ProblemDetails (RFC 9457) é o formato de erro do contrato, inclusive para falhas não tratadas.
 builder.Services.AddProblemDetails();
+
+// O motor de geração. Singleton porque ele não tem estado: catálogo e templates são imutáveis e
+// compartilhados, e tudo que pertence a uma geração vive na pilha daquela requisição (RNF-04).
+builder.Services.AddSingleton<IGenerationEngine, GenerationEngine>();
+
+// Limite de requisições por origem e de gerações simultâneas, com 429 e Retry-After (RNF-04).
+builder.Services.AddGenerationRateLimiter(builder.Configuration);
 
 // Documento OpenAPI nativo do .NET 10 (ADR-0001). Só em Development.
 if (builder.Environment.IsDevelopment())
@@ -33,6 +43,9 @@ app.UseExceptionHandler(new ExceptionHandlerOptions
 });
 
 app.UseStatusCodePages();
+
+// Antes do roteamento das rotas de geração: recusar cedo é o ponto de um limite.
+app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
 {

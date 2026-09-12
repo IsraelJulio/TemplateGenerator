@@ -1,6 +1,8 @@
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using TemplateGenerator.Generation.Catalog;
@@ -18,8 +20,9 @@ namespace TemplateGenerator.Api.Tests;
 /// conveniência, e a única garantia real é a que está verificada aqui.
 /// </para>
 /// <para>
-/// Enquanto o motor de geração não existir (T03), a configuração válida responde
-/// <c>501</c> — ver <c>GeneratorEndpoints.CreateTemplate</c>.
+/// Desde T03 a configuração válida responde <c>200 application/zip</c> com o pacote gerado. Até
+/// T02 ela respondia <c>501</c>, porque o motor não existia; o teste que afirmava isso continua
+/// aqui, com o mesmo request e a asserção trocada.
 /// </para>
 /// </remarks>
 public sealed class TemplateCreationEndpointTests : IClassFixture<GeneratorApiFactory>
@@ -54,22 +57,101 @@ public sealed class TemplateCreationEndpointTests : IClassFixture<GeneratorApiFa
     }
 
     [Fact]
-    public async Task Configuracao_valida_responde_501_enquanto_o_motor_nao_existe()
+    public async Task Configuracao_valida_responde_200_com_um_ZIP_de_verdade()
     {
-        // Honestidade explícita: a Api não finge gerar. Quando T03 entregar o motor, este teste
-        // muda para 200 com application/zip — e a mudança fica visível no diff.
+        // Este teste afirmava `501 Not Implemented` até T02: o motor não existia e um 200 com
+        // pacote vazio teria sido uma afirmação falsa de que a geração aconteceu. O motor entrou
+        // em T03 e a troca é esta — a mesma configuração, o mesmo request, outro contrato de
+        // resposta (docs/architecture/http-contract.md, "Estado transitório: 501").
         using HttpResponseMessage response = await PostAsync(ValidConfiguration());
 
-        Assert.Equal(HttpStatusCode.NotImplemented, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/zip", response.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(
+            "attachment; filename=\"Acme.Billing.Api.zip\"",
+            response.Content.Headers.ContentDisposition?.ToString());
 
-        using JsonDocument problem = await ReadJsonAsync(response);
+        byte[] archive = await response.Content.ReadAsByteArrayAsync(
+            TestContext.Current.CancellationToken);
+
+        // Não basta ter bytes: o pacote precisa abrir como ZIP.
+        using ZipArchive opened = new(new MemoryStream(archive), ZipArchiveMode.Read);
+
+        Assert.NotEmpty(opened.Entries);
+    }
+
+    [Fact]
+    public async Task O_pacote_traz_o_manifesto_com_a_versao_e_as_opcoes_pedidas()
+    {
+        Dictionary<string, object?> configuration = ValidConfiguration();
+
+        using HttpResponseMessage response = await PostAsync(configuration);
+        using ZipArchive archive = await OpenArchiveAsync(response);
+
+        ZipArchiveEntry entry = Assert.Single(
+            archive.Entries,
+            candidate => candidate.FullName == ".templategenerator/manifest.json");
+
+        using StreamReader reader = new(entry.Open());
+        using JsonDocument manifest = JsonDocument.Parse(await reader.ReadToEndAsync(
+            TestContext.Current.CancellationToken));
 
         Assert.Equal(
-            "https://templategenerator.local/problems/generation-not-implemented",
-            problem.RootElement.GetProperty("type").GetString());
+            TemplateCatalog.CurrentVersion,
+            manifest.RootElement.GetProperty("templateVersion").GetString());
 
-        Assert.False(problem.RootElement.TryGetProperty("errors", out _));
+        JsonElement options = manifest.RootElement.GetProperty("options");
+
+        Assert.Equal("Acme.Billing.Api", options.GetProperty(CatalogFields.ProjectName).GetString());
+        Assert.Equal("simple", options.GetProperty(CatalogFields.Architecture).GetString());
+        Assert.Equal("sqlite", options.GetProperty(CatalogFields.Database).GetString());
+        Assert.Equal("identity", options.GetProperty(CatalogFields.Authentication).GetString());
+        Assert.True(options.GetProperty(CatalogFields.Swagger).GetBoolean());
+        Assert.Equal("net10.0", options.GetProperty(CatalogFields.DotnetVersion).GetString());
+    }
+
+    [Fact]
+    public async Task Dois_downloads_da_mesma_configuracao_tem_o_mesmo_SHA256()
+    {
+        // RNF-02 medido onde importa: no que sai pela rede, e não só no que o motor escreve num
+        // MemoryStream de teste.
+        using HttpResponseMessage first = await PostAsync(ValidConfiguration());
+        using HttpResponseMessage second = await PostAsync(ValidConfiguration());
+
+        Assert.Equal(await HashAsync(first), await HashAsync(second));
+    }
+
+    [Fact]
+    public async Task O_nome_do_arquivo_baixado_e_o_nome_do_projeto()
+    {
+        Dictionary<string, object?> configuration = ValidConfiguration();
+        configuration[CatalogFields.ProjectName] = " Contoso.Faturamento.Api ";
+
+        using HttpResponseMessage response = await PostAsync(configuration);
+
+        // O nome vai aparado: é a mesma forma que a validação examinou
+        // (docs/product/option-matrix.md, "Espaço em branco").
+        Assert.Equal(
+            "attachment; filename=\"Contoso.Faturamento.Api.zip\"",
+            response.Content.Headers.ContentDisposition?.ToString());
+    }
+
+    [Fact]
+    public async Task Nenhuma_entrada_do_pacote_sai_da_raiz()
+    {
+        using HttpResponseMessage response = await PostAsync(ValidConfiguration());
+        using ZipArchive archive = await OpenArchiveAsync(response);
+
+        Assert.All(archive.Entries, entry =>
+        {
+            Assert.DoesNotContain("..", entry.FullName.Split('/'));
+            Assert.DoesNotContain('\\', entry.FullName);
+            Assert.False(entry.FullName.StartsWith('/'));
+        });
+
+        string[] paths = [.. archive.Entries.Select(entry => entry.FullName)];
+
+        Assert.Equal(paths.Length, paths.Distinct(StringComparer.Ordinal).Count());
     }
 
     [Fact]
@@ -294,6 +376,24 @@ public sealed class TemplateCreationEndpointTests : IClassFixture<GeneratorApiFa
         using StringContent content = new(json, Encoding.UTF8, "application/json");
 
         return await client.PostAsync(_route, content, TestContext.Current.CancellationToken);
+    }
+
+    private static async Task<ZipArchive> OpenArchiveAsync(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        byte[] bytes = await response.Content.ReadAsByteArrayAsync(
+            TestContext.Current.CancellationToken);
+
+        return new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
+    }
+
+    private static async Task<string> HashAsync(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        return Convert.ToHexString(SHA256.HashData(
+            await response.Content.ReadAsByteArrayAsync(TestContext.Current.CancellationToken)));
     }
 
     private static async Task<JsonDocument> ReadJsonAsync(HttpResponseMessage response) =>

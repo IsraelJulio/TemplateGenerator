@@ -18,12 +18,55 @@
     <RootNamespace>TemplateGenerator.Generation</RootNamespace>
   </PropertyGroup>
 
+  <!--
+    ================================================================================
+    CONTRATO DE FRAGMENTOS DE TEMPLATE  (papel: template-engineer)
+    ================================================================================
+
+    Os arquivos de template são conteúdo versionado (docs/architecture/generation-engine.md),
+    nunca strings em C#. Eles são EMBUTIDOS no assembly, e não copiados para `bin/`: a geração
+    não toca o sistema de arquivos (RNF-01, RNF-04) e o mesmo binário se comporta igual rodando
+    por `dotnet run`, publicado ou dentro de `WebApplicationFactory`.
+
+    COMO ACRESCENTAR UM FRAGMENTO
+      1. Crie o arquivo sob `Templates/<eixo>/<valor>/<caminho dentro do ZIP>`.
+      2. Não há passo 2. O curinga abaixo pega o arquivo; NENHUMA mudança em C# e NENHUMA mudança
+         neste `.csproj` são necessárias.
+
+    REGRAS
+      - `Templates/common/README.md` vira `README.md` na raiz do pacote: o caminho dentro do
+        fragmento é o caminho dentro do ZIP.
+      - Marcadores no nome do arquivo E no conteúdo, na forma `__Nome__` (ver `TemplateTokens`).
+      - `.gitkeep` é o único nome ignorado — é plumbing de repositório, não fragmento. Um
+        `.gitignore` ou `.editorconfig` de template entra normalmente.
+      - Fragmentos são arquivos de TEXTO UTF-8. Conteúdo binário não é suportado: tudo passa pela
+        normalização do ADR-0003 (sem BOM, LF, terminando em nova linha).
+      - Dois fragmentos que escrevam o mesmo caminho são um DEFEITO, e o motor recusa a geração.
+  -->
+
   <ItemGroup>
     <!--
-      Os arquivos de template são conteúdo versionado (docs/architecture/generation-engine.md),
-      nunca strings em C#. Ficam fora da compilação; T03 define como são lidos e empacotados.
+      `Templates/` está fora de toda compilação e de todo glob padrão. Sem estas três linhas, um
+      template `.cs` seria compilado junto com a biblioteca — `Program.cs` de um projeto gerado
+      viraria um segundo ponto de entrada aqui dentro.
     -->
-    <None Include="Templates\**\*" />
+    <Compile Remove="Templates\**" />
+    <None Remove="Templates\**" />
+    <EmbeddedResource Remove="Templates\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      `LogicalName` explícito porque o nome default do MSBuild troca cada separador de diretório
+      por ponto: `Templates.common.global.json` não permite distinguir diretório de extensão. O
+      `Replace('\','/')` normaliza o separador em tempo de compilação, para que o nome do recurso
+      seja o mesmo em qualquer sistema operacional.
+
+      O prefixo `templates/` concorda com `EmbeddedTemplateSource.ResourcePrefix`.
+    -->
+    <EmbeddedResource Include="Templates\**\*"
+                      Exclude="Templates\**\.gitkeep"
+                      LogicalName="templates/$([System.String]::Copy('%(RecursiveDir)').Replace('\','/'))%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using TemplateGenerator.Generation;
 using TemplateGenerator.Generation.Catalog;
 using TemplateGenerator.Generation.Validation;
@@ -23,7 +24,8 @@ namespace TemplateGenerator.Api.Endpoints;
 ///     <description>
 ///     <c>POST /api/templates</c> — 200 com <c>application/zip</c> e
 ///     <c>Content-Disposition: attachment</c>; 400 em <c>application/problem+json</c> (RFC 9457)
-///     com os erros endereçados ao campo que os causou; 429 com <c>Retry-After</c> nos limites.
+///     com os erros endereçados ao campo que os causou; 429 com <c>Retry-After</c> nos limites
+///     (<see cref="TemplateGenerator.Api.Generation.GenerationRateLimiting"/>).
 ///     </description>
 ///   </item>
 ///   <item>
@@ -107,8 +109,8 @@ public static class GeneratorEndpoints
         TypedResults.Ok(TemplateCatalog.Current);
 
     /// <summary>
-    /// <c>POST /api/templates</c> — valida a configuração pedida e, quando ela é válida, geraria
-    /// o ZIP.
+    /// <c>POST /api/templates</c> — valida a configuração pedida e, quando ela é válida, gera o
+    /// ZIP direto no corpo da resposta.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -116,15 +118,21 @@ public static class GeneratorEndpoints
     /// verificado (docs/architecture/http-contract.md).
     /// </para>
     /// <para>
-    /// O caminho feliz responde <c>501 Not Implemented</c> enquanto o motor de geração não
-    /// existir. A alternativa — devolver um ZIP vazio com <c>200</c> — seria afirmar que a
-    /// geração aconteceu; um cliente guardaria o arquivo, o <c>Content-Disposition</c> daria um
-    /// nome de projeto a um pacote sem projeto nenhum, e o erro só apareceria na hora de abrir.
-    /// O motor é entregue em T03 (docs/architecture/generation-engine.md).
+    /// Validação e geração acontecem em dois momentos separados, e essa separação é a razão de o
+    /// resultado ser um <see cref="GeneratedArchiveResult"/> em vez de escrita aqui dentro:
+    /// enquanto esta função executa, nenhum byte foi para o corpo, então uma recusa ainda
+    /// consegue virar <c>400</c> em <c>application/problem+json</c> (RNF-03). Depois do primeiro
+    /// byte, o status já foi enviado e não há mais como dizer "não".
+    /// </para>
+    /// <para>
+    /// Até T02 o caminho feliz respondia <c>501</c>, porque o motor não existia e um <c>200</c>
+    /// com pacote vazio teria afirmado uma geração que não aconteceu. O motor existe desde T03 e
+    /// o <c>501</c> deixou de ser emitido.
     /// </para>
     /// </remarks>
-    private static Results<ValidationProblem, ProblemHttpResult> CreateTemplate(
-        TemplateRequestBody? body)
+    private static Results<ValidationProblem, GeneratedArchiveResult> CreateTemplate(
+        TemplateRequestBody? body,
+        [FromServices] IGenerationEngine engine)
     {
         // Corpo ausente não é um caso à parte: é um corpo em que nenhum campo veio, e a resposta
         // útil é a mesma lista de campos obrigatórios.
@@ -156,18 +164,7 @@ public static class GeneratorEndpoints
                 type: ProblemTypes.InvalidConfiguration);
         }
 
-        return TypedResults.Problem(
-            detail:
-                "A configuração é válida, mas o motor de geração do ZIP ainda não foi " +
-                "implementado. Ele é entregue na tarefa T03 " +
-                "(docs/architecture/generation-engine.md).",
-            statusCode: StatusCodes.Status501NotImplemented,
-            title: "Geração ainda não implementada",
-            type: ProblemTypes.GenerationNotImplemented,
-            extensions: new Dictionary<string, object?>(StringComparer.Ordinal)
-            {
-                ["templateVersion"] = catalog.TemplateVersion,
-            });
+        return new GeneratedArchiveResult(request, engine);
     }
 
     /// <summary>

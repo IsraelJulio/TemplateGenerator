@@ -14,7 +14,18 @@ public static class ProblemTypes
     public const string InvalidConfiguration =
         "https://templategenerator.local/problems/invalid-configuration";
 
-    /// <summary>Configuração válida, mas o motor de geração ainda não existe.</summary>
-    public const string GenerationNotImplemented =
-        "https://templategenerator.local/problems/generation-not-implemented";
+    /// <summary>
+    /// Limite de requisições por origem ou de gerações simultâneas atingido (RNF-04).
+    /// </summary>
+    /// <remarks>
+    /// A resposta carrega <c>Retry-After</c>. A configuração não tem defeito nenhum: o pedido
+    /// chegou na hora errada e vale repetir.
+    /// </remarks>
+    public const string TooManyRequests =
+        "https://templategenerator.local/problems/too-many-requests";
+
+    // Havia aqui `GenerationNotImplemented`, o 501 que a Api respondia enquanto o motor de
+    // geração não existia (T01/T02). O motor entrou em T03 e o `POST /api/templates` passou a
+    // responder `200 application/zip` — não existe mais estado em que a Api afirme "válido, mas
+    // não implementado". Ver docs/architecture/http-contract.md, "Estado transitório: 501".
 }

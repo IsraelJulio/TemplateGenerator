@@ -1,3 +1,4 @@
+using TemplateGenerator.Generation.Engine;
 using Xunit;
 
 namespace TemplateGenerator.Matrix.Tests;
@@ -7,25 +8,27 @@ namespace TemplateGenerator.Matrix.Tests;
 /// repositório, com os nomes que docs/architecture/generation-engine.md declara.
 /// </summary>
 /// <remarks>
-/// Os fragmentos em si chegam de T03 em diante. O que este teste protege agora é o contrato de
-/// diretórios — renomear um eixo sem atualizar a documentação quebra aqui, não em silêncio
-/// durante a composição.
+/// A lista de eixos vem de <see cref="TemplateAxes.All"/>, que o motor deriva do catálogo — não
+/// de uma cópia escrita aqui. Publicar um valor novo no catálogo passa a exigir o diretório
+/// correspondente automaticamente; renomear um eixo sem criar o diretório quebra aqui, e não em
+/// silêncio durante a composição.
 /// </remarks>
 public sealed class TemplateAxesTests
 {
-    public static TheoryData<string> Axes =>
-    [
-        "common",
-        "architecture/simple",
-        "architecture/clean",
-        "database/none",
-        "database/sqlite",
-        "database/postgresql",
-        "auth/none",
-        "auth/identity",
-        "auth/jwt",
-        "swagger/enabled",
-    ];
+    public static TheoryData<string> Axes
+    {
+        get
+        {
+            TheoryData<string> data = [];
+
+            foreach (string axis in TemplateAxes.All)
+            {
+                data.Add(axis);
+            }
+
+            return data;
+        }
+    }
 
     [Theory]
     [MemberData(nameof(Axes))]
