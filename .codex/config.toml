@@ -1,0 +1,16 @@
+# Configuração do Codex para este projeto.
+# Camada de projeto: só é carregada porque este diretório está marcado como trusted
+# no ~/.codex/config.toml. Ver docs/interop.md.
+
+# O AGENTS.md deste projeto é o manual de operação completo (~7 KB). O limite padrão
+# pode truncá-lo; elevamos para garantir que a seção 4 (procedimento de continuidade)
+# chegue inteira ao modelo.
+project_doc_max_bytes = 65536
+
+# Se por algum motivo o AGENTS.md não for encontrado, cair no CLAUDE.md, que aponta
+# de volta para ele. Retrocompatibilidade entre as duas ferramentas.
+project_doc_fallback_filenames = ["CLAUDE.md"]
+
+# `dotnet restore`, `npm install` e `dotnet tool` precisam de rede. Sem isto, cada
+# restore vira um pedido de aprovação no sandbox workspace-write.
+sandbox_workspace_write.network_access = true

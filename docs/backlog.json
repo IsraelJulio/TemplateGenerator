@@ -1,0 +1,328 @@
+{
+  "$comment": "Fonte unica de status do projeto. Somente o papel PO edita este arquivo (ADR-0004). Estados: pending | in_progress | blocked | done. No maximo uma tarefa in_progress.",
+  "project": "TemplateGenerator",
+  "templateVersion": "1.0.0",
+  "updatedAt": "2026-09-12",
+  "states": ["pending", "in_progress", "blocked", "done"],
+  "tasks": [
+    {
+      "id": "T00",
+      "order": 0,
+      "title": "Documentacao, agentes, skills, backlog e configuracao do PO",
+      "state": "in_progress",
+      "dependsOn": [],
+      "roles": ["po", "architect", "reviewer"],
+      "skills": [],
+      "objective": "Preparar o projeto para ser conduzido por agentes em Claude Code e em Codex: documentacao neutra de ferramenta, papeis, playbooks, backlog e configuracao verificada das duas ferramentas.",
+      "acceptanceCriteria": [
+        "AGENTS.md existe e contem o procedimento de continuidade executavel por uma sessao sem subagentes.",
+        "CLAUDE.md aponta para AGENTS.md e nao duplica regra alguma.",
+        "docs/ contem produto, arquitetura, design, qualidade, decisoes, papeis e playbooks, todos referenciados a partir de AGENTS.md.",
+        "Todo link relativo entre documentos resolve para arquivo existente.",
+        "Todo agente em .claude/agents/ aponta para um docs/roles/*.md existente.",
+        "Toda skill local aponta para um docs/playbooks/*.md existente.",
+        "Skills de terceiros fixadas em commit, com licenca preservada e procedencia em docs/THIRD-PARTY.md.",
+        "docs/backlog.json e JSON valido, com ids unicos, dependencias existentes e sem ciclo.",
+        "Decisoes a/b/c/d do plano registradas como ADR.",
+        ".codex/config.toml carrega na raiz do projeto e habilita rede no sandbox, comprovado por codex doctor.",
+        "Checklist de paridade de docs/interop.md passa inteiro.",
+        "Carregamento dos agentes no Claude Code confirmado como verificacao separada da revisao estrutural dos arquivos."
+      ],
+      "verifications": [
+        "Validar docs/backlog.json como JSON e conferir ids, dependencias e ausencia de ciclo.",
+        "Resolver todos os links relativos entre documentos.",
+        "codex doctor na raiz do projeto: config parse ok e network sandbox enabled.",
+        "Conferir que .claude/settings.json declara o agente padrao po.",
+        "Confirmar no Claude Code que os agentes de .claude/agents/ sao carregados."
+      ],
+      "blockers": [],
+      "report": "docs/reports/T00.md"
+    },
+    {
+      "id": "T01",
+      "order": 1,
+      "title": "Estrutura .NET/Angular, versoes e contratos basicos",
+      "state": "pending",
+      "dependsOn": ["T00"],
+      "roles": ["architect", "backend", "frontend"],
+      "skills": [],
+      "objective": "Criar o monorepositorio conforme docs/architecture/platform.md, com versoes fixadas e os dois endpoints respondendo com o contrato definido, ainda sem geracao real.",
+      "acceptanceCriteria": [
+        "Estrutura de src/ e tests/ conforme platform.md, com a solucao compilando.",
+        "TemplateGenerator.Generation nao referencia ASP.NET Core nem provider de banco.",
+        "GET /api/template-options responde o catalogo completo, incluindo a restricao identity-requires-database como dado.",
+        "POST /api/templates valida a configuracao e responde ProblemDetails para entrada invalida.",
+        "Aplicacao Angular criada e consumindo o catalogo do backend.",
+        "Versoes fixadas por versao exata, sem intervalo (RNF-06).",
+        "README da raiz descreve como subir plataforma e frontend localmente."
+      ],
+      "verifications": [
+        "dotnet build da solucao sem erro.",
+        "dotnet test dos projetos de teste existentes.",
+        "npm run build do frontend.",
+        "Chamar os dois endpoints e conferir contrato e ProblemDetails."
+      ],
+      "blockers": [],
+      "report": null
+    },
+    {
+      "id": "T02",
+      "order": 2,
+      "title": "Especificacao visual, componentes e estados da tela",
+      "state": "pending",
+      "dependsOn": ["T01"],
+      "roles": ["frontend", "reviewer"],
+      "skills": ["frontend-design"],
+      "objective": "Fixar os valores da direcao visual e implementar a tela com os oito estados de docs/design/visual-spec.md.",
+      "acceptanceCriteria": [
+        "Tokens de cor e tipografia fixados, com contraste AA para texto e indicador de foco.",
+        "Newsreader e Public Sans hospedadas localmente, com licencas preservadas e registradas em docs/THIRD-PARTY.md.",
+        "Layout de duas colunas no desktop e empilhado no celular, sem rolagem horizontal em nenhuma largura.",
+        "Os oito estados de visual-spec.md implementados, incluindo catalogo indisponivel.",
+        "Opcao incompativel aparece desabilitada com o motivo visivel, nunca apenas ausente.",
+        "Navegacao completa por teclado.",
+        "Resumo lateral mostra arquitetura, funcionalidades e estrutura prevista do projeto."
+      ],
+      "verifications": [
+        "Testes de formulario e de componentes passando.",
+        "Inspecao em navegador com conteudo real, em desktop e celular, com captura de tela no relatorio.",
+        "Percorrer a tela inteira por teclado."
+      ],
+      "blockers": [],
+      "report": null
+    },
+    {
+      "id": "T03",
+      "order": 3,
+      "title": "Motor ZIP e template Simples com CRUD em memoria",
+      "state": "pending",
+      "dependsOn": ["T01"],
+      "roles": ["backend", "template-engineer", "qa"],
+      "skills": ["dotnet-templates", "verify-mvp"],
+      "objective": "Implementar o motor de geracao deterministico e o primeiro template: arquitetura Simples, sem banco, sem autenticacao.",
+      "acceptanceCriteria": [
+        "POST /api/templates devolve um ZIP valido para a combinacao simple/none/none.",
+        "Geracao deterministica: duas geracoes da mesma configuracao produzem o mesmo SHA-256 (ADR-0003).",
+        "Nenhum comando executado, nenhum pacote restaurado e nada compilado durante a requisicao (RNF-01).",
+        "Path traversal, caminho duplicado e nome invalido rejeitados com ProblemDetails (RNF-03).",
+        "Manifesto presente com templateVersion e opcoes escolhidas (RF-22).",
+        "Projeto extraido compila e roda; /health publico e CRUD de Item completo.",
+        "Dados perdidos apos reinicio, conforme RF-16.",
+        "Comandos do README executam sem modificar codigo-fonte.",
+        "Limite de requisicoes e de geracoes simultaneas ativo, com 429 e Retry-After."
+      ],
+      "verifications": [
+        "Camada 1 para as combinacoes ja suportadas.",
+        "dotnet build e dotnet run do projeto extraido.",
+        "Exercitar CRUD e reinicio.",
+        "Executar os comandos do README gerado, do zero.",
+        "Testes de path traversal, nome invalido e download concorrente."
+      ],
+      "blockers": [],
+      "report": null
+    },
+    {
+      "id": "T04",
+      "order": 4,
+      "title": "Template Clean com comportamento equivalente",
+      "state": "pending",
+      "dependsOn": ["T03"],
+      "roles": ["template-engineer", "architect", "qa"],
+      "skills": ["dotnet-templates", "verify-mvp"],
+      "objective": "Entregar a arquitetura Clean com comportamento identico ao Simples do ponto de vista da API.",
+      "acceptanceCriteria": [
+        "Quatro projetos: Api, Application, Domain e Infrastructure.",
+        "Domain sem referencia de projeto e sem pacote de infraestrutura.",
+        "Dependencias respeitam o diagrama de docs/architecture/generated-projects.md.",
+        "Teste arquitetural falha diante de qualquer aresta fora do diagrama.",
+        "A API exposta e indistinguivel da versao Simples: mesmo /health e mesmo CRUD."
+      ],
+      "verifications": [
+        "Camada 1 nas combinacoes clean disponiveis.",
+        "dotnet build e dotnet run do projeto extraido.",
+        "Teste arquitetural de dependencias.",
+        "Comparar as respostas da API entre simple e clean."
+      ],
+      "blockers": [],
+      "report": null
+    },
+    {
+      "id": "T05",
+      "order": 5,
+      "title": "SQLite, PostgreSQL e migracoes",
+      "state": "pending",
+      "dependsOn": ["T04"],
+      "roles": ["template-engineer", "qa"],
+      "skills": ["dotnet-templates", "verify-mvp"],
+      "objective": "Adicionar persistencia com EF Core 10 nos dois providers, com migracao inicial propria de cada um.",
+      "acceptanceCriteria": [
+        "sqlite: migracao inicial de SQLite, connection string local pronta, dados sobrevivem ao reinicio.",
+        "postgresql: migracao inicial de PostgreSQL, connection string sem senha real, dados sobrevivem ao reinicio.",
+        "A migracao de um provider nao e usada pelo outro.",
+        "Nenhum pacote de banco presente quando database = none.",
+        "README de cada combinacao com o caminho inicial correto do banco.",
+        "Testes de PostgreSQL usam database descartavel no servico nativo e falham com mensagem explicita se o servico nao estiver disponivel (ADR-0005)."
+      ],
+      "verifications": [
+        "Camada 1 nas combinacoes com banco.",
+        "Aplicar migracao e executar em SQLite e em PostgreSQL.",
+        "CRUD, reinicio e releitura dos dados em ambos.",
+        "Conferir ausencia dos pacotes quando database = none."
+      ],
+      "blockers": [],
+      "report": null
+    },
+    {
+      "id": "T06",
+      "order": 6,
+      "title": "Autenticacao Identity nativa",
+      "state": "pending",
+      "dependsOn": ["T05"],
+      "roles": ["template-engineer", "reviewer", "qa"],
+      "skills": ["dotnet-templates", "verify-mvp"],
+      "objective": "Entregar ASP.NET Core Identity nativo sobre banco, com cadastro, login bearer e renovacao funcionando.",
+      "acceptanceCriteria": [
+        "Endpoints nativos do Identity disponiveis; cadastro, login e renovacao funcionam.",
+        "Nao exige segredo JWT.",
+        "CRUD protegido: sem token responde 401; token valido responde 200 independentemente de claims (RF-14, RF-15).",
+        "/health continua publico.",
+        "Combinacao identity + database none rejeitada com ProblemDetails.",
+        "README identifica os tokens como bearer proprios do Identity, nao JWT de terceiros.",
+        "README declara que envio de e-mail exige configuracao adicional e esta fora do fluxo garantido do MVP."
+      ],
+      "verifications": [
+        "Camada 1 nas combinacoes identity.",
+        "Executar cadastro, login e renovacao ponta a ponta.",
+        "Chamar o CRUD sem token e conferir 401.",
+        "Chamar /health sem token e conferir 200.",
+        "Conferir rejeicao de identity + database none."
+      ],
+      "blockers": [],
+      "report": null
+    },
+    {
+      "id": "T07",
+      "order": 7,
+      "title": "Autenticacao JWT externa",
+      "state": "pending",
+      "dependsOn": ["T06"],
+      "roles": ["template-engineer", "reviewer", "qa"],
+      "skills": ["dotnet-templates", "verify-mvp"],
+      "objective": "Entregar validacao de JWT de provedor externo via Authority e Audience, com emissor OIDC de teste in-process.",
+      "acceptanceCriteria": [
+        "Authority e Audience configurados em appsettings.json, sem provedor embutido.",
+        "Token valido acessa o CRUD protegido.",
+        "Assinatura invalida, emissor errado, audiencia errada e token expirado respondem 401 (RF-19).",
+        "Sem token responde 401; /health continua publico.",
+        "Funciona com qualquer banco, inclusive none.",
+        "Emissor OIDC de teste roda in-process, sem container (ADR-0006), com chave gerada no teste e nunca versionada.",
+        "README acrescenta o passo de apontar Authority e Audience para o provedor existente."
+      ],
+      "verifications": [
+        "Camada 1 nas combinacoes jwt.",
+        "Subir o emissor in-process e exercitar token valido.",
+        "Os quatro casos de rejeicao, um a um.",
+        "Conferir ausencia de qualquer segredo versionado."
+      ],
+      "blockers": [],
+      "report": null
+    },
+    {
+      "id": "T08",
+      "order": 8,
+      "title": "Swagger opcional e documentacao final dos ZIPs",
+      "state": "pending",
+      "dependsOn": ["T07"],
+      "roles": ["template-engineer", "qa"],
+      "skills": ["dotnet-templates", "verify-mvp"],
+      "objective": "Fechar o eixo Swagger conforme ADR-0001 e finalizar o README de cada combinacao.",
+      "acceptanceCriteria": [
+        "swagger = true: Microsoft.AspNetCore.OpenApi gera o documento e Swashbuckle fornece apenas a UI, ambos habilitados por padrao so em Development.",
+        "swagger = false: nenhum dos dois pacotes no .csproj e nenhuma rota de documentacao (RF-20).",
+        "README de cada combinacao cobre pre-requisitos, instalacao, configuracao, migracoes, execucao, autenticacao e teste do CRUD.",
+        "Todo comando de todo README executa sem modificar codigo-fonte (RF-21)."
+      ],
+      "verifications": [
+        "Camada 1 nas 32, conferindo presenca e ausencia dos pacotes de Swagger.",
+        "Subir combinacoes com e sem Swagger e conferir as rotas em runtime.",
+        "Executar os comandos do README das combinacoes da camada 3, do zero."
+      ],
+      "blockers": [],
+      "report": null
+    },
+    {
+      "id": "T09",
+      "order": 9,
+      "title": "Tela integrada ao catalogo e download",
+      "state": "pending",
+      "dependsOn": ["T02", "T08"],
+      "roles": ["frontend", "backend", "qa"],
+      "skills": ["verify-mvp"],
+      "objective": "Ligar a tela ao catalogo real e ao download, com todos os estados funcionando ponta a ponta.",
+      "acceptanceCriteria": [
+        "A tela monta os campos e as restricoes a partir do catalogo do backend, sem valor codificado (RF-02).",
+        "Envio gera e baixa o ZIP, com estado de geracao em andamento visivel (RF-05).",
+        "Envio duplicado nao gera dois downloads (RF-07).",
+        "Erro de validacao preserva as escolhas e mostra mensagem em portugues no campo certo (RF-06).",
+        "Fluxo Playwright preenche a tela, baixa e inspeciona o ZIP baixado."
+      ],
+      "verifications": [
+        "Testes de integracao do frontend.",
+        "Playwright ponta a ponta com inspecao do ZIP.",
+        "Teste de envio duplicado.",
+        "Inspecao visual em desktop e celular, com captura de tela."
+      ],
+      "blockers": [],
+      "report": null
+    },
+    {
+      "id": "T10",
+      "order": 10,
+      "title": "Matriz completa e revisao funcional, visual e de seguranca",
+      "state": "pending",
+      "dependsOn": ["T09"],
+      "roles": ["qa", "reviewer"],
+      "skills": ["verify-mvp"],
+      "objective": "Executar as camadas 1 a 3 inteiras e a revisao independente de qualidade, seguranca e licencas.",
+      "acceptanceCriteria": [
+        "Camada 1 passa nas 32 combinacoes, incluindo determinismo por SHA-256.",
+        "Camada 2 passa no conjunto pairwise, com a prova de cobertura de pares registrada.",
+        "Camada 3 passa nas combinacoes de execucao, com e sem Swagger.",
+        "Nomes invalidos, a combinacao proibida e downloads concorrentes tratados corretamente.",
+        "Nenhuma dependencia desmarcada e nenhuma referencia arquitetural indevida em nenhuma combinacao.",
+        "Parecer de seguranca e de licencas do reviewer, escrito, sem pendencia aberta."
+      ],
+      "verifications": [
+        "Executar as camadas 1, 2 e 3 completas.",
+        "Executar os testes de frontend e o fluxo Playwright.",
+        "Checklist completo do papel reviewer."
+      ],
+      "blockers": [],
+      "report": null
+    },
+    {
+      "id": "T11",
+      "order": 11,
+      "title": "Validacao em ambiente limpo e entrega local documentada",
+      "state": "pending",
+      "dependsOn": ["T10"],
+      "roles": ["po", "qa", "reviewer"],
+      "skills": ["verify-mvp"],
+      "objective": "Provar o criterio de sucesso do MVP num checkout novo, sem conhecimento previo do repositorio.",
+      "acceptanceCriteria": [
+        "Checkout novo, em diretorio diferente do de trabalho, sobe a plataforma seguindo apenas o README da raiz.",
+        "Uma combinacao e escolhida na tela, o ZIP e baixado e o projeto executa seguindo apenas o README gerado, sem editar codigo-fonte.",
+        "Camada 4 executada: dotnet build nas 32 combinacoes.",
+        "README da raiz registra os pre-requisitos reais do ambiente, incluindo PostgreSQL nativo e o download de navegadores do Playwright.",
+        "Nenhum passo do caminho depende de container (ADR-0005)."
+      ],
+      "verifications": [
+        "Clonar em diretorio limpo e seguir o README da raiz, do zero.",
+        "Executar a camada 4 completa.",
+        "Percorrer o fluxo de ponta a ponta como usuario final."
+      ],
+      "blockers": [],
+      "report": null
+    }
+  ]
+}

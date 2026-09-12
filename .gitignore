@@ -1,0 +1,43 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+artifacts/
+TestResults/
+*.trx
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+/playwright/.cache/
+
+# Bancos locais
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+
+# Segredos — nunca versionar
+appsettings.*.local.json
+*.pfx
+*.key
+.env
+.env.*
+
+# Saída de geração durante testes
+/tmp/
+/temp/
+generated/
+
+# Sistema operacional
+Thumbs.db
+.DS_Store

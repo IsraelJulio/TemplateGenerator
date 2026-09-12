@@ -1,0 +1,18 @@
+# Normalização de fim de linha.
+#
+# ADR-0003 exige que o conteúdo gerado use LF para que o SHA-256 do ZIP seja estável.
+# Sem isto, o autocrlf do Windows converteria os arquivos de template para CRLF no
+# checkout e o hash mudaria conforme o sistema operacional de quem gerou.
+
+* text=auto eol=lf
+
+# Binários — nunca normalizar.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.zip binary
+*.pdf binary
