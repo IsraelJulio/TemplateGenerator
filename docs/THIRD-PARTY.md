@@ -113,18 +113,22 @@ ao fixar cada versão:
 
 ## Pacotes npm — plataforma
 
-502 pacotes no `package-lock.json` (T01), contando transitivas. Auditoria do lockfile:
+506 pacotes no `package-lock.json`, contando transitivas. Auditoria do lockfile, **reexecutada em
+T03** — eram 502 até a entrada das quatro dependências de teste ponta a ponta da seção seguinte:
 
 | Licença | Pacotes |
 |---|---|
-| MIT | 431 |
+| MIT | 432 |
 | ISC | 25 |
 | BSD-2-Clause | 12 |
 | **MPL-2.0** | **12** |
-| Apache-2.0 | 10 |
+| Apache-2.0 | 13 |
 | BSD-3-Clause | 6 |
 | MIT-0 (2) / CC-BY-4.0 / CC0-1.0 / BlueOak-1.0.0 / 0BSD | 6 |
-| **Total** | **502** |
+| **Total** | **506** |
+
+A variação de T01 para T03 é exatamente `+3` Apache-2.0 (os três pacotes do Playwright) e `+1` MIT
+(`fflate`).
 
 **Nenhum pacote sem licença declarada.** A coluna conta **pacotes**, não nomes de licença — a
 última linha agrupa 5 licenças distintas em 6 pacotes, porque `MIT-0` aparece duas vezes. A
@@ -152,7 +156,46 @@ que não redistribuímos não cria obrigação sobre este projeto.
 > manutenção precisa virar script de auditoria que **falhe** diante de licença fora da lista
 > permitida — está registrado como tarefa em `backlog.json`.
 
+## Pacotes npm — teste ponta a ponta
+
+Entraram em **T03**, para cumprir o critério de aceite que exige o download exercitado pela tela
+**sem dublê de rede**. Todos são `devDependencies`, fixados por versão exata, e **nenhum deles entra
+em ZIP gerado**.
+
+| Pacote | Versão | Origem | Licença | Texto da licença |
+|---|---|---|---|---|
+| `@playwright/test` | 1.63.0 | `registry.npmjs.org`, Microsoft | Apache-2.0 | `node_modules/@playwright/test/LICENSE` |
+| `playwright` | 1.63.0 | idem | Apache-2.0 | `node_modules/playwright/LICENSE` |
+| `playwright-core` | 1.63.0 | idem | Apache-2.0 | `node_modules/playwright-core/LICENSE` |
+| `fflate` | 0.8.3 | `registry.npmjs.org`, Arjun Barrett | MIT | `node_modules/fflate/LICENSE` |
+
+**São quatro linhas para duas dependências declaradas.** `playwright` e `playwright-core` entram
+**por `@playwright/test`**, não por escolha própria — ficam registrados para que a próxima auditoria
+não os trate como sobra. `fflate` não tem nenhuma dependência transitiva.
+
+Por que cada um: o Playwright é a ferramenta que `docs/quality/test-strategy.md` já nomeava para o
+fluxo ponta a ponta; `fflate` **abre o ZIP baixado dentro do teste**, e sem ele a verificação
+conferiria apenas o cabeçalho do arquivo, enquanto o critério pede inspecionar o conteúdo.
+
+**ADR-0005 não é violada.** O Playwright roda nativo e sobe os dois servidores com `dotnet run` e
+`npm start`; não há container em passo nenhum. A ressalva é de **procedência de binário**, não de
+container — ver a linha do Chromium na seção seguinte.
+
 ## Ferramentas do ambiente
 
 PostgreSQL 18 e ripgrep são pré-requisitos do ambiente, não dependências redistribuídas — entram
 no README da raiz, não aqui.
+
+**Chromium, baixado pelo Playwright.** `npm run e2e:install` executa `playwright install chromium`,
+que puxa um binário de navegador de `cdn.playwright.dev` para fora do repositório
+(`%LOCALAPPDATA%\ms-playwright`). Cai na mesma categoria: pré-requisito de ambiente, não
+redistribuído, e nada dele entra em ZIP gerado.
+
+Fica registrado aqui — e não só na tabela de comandos de `src/web/README.md` — porque é **download
+de binário de terceiro**, que alguém vai querer auditar, e porque quem lê esta página é justamente
+quem faz essa pergunta. Chromium é BSD-3-Clause com componentes de licenças permissivas adicionais;
+o Playwright distribui uma compilação própria.
+
+Nota de ambiente, verificada em T03: atrás do proxy corporativo o download falha com
+`UNABLE_TO_GET_ISSUER_CERT_LOCALLY`, porque o Node não lê a loja de certificados do Windows por
+padrão. A saída é `NODE_OPTIONS=--use-system-ca` — **sem desligar verificação de certificado**.
