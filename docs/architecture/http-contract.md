@@ -56,6 +56,11 @@ frontend.
 O catálogo **não** descreve a árvore de pastas do ZIP, e por isso a "estrutura prevista" da tela é
 hoje projeção do cliente — ver [ADR-0010](../decisions/adr-0010-estrutura-prevista-e-projecao.md).
 
+O catálogo também **ainda não** diz quais valores têm template. Que ele passe a dizer, como dado e
+derivado dos fragmentos, está decidido em
+[ADR-0012](../decisions/adr-0012-combinacao-sem-template.md) e cabe a T04. Nada neste documento
+descreve esse campo como existente enquanto o código não o emitir.
+
 ## `POST /api/templates`
 
 **Requisição** (`application/json`):
@@ -174,13 +179,19 @@ geração aconteceu**. O cliente salvaria o arquivo e o defeito só apareceria a
 da causa. O `501` dizia a verdade exata do estado: a configuração passou pela validação, o motor não
 existia.
 
-**Consequência para T09:** o tratamento de `501` no frontend virou **código morto**. Ele vive em
+**O `501` volta em T04, com outro escopo.** [ADR-0012](../decisions/adr-0012-combinacao-sem-template.md)
+decidiu que uma combinação **sem template** não pode responder `200` com um pacote incompleto, e que
+a recusa é `501` pelo mesmo raciocínio acima: a configuração é válida, quem está incompleto é o
+servidor. **Isso ainda não está implementado** — hoje as 16 combinações de `clean` respondem `200`
+com um ZIP de cinco arquivos, e isso é um defeito registrado, não o contrato.
+
+**Consequência para T09:** o tratamento de `501` no frontend **não** é código morto — ele vive em
 `src/web/src/app/core/catalog/generation-failure.ts` (a marca `notImplemented`), nos testes que a
 exercitam e no `configurator.html`, que escolhe entre `notice--pending` e `notice--error` a partir
-dela. Nenhum servidor produz mais esse status, então o ramo `notImplemented` só é alcançável por
-dublê de rede: ele passa a testar a si mesmo. Quem pegar T09 decide entre remover o ramo — e com ele
-o estado visual "pendente" da tela, se nada mais o usar — ou mantê-lo deliberadamente como defesa
-genérica contra `5xx`, caso em que ele deixa de se chamar `notImplemented`.
+dela. Entre T03 e a implementação de ADR-0012 ele fica sem caso real, alcançável só por dublê de
+rede; depois dela volta a ter um, mais estreito. O que T09 precisa ajustar é a **mensagem**: ela diz
+hoje que o motor de geração ainda não existe, e o que passará a ser verdade é "esta combinação ainda
+não gera projeto". A marca também merece um nome que descreva a causa nova.
 
 ## Regras
 

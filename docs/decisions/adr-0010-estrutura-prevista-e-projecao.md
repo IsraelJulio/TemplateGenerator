@@ -1,7 +1,13 @@
 # ADR-0010 — A "estrutura prevista" é projeção do frontend, não dado do backend
 
-**Data:** 2026-09-12 · **Estado:** aceita · **Levantada por:** papel `po` em T02, registrada pelo
+**Data:** 2026-09-12 · **Estado:** **parcialmente expirada em T03** — ver
+["Estado em T03"](#estado-em-t03) · **Levantada por:** papel `po` em T02, registrada pelo
 `architect` na mesma tarefa
+
+> **Leia isto antes do resto.** A condição de expiração desta ADR foi cumprida **para a arquitetura
+> Simples** em T03: a árvore da tela está amarrada a um ZIP real, por teste. Para a **Clean** ela
+> continua valendo inteira. O texto original está preservado abaixo porque o histórico e a lição
+> valem mais que a decisão; o que mudou está em ["Estado em T03"](#estado-em-t03), no fim.
 
 ## Contexto
 
@@ -109,6 +115,11 @@ verificação de confinamento.
 
 ### Ambiguidade deixada em aberto de propósito
 
+> **Resolvida para a Simples em T03**, e a resolução não foi uma regra de deduplicação: o sufixo
+> deixou de ser acrescentado, porque na Simples não há projeto irmão para desambiguar. Ver
+> ["Nomes de projeto e de pasta"](../architecture/generated-projects.md#nomes-de-projeto-e-de-pasta).
+> **Continua em aberto para a Clean**, onde os sufixos têm função e não podem ser abandonados.
+
 Com `projectName = Acme.Billing.Api`, a árvore mostra `src/Acme.Billing.Api.Api/` — o `.Api`
 dobrado. É consequência de aplicar `<Nome>.Api` às duas arquiteturas: para Clean isso vem de
 `generated-projects.md`, que nomeia os quatro projetos; para Simples o documento só diz "um projeto
@@ -131,3 +142,64 @@ Enquanto nenhuma das duas existir, a exceção continua de pé. **Se T03 e T04 f
 delas, isto deixa de ser dívida deliberada e passa a ser defeito** — e o `reviewer` deve tratá-lo
 assim, não herdar esta ADR como permissão permanente. Inscrever a amarração como critério de aceite
 de T03 e T04 é do papel PO; o `architect` não edita o backlog ([ADR-0004](adr-0004-propriedade-do-backlog.md)).
+
+## Estado em T03
+
+**A saída 1 existe, para a arquitetura Simples.** A amarração é uma corrente de três elos, e cada um
+fecha um lado que o anterior deixaria aberto:
+
+| Arquivo | O que garante |
+|---|---|
+| [`../../tests/TemplateGenerator.Matrix.Tests/Layer1/ZipStructureContractTests.cs`](../../tests/TemplateGenerator.Matrix.Tests/Layer1/ZipStructureContractTests.cs) | que o contrato **é** o ZIP: reconstrói o arquivo a partir do pacote gerado a cada execução e falha se divergir |
+| [`../../src/web/src/app/core/summary/zip-structure.contract.json`](../../src/web/src/app/core/summary/zip-structure.contract.json) | o contrato em si — **gerado, nunca escrito à mão** |
+| [`../../src/web/src/app/core/summary/zip-structure.spec.ts`](../../src/web/src/app/core/summary/zip-structure.spec.ts) | que `projectStructure()` **é** o contrato: chama a função de verdade e compara |
+
+Sem o primeiro elo, o contrato viraria uma segunda cópia adivinhada — exatamente a fixture de T01.
+Sem o terceiro, ele seria um arquivo que ninguém lê.
+
+**Funcionou, e o que achou não era hipótese.** A amarração acusou **37 caminhos divergentes** na
+primeira execução, herdados de T02 e até então invisíveis para a suíte inteira, o `.Api` dobrado
+entre eles. Nenhum deles tinha derrubado um único teste antes. **Esta é a terceira confirmação da
+mesma lição** — as duas primeiras estão listadas em "Consequências", acima —, e a lição é a de
+[ADR-0008](adr-0008-fronteira-por-grafo-de-restore.md): *garantia declarada fechada é hipótese até
+alguém tentar furá-la de novo.* Aqui quem furou foi um teste, não uma leitura, e foi por isso que
+funcionou.
+
+### O que expirou
+
+Para `architecture = simple` com os fragmentos que existem hoje (`database = none`,
+`authentication = none`, nos dois valores de `swagger`), a árvore da tela **não é mais uma
+afirmação sem verificação**. O risco nomeado em "Consequências" — "a projeção pode divergir do ZIP
+real sem que nada quebre" — deixou de valer nessa faixa: agora quebra.
+
+### O que sobrevive, e vale inteiro
+
+- **A Clean continua projeção pura.** Não há template `architecture/clean`, logo não há pacote real
+  contra o qual comparar. As 16 combinações de `clean` são o caso em que esta ADR ainda é a única
+  coisa de pé.
+- **As combinações de `simple` com banco ou autenticação também continuam projeção**, pelo mesmo
+  motivo: os fragmentos `database/sqlite`, `database/postgresql`, `auth/identity` e `auth/jwt` ainda
+  não existem. A amarração cobre o que tem template, não o eixo inteiro.
+- **A exceção a RF-02 continua valendo**, e com ela o confinamento: `PROJECT_STRUCTURE_RULES` segue
+  sendo o único arquivo de produção do frontend autorizado a citar valor de opção, e
+  `project-structure.spec.ts` segue varrendo os demais. Amarrar a árvore não a moveu para o backend.
+- **A frase da tela mudou**, porque a antiga virou falsa no instante em que a amarração passou: ela
+  pedia à pessoa uma conferência que a suíte passou a fazer sozinha. O texto vigente está em
+  [`../architecture/generated-projects.md`](../architecture/generated-projects.md), seção "A frase
+  da tela", e é ele que vale — não o citado em "Decisão", acima, que é registro do que se dizia até
+  T03.
+
+### O que T04 precisa fazer para expirar o resto
+
+Estender `ZipStructureContractTests` às combinações que T04 passar a gerar, **sem escrever o
+contrato à mão** — o teste continua reconstruindo-o do pacote. Quando `clean` gerar projeto de
+verdade e entrar no contrato, esta ADR fica **obsoleta por inteiro** e o aviso da tela perde a
+metade "ainda é uma previsão".
+
+A alternativa 2 — o catálogo passar a carregar a árvore — continua descartada pelo mesmo motivo de
+T02, e agora com um argumento a mais: com a amarração de pé, o custo que ela evitaria (projeção
+divergir em silêncio) já está pago por teste, e publicar a árvore no contrato HTTP continua sendo
+caro de corrigir.
+
+**Enquanto a Clean não estiver amarrada, o `reviewer` deve tratar esta ADR como dívida viva**, não
+como permissão. O que T03 comprou foi metade do prazo, não a quitação.

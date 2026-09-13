@@ -98,11 +98,16 @@ alguém as tivesse digitado ali.
    uma `ProjectReference` contribuída. Um marcador de **contribuição** dentro de uma contribuição é
    erro, e cai sozinho na regra 3: não há aninhamento, e portanto não há recursão.
 7. **Regra da linha.** Quando o marcador é a única coisa da linha **e começa na coluna 0**, o motor
-   substitui a linha inteira, **incluindo a quebra de linha**. Zero contribuições ⇒ a linha some, e
-   o arquivo gerado não fica com um `<ItemGroup>` vazio nem com uma linha em branco órfã. Cada
-   contribuição carrega a **própria indentação**; o motor não reindenta nada. Um marcador sozinho na
-   linha **indentado** é defeito, com mensagem dizendo isto — errar aqui produziria indentação
-   quebrada em silêncio.
+   substitui a linha inteira, **incluindo a quebra de linha**. Zero contribuições ⇒ a linha some,
+   sem deixar linha em branco órfã. Cada contribuição carrega a **própria indentação**; o motor não
+   reindenta nada. Um marcador sozinho na linha **indentado** é defeito, com mensagem dizendo isto —
+   errar aqui produziria indentação quebrada em silêncio.
+7b. **O invólucro pertence à contribuição, não ao arquivo hospedeiro.** Corolário da regra 7, e
+   obrigatório: quem escreve template **não** envolve o marcador em `<ItemGroup>`, `{ }` ou qualquer
+   outro par de abre-fecha. Cada contribuição traz o próprio invólucro completo. Caso contrário o
+   motor apaga a linha do marcador e o invólucro vazio sobrevive — um `<ItemGroup></ItemGroup>` sem
+   nada dentro, entregue a um humano. Vários `<ItemGroup>` num `.csproj` são válidos em MSBuild e
+   leem melhor: cada bloco é um eixo, com o próprio comentário.
 8. **Em qualquer outra posição** — no meio de uma linha ou **no caminho** do arquivo — a
    substituição é literal, com `\n` entre contribuições. É a forma usada por marcador de uma linha
    só, como `__ApiProjectDir__`.

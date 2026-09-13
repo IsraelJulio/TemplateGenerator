@@ -127,6 +127,10 @@ substitui. As regras, todas verificadas por teste:
 7. **Regra da linha:** marcador sozinho na linha **e começando na coluna 0** substitui a linha
    inteira, incluindo a quebra. Zero contribuições ⇒ a linha some. Cada contribuição carrega a
    própria indentação; o motor não reindenta. Marcador sozinho na linha e **indentado** é defeito.
+7b. **O invólucro pertence à contribuição.** Não envolva o marcador em `<ItemGroup>` nem em nenhum
+   outro par de abre-fecha no arquivo hospedeiro: o motor apaga a linha do marcador, mas não sabe
+   apagar o invólucro em volta dela, e o pacote sairia com um grupo vazio. Cada contribuição traz o
+   próprio invólucro completo.
 8. **Qualquer outra posição** — no meio de uma linha ou no **caminho** — é substituição literal, com
    `\n` entre contribuições.
 9. **A contribuição é texto inerte.** Sem condicional, sem laço, sem expressão. O motor não avalia,
