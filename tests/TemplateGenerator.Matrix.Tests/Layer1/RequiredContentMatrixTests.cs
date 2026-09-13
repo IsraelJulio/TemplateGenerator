@@ -14,17 +14,16 @@ namespace TemplateGenerator.Matrix.Tests.Layer1;
 /// <para>
 /// A lista se divide em duas: o que vale para <strong>qualquer</strong> combinação, porque vem do
 /// fragmento <c>common</c> ou do próprio motor, e o que depende da arquitetura, porque o caminho
-/// muda com ela. A primeira metade é cobrada nas 32; a segunda é escopada, como o
-/// <c>template-engineer</c> já fez em <see cref="PackageReferenceMatrixTests"/> — o fragmento de
-/// Clean é um diretório vazio até T04.
+/// muda com ela. A primeira metade é cobrada nas 32; a segunda recebe
+/// <see cref="SimpleCombinations"/> — o fragmento de Clean é um diretório vazio até T04.
 /// </para>
 /// <para>
-/// <strong>O escopo é declarado, não silencioso.</strong>
-/// <see cref="O_escopo_por_arquitetura_cobre_exatamente_as_combinacoes_de_simple"/> conta as
-/// combinações que cada metade examina e falha se o número mudar. Sem isso, o dia em que
-/// <c>simple</c> sumisse do catálogo — ou em que o fragmento parasse de ser selecionado — todo
-/// teste escopado passaria por vacuidade nas 32, que é exatamente o modo de falha que ADR-0008 e
-/// ADR-0010 mandam vigiar.
+/// <strong>O escopo está nos dados, não num <c>return</c>.</strong> Um teste que recebe as 32 e
+/// desiste na primeira linha aparece <em>verde</em> para as 16 combinações que não examinou, e um
+/// verde que não afirma nada é a forma mais barata de perder uma verificação sem ninguém notar —
+/// o modo de falha que ADR-0008 e ADR-0010 mandam vigiar. O tamanho de cada recorte é conferido
+/// por <c>GenerationMatrixTests.Os_recortes_da_matriz_tem_o_tamanho_que_afirmam</c>, porque uma
+/// teoria sem dados também não falha: ela simplesmente não roda.
 /// </para>
 /// <para>
 /// <strong>O que esta camada não prova:</strong> que o projeto de testes do pacote
@@ -71,6 +70,14 @@ public sealed class RequiredContentMatrixTests
     public static TheoryData<string, string, string, bool> ValidCombinations =>
         GenerationMatrixTests.ValidCombinations;
 
+    /// <summary>
+    /// As combinações da Simples. O escopo dos testes desta classe que dependem de fragmento
+    /// escrito está <strong>nos dados</strong>, e não num <c>return</c> antecipado — ver
+    /// <see cref="Combinations.Simple"/>.
+    /// </summary>
+    public static TheoryData<string, string, string, bool> SimpleCombinations =>
+        GenerationMatrixTests.SimpleCombinations;
+
     [Theory]
     [MemberData(nameof(ValidCombinations))]
     public async Task Toda_combinacao_traz_o_conteudo_que_nao_depende_de_eixo(
@@ -94,23 +101,17 @@ public sealed class RequiredContentMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(SimpleCombinations))]
     public async Task A_arquitetura_simples_traz_todo_o_conteudo_obrigatorio(
         string architecture,
         string database,
         string authentication,
         bool swagger)
     {
-        if (architecture != "simple")
-        {
-            // Escopo declarado: o fragmento de Clean é um diretório vazio até T04, e um pacote
-            // sem `.sln` e sem projeto não tem como cumprir a lista. Quando T04 escrever o
-            // fragmento, esta condição sai — e até lá
-            // `O_escopo_por_arquitetura_cobre_exatamente_as_combinacoes_de_simple` garante que o
-            // `return` não está engolindo a matriz inteira.
-            return;
-        }
-
+        // Escopo declarado, e declarado nos dados: o fragmento de Clean é um diretório vazio até
+        // T04, e um pacote sem `.sln` e sem projeto não tem como cumprir a lista. Recortar os
+        // dados, em vez de sair por um `return`, é o que impede este nome de aparecer verde para
+        // as 16 combinações de Clean que ele não examinou.
         GeneratedPackage package = await GeneratedPackage.GenerateAsync(
             Request(architecture, database, authentication, swagger),
             TestContext.Current.CancellationToken);
@@ -143,18 +144,14 @@ public sealed class RequiredContentMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(SimpleCombinations))]
     public async Task O_projeto_de_testes_referencia_o_projeto_de_codigo_e_traz_teste(
         string architecture,
         string database,
         string authentication,
         bool swagger)
     {
-        if (architecture != "simple")
-        {
-            return; // Escopo de T04, como acima.
-        }
-
+        // Escopo de T04, nos dados, como acima.
         GeneratedPackage package = await GeneratedPackage.GenerateAsync(
             Request(architecture, database, authentication, swagger),
             TestContext.Current.CancellationToken);
@@ -241,31 +238,6 @@ public sealed class RequiredContentMatrixTests
 
         // "global.json fixando o SDK" só vale se a versão for uma versão, e não um curinga.
         Assert.Matches(@"^\d+\.\d+\.\d+$", version ?? string.Empty);
-    }
-
-    [Fact]
-    public void O_escopo_por_arquitetura_cobre_exatamente_as_combinacoes_de_simple()
-    {
-        // O guarda dos `return` antecipados desta classe e de PackageReferenceMatrixTests. Dois
-        // números, e cada um falha por um motivo diferente:
-        //
-        // - 32 total: o catálogo continua produzindo a matriz inteira;
-        // - 16 em `simple`: metade dela chega de fato aos asserts escopados.
-        //
-        // Se `simple` sumisse do catálogo, ou se o nome do valor mudasse, os testes escopados
-        // passariam sem examinar um único pacote — e só este `Fact` diria isso em voz alta.
-        int total = Combinations.Valid.Count;
-        int simple = Combinations.Valid.Count(request =>
-            string.Equals(request.Architecture, "simple", StringComparison.Ordinal));
-
-        Assert.Equal(32, total);
-
-        Assert.True(
-            simple == 16,
-            $"As afirmações escopadas a 'simple' examinam {simple} combinações, e não 16. " +
-            "Enquanto esse número não bater, todo teste desta classe e de " +
-            "PackageReferenceMatrixTests que comece com `if (architecture != \"simple\") return;` " +
-            "pode estar passando por vacuidade.");
     }
 
     private static GenerationRequest Request(

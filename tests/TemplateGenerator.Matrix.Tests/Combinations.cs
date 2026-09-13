@@ -28,6 +28,27 @@ public static class Combinations
     /// <summary>Todas as combinações válidas, em ordem estável.</summary>
     public static IReadOnlyList<GenerationRequest> Valid { get; } = [.. Build()];
 
+    /// <summary>
+    /// As combinações da arquitetura <strong>Simples</strong>, que é a única com fragmento escrito
+    /// até T04.
+    /// </summary>
+    /// <remarks>
+    /// Existe para que um teste cujo assunto é a Simples receba <em>só</em> as combinações dela, em
+    /// vez de receber as 32 e sair pela porta dos fundos com um <c>return</c> antecipado. A
+    /// diferença não é de estilo: um teste escopado por <c>return</c> aparece <strong>verde</strong>
+    /// para as 16 combinações de Clean que ele não olhou, e um resultado verde que não afirma nada
+    /// é a forma mais barata de perder uma verificação sem ninguém notar — a lição de ADR-0008 e
+    /// ADR-0010. Recortando os dados, o nome do teste só aparece para o que ele de fato examinou.
+    /// </remarks>
+    public static IReadOnlyList<GenerationRequest> Simple { get; } =
+    [
+        .. Valid.Where(request =>
+            string.Equals(request.Architecture, SimpleArchitecture, StringComparison.Ordinal)),
+    ];
+
+    /// <summary>O valor de <c>architecture</c> cujo fragmento existe em T03.</summary>
+    public const string SimpleArchitecture = "simple";
+
     private static IEnumerable<GenerationRequest> Build()
     {
         TemplateOptionsCatalog catalog = TemplateCatalog.Current;

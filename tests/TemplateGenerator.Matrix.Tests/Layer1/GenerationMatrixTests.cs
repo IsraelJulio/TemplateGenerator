@@ -24,23 +24,36 @@ namespace TemplateGenerator.Matrix.Tests.Layer1;
 /// </remarks>
 public sealed class GenerationMatrixTests
 {
-    public static TheoryData<string, string, string, bool> ValidCombinations
+    public static TheoryData<string, string, string, bool> ValidCombinations =>
+        DataFrom(Combinations.Valid);
+
+    /// <summary>
+    /// Só as combinações da arquitetura Simples, para o teste cujo assunto é ela. Ver
+    /// <see cref="Combinations.Simple"/>: o recorte existe para que nenhum teste apareça verde por
+    /// uma combinação em que ele desistiu logo na primeira linha.
+    /// </summary>
+    public static TheoryData<string, string, string, bool> SimpleCombinations =>
+        DataFrom(Combinations.Simple);
+
+    /// <summary>As combinações da Simples <strong>com</strong> Swagger marcado.</summary>
+    public static TheoryData<string, string, string, bool> SimpleWithSwaggerCombinations =>
+        DataFrom([.. Combinations.Simple.Where(request => request.Swagger)]);
+
+    private static TheoryData<string, string, string, bool> DataFrom(
+        IReadOnlyList<GenerationRequest> requests)
     {
-        get
+        TheoryData<string, string, string, bool> data = [];
+
+        foreach (GenerationRequest request in requests)
         {
-            TheoryData<string, string, string, bool> data = [];
-
-            foreach (GenerationRequest request in Combinations.Valid)
-            {
-                data.Add(
-                    request.Architecture,
-                    request.Database,
-                    request.Authentication,
-                    request.Swagger);
-            }
-
-            return data;
+            data.Add(
+                request.Architecture,
+                request.Database,
+                request.Authentication,
+                request.Swagger);
         }
+
+        return data;
     }
 
     private static GenerationRequest Request(
@@ -56,6 +69,26 @@ public sealed class GenerationMatrixTests
         // O número está na definição de pronto e na estratégia de testes. Aqui ele é calculado a
         // partir do catálogo: se a fórmula mudar, isto falha antes de a documentação envelhecer.
         Assert.Equal(32, Combinations.Valid.Count);
+    }
+
+    [Fact]
+    public void Os_recortes_da_matriz_tem_o_tamanho_que_afirmam()
+    {
+        // Guarda dos recortes, e não decoração. Um teste escopado à Simples recebe
+        // `SimpleCombinations`; no dia em que esse recorte devolvesse zero linha — porque o valor
+        // 'simple' mudou de nome, porque o catálogo perdeu o campo, porque o filtro quebrou —, o
+        // xUnit não falharia: uma teoria sem dados simplesmente não roda, e a suíte ficaria verde
+        // com metade da camada 1 desligada. É o mesmo modo de falha que o assert de sanidade de
+        // ADR-0011 vigia do lado do conteúdo, e por isso ele tem de existir também aqui.
+        Assert.Equal(16, Combinations.Simple.Count);
+
+        Assert.Equal(32, ValidCombinations.Count);
+        Assert.Equal(16, SimpleCombinations.Count);
+        Assert.Equal(8, SimpleWithSwaggerCombinations.Count);
+
+        Assert.All(
+            Combinations.Simple,
+            request => Assert.Equal(Combinations.SimpleArchitecture, request.Architecture));
     }
 
     [Theory]

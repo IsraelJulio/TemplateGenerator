@@ -37,6 +37,17 @@ public sealed partial class PackageReferenceMatrixTests
     public static TheoryData<string, string, string, bool> ValidCombinations =>
         GenerationMatrixTests.ValidCombinations;
 
+    /// <summary>
+    /// As combinações da Simples, para as afirmações que só valem onde existe fragmento escrito.
+    /// Ver <see cref="Combinations.Simple"/>.
+    /// </summary>
+    public static TheoryData<string, string, string, bool> SimpleCombinations =>
+        GenerationMatrixTests.SimpleCombinations;
+
+    /// <summary>As combinações da Simples com Swagger marcado.</summary>
+    public static TheoryData<string, string, string, bool> SimpleWithSwaggerCombinations =>
+        GenerationMatrixTests.SimpleWithSwaggerCombinations;
+
     [Fact]
     public async Task A_matriz_produz_csproj_e_PackageReference_para_conferir()
     {
@@ -137,7 +148,7 @@ public sealed partial class PackageReferenceMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(SimpleWithSwaggerCombinations))]
     public async Task Com_swagger_ligado_o_projeto_web_declara_os_dois_pacotes(
         string architecture,
         string database,
@@ -146,12 +157,12 @@ public sealed partial class PackageReferenceMatrixTests
     {
         // A contraprova do teste acima: sem ela, um `__ApiPackageReferences__` que nunca fosse
         // preenchido faria a verificação de RF-20 passar sempre.
-        if (!swagger || architecture != "simple")
-        {
-            // Clean ainda não tem fragmento (T04). Ver o relatório de T03.
-            return;
-        }
-
+        //
+        // O escopo está nos DADOS, não num `return`: Clean ainda não tem fragmento (T04), e um
+        // `return` antecipado faria este nome aparecer verde para as 16 combinações de Clean sem
+        // ter olhado nenhuma. Quando T04 escrever o fragmento, troque por `ValidCombinations` e
+        // apague o filtro de Swagger — `Os_recortes_da_matriz_tem_o_tamanho_que_afirmam` é quem
+        // garante que o recorte não encolheu sozinho até lá.
         GeneratedPackage package = await GeneratedPackage.GenerateAsync(
             Request(architecture, database, authentication, swagger),
             TestContext.Current.CancellationToken);
@@ -168,20 +179,15 @@ public sealed partial class PackageReferenceMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(SimpleCombinations))]
     public async Task A_arquitetura_simples_traz_o_projeto_web_e_o_de_testes(
         string architecture,
         string database,
         string authentication,
         bool swagger)
     {
-        if (architecture != "simple")
-        {
-            // O fragmento de Clean é de T04. Quando ele existir, esta condição sai e o assert
-            // passa a valer para as 32 combinações.
-            return;
-        }
-
+        // O fragmento de Clean é de T04, então o escopo é dado pelos DADOS e não por um `return`:
+        // assim este nome nunca aparece verde por uma combinação de Clean que ele não examinou.
         GeneratedPackage package = await GeneratedPackage.GenerateAsync(
             Request(architecture, database, authentication, swagger),
             TestContext.Current.CancellationToken);
