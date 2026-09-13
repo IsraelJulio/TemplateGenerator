@@ -311,10 +311,15 @@ function citedAsAttributeSelector(source: string, value: string): boolean {
  * **O que a mantém estreita:** o valor precisa ser o nome **todo** (`.card`
  * nunca casa com `clean`) e precisa vir seguido do que só aparece em seletor —
  * `{` ou `,` depois de espaço opcional, ou `:`/`.`/`#`/`[` colado. Por isso
- * `foo.clean()` e `foo.none;` ficam de fora: parêntese e ponto e vírgula não
- * continuam seletor. O que sobra de risco é o acesso a propriedade chamada
- * exatamente como um valor (`a.none, b` ou `a.none.b`), e nenhum existe hoje —
- * se um dia existir, o nome dessa propriedade é o problema, não o teste.
+ * `foo.clean()` e `foo.none;` ficam de fora **desta regra**: parêntese e ponto e
+ * vírgula não continuam seletor.
+ *
+ * **Fora desta regra não é fora da cerca**, e a diferença importa para quem for
+ * ler isto antes de escolher um nome: `foo.clean()` e `foo.none` são acusados
+ * por {@link gluedToToken}, porque o `.` é separador e `foo` é o segmento do
+ * outro lado. Acesso a propriedade chamada exatamente como um valor de opção
+ * **vaza**, pela forma 3 — nenhum existe hoje, e a suíte cai no dia em que
+ * existir.
  */
 function bareSelector(source: string, value: string): boolean {
   const escaped = value.replace(/[^\w-]/g, '\\$&');
