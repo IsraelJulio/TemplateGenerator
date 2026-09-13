@@ -67,9 +67,35 @@ namespace TemplateGenerator.Matrix.Tests.Layer1;
 /// </list>
 /// <para>
 /// <strong>O QUE A GUARDA 3 CONTINUA NÃO ALCANÇANDO</strong>, e é limite declarado, não descuido:
-/// os outros invólucros do Markdown — a citação <c>&gt;</c>, o item de lista, a tabela —, porque
-/// nenhum deles tem forma de par abre-fecha em linha própria; e o invólucro de mais de uma linha,
-/// como uma tag XML de abertura quebrada em várias linhas de atributos.
+/// </para>
+/// <list type="bullet">
+///   <item><description>
+///   os outros invólucros do Markdown — a citação <c>&gt;</c>, o item de lista, a tabela —, porque
+///   nenhum deles tem forma de par abre-fecha em linha própria;
+///   </description></item>
+///   <item><description>
+///   o invólucro de mais de uma linha, como uma tag XML de abertura quebrada em várias linhas de
+///   atributos;
+///   </description></item>
+///   <item><description>
+///   <strong>o invólucro <em>inline</em></strong> — <c>&lt;ItemGroup&gt;__Marcador__&lt;/ItemGroup&gt;</c>
+///   na mesma linha. A guarda só reconhece o marcador <strong>sozinho na linha</strong>, e nessa
+///   forma ele não está: ela nem chega a perguntar o que vem antes e depois. Apontado pelo
+///   <c>reviewer</c> em T04, e <strong>declarado em vez de fechado</strong> — a razão está no
+///   parágrafo seguinte.
+///   </description></item>
+/// </list>
+/// <para>
+/// <strong>Por que o inline fica declarado e não fechado.</strong> Fechá-lo exigiria reconhecer
+/// marcador <em>dentro</em> de uma linha e decidir se o resto da linha é invólucro — isto é,
+/// interpretar conteúdo de elemento, que é onde o reconhecedor de linha vira parser, e aí ele
+/// passa a acusar também o item 8 de ADR-0011 (<c>__ApiProjectDir__</c> no meio de um caminho),
+/// que é uso legítimo e frequente. O que decide é que <strong>essa forma não tem buraco</strong>:
+/// ela produz o <c>&lt;ItemGroup&gt;&lt;/ItemGroup&gt;</c> vazio literal, e a guarda 1 o lê como
+/// XML no pacote, sem heurística nenhuma. É a única das quatro formas listadas aqui que tem
+/// verificador — as outras três escapam das quatro guardas, e é por isso que elas são o limite que
+/// custa. <see cref="O_involucro_inline_escapa_da_guarda_de_template_e_cai_na_guarda_do_pacote"/>
+/// mantém as duas metades dessa frase executáveis.
 /// </para>
 /// <para>
 /// <strong>E ela acusa o marcador que está SOZINHO dentro do invólucro</strong>, que é a condição
@@ -389,6 +415,42 @@ public sealed partial class EmptyWrapperMatrixTests
         ];
 
         Assert.Equal("  </PropertyGroup>", PreviousNonBlank(innocent, 3));
+    }
+
+    [Fact]
+    public void O_involucro_inline_escapa_da_guarda_de_template_e_cai_na_guarda_do_pacote()
+    {
+        // O limite que o `reviewer` de T04 apontou, executável — as duas metades dele.
+        //
+        // PRIMEIRA METADE: a guarda 3 não vê `<ItemGroup>__Marcador__</ItemGroup>`, porque ela só
+        // reconhece o marcador SOZINHO na linha. Afirmar isso por teste é o que impede o limite de
+        // virar folclore: se alguém fechar o inline um dia, este nome cai e a lista de limites do
+        // `<remarks>` é corrigida junto, em vez de continuar prometendo um buraco que não existe
+        // mais.
+        const string inline = "  <ItemGroup>__ApiPackageReferences__</ItemGroup>";
+
+        Assert.DoesNotContain(inline.Trim(), (string[])["__ApiPackageReferences__"]);
+        Assert.False(Opens(inline));
+
+        // SEGUNDA METADE, e é ela que faz o limite ser aceitável em vez de dívida: a forma inline
+        // produz o `<ItemGroup></ItemGroup>` literal quando ninguém contribui, e a guarda 1 lê
+        // isso como XML, sem heurística. O par abaixo é exatamente o que a guarda 1 pergunta.
+        XElement empty = XDocument.Parse("<Project><ItemGroup></ItemGroup></Project>").Root!;
+
+        Assert.Contains(
+            empty.DescendantsAndSelf(),
+            element => _msbuildContainers.Contains(element.Name.LocalName, StringComparer.Ordinal)
+                && !element.Elements().Any());
+
+        // E a contraprova, para a guarda 1 não estar acusando qualquer coisa: um grupo COM filho
+        // não é lixo.
+        XElement filled = XDocument.Parse(
+            "<Project><ItemGroup><PackageReference Include=\"X\" /></ItemGroup></Project>").Root!;
+
+        Assert.DoesNotContain(
+            filled.DescendantsAndSelf(),
+            element => element.Name.LocalName.Equals("ItemGroup", StringComparison.Ordinal)
+                && !element.Elements().Any());
     }
 
     [Fact]

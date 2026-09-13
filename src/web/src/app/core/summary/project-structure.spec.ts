@@ -242,12 +242,21 @@ const AUTHORIZED_DATA = ['src/app/core/summary/zip-structure.contract.json'];
  * `.json`, `.scss` ou `.svg` sob `src/` escapava **inteiro**, com qualquer
  * conteúdo — foi o quinto furo que o `reviewer` de T03 encontrou.
  *
- * **`.svg` continua de fora, e isto é buraco declarado, não cobertura:**
- * `fill="none"` é a forma idiomática de dizer "sem preenchimento" num ícone e
- * casa com a forma 1 do reconhecedor. Varrer `.svg` faria a cerca acusar o
- * primeiro ícone que alguém acrescentasse, e uma cerca que grita sem motivo é
- * desligada pela próxima pessoa — que é o custo que ADR-0010 manda pesar. Quem
- * puser um `.svg` em `src/` precisa saber que ele não é lido.
+ * **`.svg` continua de fora, e a permissão é mais larga que a justificativa —
+ * dito assim porque é assim.** A razão é colisão com o vocabulário do próprio
+ * SVG, e ela alcança **dois** dos sete valores: `fill="none"` e o
+ * `<feFuncR type="identity">`, os dois casando com a forma 1. Os outros cinco —
+ * `simple`, `clean`, `sqlite`, `postgresql`, `jwt` — não colidem com nada de
+ * SVG, e varrer `.svg` só para eles fecharia a maior parte do buraco. Não foi
+ * feito porque não há **nenhum** `.svg` sob `src/` hoje, e exclusão de valor por
+ * extensão é máquina nova na cerca para um arquivo que não existe. Quem
+ * acrescentar o primeiro `.svg` herda esta decisão: ou varre os cinco, ou sabe
+ * que o arquivo não é lido.
+ *
+ * **Onde a varredura começa:** `src/` e `public/`, que é onde mora o código e o
+ * ativo que a tela serve. `angular.json` e `proxy.conf.json` ficam fora e isso é
+ * **permissão declarada, não ausência de risco**: são fiação de build, onde um
+ * valor de opção não tem como virar estilo nem ramo de tela.
  */
 function productionFiles(directory = 'src', found: string[] = []): string[] {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -269,15 +278,82 @@ function productionFiles(directory = 'src', found: string[] = []): string[] {
 }
 
 /**
- * Um seletor de atributo que compara com `value`: `[data-value=clean]`,
- * `[data-value="clean"]`, `[data-value='clean']`, e as variantes com operador
- * (`~=`, `*=`, `^=`, `$=`, `|=`), espaço em volta do `=` e modificador
- * (`[data-value="clean" i]`). Em CSS as aspas são opcionais porque os sete
- * valores são identificadores CSS válidos — é justamente por isso que esta
- * forma precisa de regra própria.
+ * O valor citado num **seletor de atributo**: `[data-value=clean]`,
+ * `[data-value="clean"]`, `[data-value='clean']`, as variantes com operador
+ * (`~=`, `*=`, `^=`, `$=`, `|=`), espaço em volta do `=` e os modificadores de
+ * caixa. Em CSS as aspas são opcionais porque os sete valores são
+ * identificadores CSS válidos — é por isso que esta forma precisa de regra
+ * própria.
+ *
+ * **São duas comparações, e a segunda é a correção de um autogol.** Até T04 a
+ * regra aceitava o modificador `i` mas continuava exigindo a caixa exata — e o
+ * `i` existe justamente para escrever o valor com outra grafia. `[data-value=
+ * "Clean" i]` é um seletor que **funciona** contra o valor real e a cerca não
+ * via. Com modificador `i`, a comparação também ignora caixa.
  */
-function attributeSelector(value: string): RegExp {
-  return new RegExp(`=\\s*(["']?)${value.replace(/[^\w-]/g, '\\$&')}\\1(?:\\s+[isIS])?\\s*\\]`);
+function citedAsAttributeSelector(source: string, value: string): boolean {
+  const escaped = value.replace(/[^\w-]/g, '\\$&');
+  const exato = new RegExp(`=\\s*(["']?)${escaped}\\1(?:\\s+[sS])?\\s*\\]`);
+  const semCaixa = new RegExp(`=\\s*(["']?)${escaped}\\1\\s+[iI]\\s*\\]`, 'i');
+
+  return exato.test(source) || semCaixa.test(source);
+}
+
+/**
+ * O valor como **nome inteiro de uma classe ou de um id em CSS**: `.clean { }`,
+ * `#identity { }`, `.clean:hover`, `.clean[data-x]`, `.clean.ativo`,
+ * `.clean, .outra { }`.
+ *
+ * É a forma **mais** idiomática de estilizar por opção — mais que
+ * `.option--clean`, que {@link gluedToToken} pega —, e escapava porque num
+ * seletor nu não há segmento antes do valor para colar.
+ *
+ * **O que a mantém estreita:** o valor precisa ser o nome **todo** (`.card`
+ * nunca casa com `clean`) e precisa vir seguido do que só aparece em seletor —
+ * `{` ou `,` depois de espaço opcional, ou `:`/`.`/`#`/`[` colado. Por isso
+ * `foo.clean()` e `foo.none;` ficam de fora: parêntese e ponto e vírgula não
+ * continuam seletor. O que sobra de risco é o acesso a propriedade chamada
+ * exatamente como um valor (`a.none, b` ou `a.none.b`), e nenhum existe hoje —
+ * se um dia existir, o nome dessa propriedade é o problema, não o teste.
+ */
+function bareSelector(source: string, value: string): boolean {
+  const escaped = value.replace(/[^\w-]/g, '\\$&');
+
+  return new RegExp(`[.#]${escaped}(?![\\w-])(?:\\s*[{,]|[:.#[])`).test(source);
+}
+
+/**
+ * O valor como **uma das classes de um atributo `class`**, separada por espaço:
+ * `class="option clean"`, `class='clean grande'`, `[class]="'option clean'"`.
+ *
+ * A comparação é por token exato dentro do valor do atributo, o que a mantém
+ * tão estreita quanto a de {@link bareSelector}: `class="option option--switch"`
+ * não casa com nada. `class="badge badge-identity"` também não casa **aqui** —
+ * quem o pega é {@link gluedToToken}, e as duas regras juntas cobrem as duas
+ * formas de escrever a mesma intenção.
+ */
+function classAttribute(source: string, value: string): boolean {
+  for (const match of source.matchAll(/class\s*\]?\s*=\s*(["'])(.*?)\1/g)) {
+    if (match[2].split(/[\s'"]+/).includes(value)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * O valor num **atributo HTML sem aspas**: `<div data-arch=jwt>`. HTML permite,
+ * Angular também, e as duas outras regras de atributo pediam aspas ou `]`.
+ *
+ * **Sem espaço em volta do `=`**, e isso é o que separa a forma de um `const x =
+ * jwt` num `.ts`: em HTML o atributo cola no sinal, e em TypeScript o
+ * formatador do projeto obriga o espaço.
+ */
+function unquotedAttribute(source: string, value: string): boolean {
+  const escaped = value.replace(/[^\w-]/g, '\\$&');
+
+  return new RegExp(`[\\w-]=${escaped}(?![\\w-])`).test(source);
 }
 
 /** Caractere que forma palavra. Vizinho dele, o valor é parte de outra palavra. */
@@ -343,54 +419,81 @@ function gluedToToken(source: string, value: string): boolean {
 }
 
 /**
- * Um vazamento é o valor citado numa das **três formas** em que alguém realmente
- * escreve um valor de opção:
+ * Um vazamento é o valor citado numa das **seis formas** em que alguém realmente
+ * escreve um valor de opção. Cada uma está numa função própria, com o que a
+ * mantém estreita escrito lá:
  *
  * 1. **Literal inteiro entre aspas** — `'clean'`, `"clean"`, `` `clean` ``.
  *    Comparação, chave de mapa, atributo de template. Foi assim que o reviewer
- *    de T02 provou o furo (`export const … = ['identity', 'sqlite', 'clean']`).
- * 2. **Seletor de atributo** — `input[data-value=identity]` no CSS,
- *    `querySelector('[data-value=identity]')` no TS. O template já expõe
- *    `[attr.data-value]="option.value"` para que a opção seja selecionável, e
- *    em seletor de atributo as aspas são opcionais: sem esta segunda regra os
- *    sete valores passariam pela porta mais provável de todas — foi o segundo
- *    ataque do reviewer, e passava.
+ *    de T02 provou o primeiro furo.
+ * 2. **Seletor de atributo**, com e sem aspas, com e sem modificador de caixa —
+ *    {@link citedAsAttributeSelector}. O template expõe
+ *    `[attr.data-value]="option.value"` para a opção ser selecionável, e em
+ *    seletor de atributo as aspas são opcionais.
  * 3. **Colado a prefixo ou sufixo** — `.option--clean`, `#opt-postgresql`,
- *    `class="badge badge-identity"`, `[class.arch-simple]="…"` e o valor dentro
- *    de string maior, `'simple/sqlite/identity'`. **Acrescentada em T04**, e era
- *    a mais grave das que faltavam: `[class.arch-simple]` é *a* forma idiomática
- *    de estilizar por opção num template Angular, ou seja, a cerca não cobria o
- *    caso exato que ADR-0010 diz existir para conter. Ver {@link gluedToToken}.
+ *    `class="badge badge-identity"`, `[class.arch-simple]="…"`,
+ *    `'simple/sqlite/identity'`. Ver {@link gluedToToken}.
+ * 4. **Nome inteiro de classe ou id em CSS** — `.clean { }`, `#identity { }`.
+ *    Ver {@link bareSelector}.
+ * 5. **Uma das classes de um atributo `class`** — `class="option clean"`.
+ *    Ver {@link classAttribute}.
+ * 6. **Atributo HTML sem aspas** — `<div data-arch=jwt>`. Ver
+ *    {@link unquotedAttribute}.
+ *
+ * As formas 4, 5 e 6, e a metade sem caixa da 2, entraram **depois** de a lista
+ * de escapes abaixo ser escrita — o `reviewer` executou o reconhecedor isolado e
+ * as achou em minutos, sem alterar uma linha. A forma 4 é pior que a 3, que
+ * acabara de ser consertada: `.clean { }` é mais idiomático que
+ * `.option--clean`.
  *
  * O que **não** é vazamento: a palavra solta. `clean` casa com `cleanup` e
  * `none` casa com `list-style: none` e com a palavra inglesa em comentário (os
  * três existem hoje neste repositório). Um teste que acusa `list-style: none` é
  * desligado pela próxima pessoa, e aí não protege mais nada.
  *
- * **O QUE AINDA ESCAPA**, e esta lista é o contrário de uma formalidade — todas
- * as formas conhecidas apareceram por reataque, nenhuma por leitura:
+ * **O QUE AINDA ESCAPA — e esta lista NÃO é o inventário do que existe.** É o
+ * que se sabe hoje. Ela já cresceu duas vezes, as duas por reataque e nenhuma
+ * por leitura, e a última vez foi executando o reconhecedor contra formas que
+ * ninguém tinha escrito. Tratá-la como completa é o erro que ADR-0010 registra
+ * ter cometido seis vezes.
  *
  * - **Valor montado em tempo de execução** — `'cle' + 'an'`, `` `${p}ql` ``,
  *   `atob(…)`, escape CSS (`3 lean`). Nenhuma varredura de texto alcança, e
- *   nenhuma alcançará.
+ *   nenhuma alcançará. Esta é a única entrada da lista que é **teorema**; todas
+ *   as outras são só o que ainda não se fechou.
  * - **Identificador solto** — `const ICON = { identity: '…' }`. Deixado de fora
  *   *de propósito*: `identity: (x) => x` é código inocente com exatamente a
  *   mesma forma, e a ambiguidade está na linguagem, não na técnica — um
  *   analisador de sintaxe erraria igual.
+ * - **Seletor escrito com escape CSS** — `.\\63 lean { }` seleciona a classe
+ *   `clean` e nenhuma varredura de texto o reconhece. É um caso particular da
+ *   entrada acima, repetido aqui porque em CSS ele **não** exige código: é só
+ *   um jeito legal de escrever o mesmo seletor.
  * - **`.svg` sob `src/`**, que {@link productionFiles} não lê, pela razão
- *   escrita lá.
+ *   escrita lá — e aquela razão é mais estreita que a permissão.
+ * - **Arquivo fora de `src/` e de `public/`**: `angular.json` e
+ *   `proxy.conf.json` não são varridos. É fiação de build, onde um valor de
+ *   opção não tem como virar estilo nem ramo de tela — mas é permissão
+ *   declarada, não ausência de risco.
  *
  * **A garantia, dita sem folga:** dentro de `.ts`, `.html`, `.css`, `.scss` e
- * `.json` não autorizado, um valor de opção **escrito como literal entre aspas,
- * como seletor de atributo ou colado a outro segmento de um token** não passa.
- * Só isso. É uma cerca contra o descuido, não um muro contra a intenção, e
- * ADR-0010 registra o mesmo limite do lado da arquitetura. Quem acrescentar uma
- * forma nova de escrever valor no frontend precisa **reatacar este reconhecedor
- * antes de confiar nele** — foi assim que os furos conhecidos apareceram.
+ * `.json` não autorizado, um valor de opção escrito numa das **seis** formas
+ * acima não passa. Só isso. É uma cerca contra o descuido, não um muro contra a
+ * intenção. Quem acrescentar uma forma nova de escrever valor no frontend
+ * precisa **reatacar este reconhecedor antes de confiar nele** — foi assim que
+ * todos os furos conhecidos apareceram.
  */
 function leaksValue(source: string, value: string): boolean {
   const quoted = ["'", '"', '`'].some((quote) => source.includes(`${quote}${value}${quote}`));
-  return quoted || attributeSelector(value).test(source) || gluedToToken(source, value);
+
+  return (
+    quoted ||
+    citedAsAttributeSelector(source, value) ||
+    gluedToToken(source, value) ||
+    bareSelector(source, value) ||
+    classAttribute(source, value) ||
+    unquotedAttribute(source, value)
+  );
 }
 
 describe('contenção dos valores de opção', () => {
@@ -444,6 +547,37 @@ describe('contenção dos valores de opção', () => {
     expect(leaksValue('<div [class.arch-simple]="isArch()"></div>', 'simple')).toBe(true);
     expect(leaksValue("const KEY = 'simple/sqlite/identity';", 'sqlite')).toBe(true);
 
+    // Formas 4, 5 e 6, e a metade sem caixa da 2: o que o `reviewer` de T04
+    // achou executando o reconhecedor isolado, depois das cinco acima. A
+    // primeira delas é pior que a 3, que acabara de ser consertada — `.clean`
+    // nu é mais idiomático que `.option--clean`.
+    expect(leaksValue('.clean { display: none; }', 'clean')).toBe(true);
+    expect(leaksValue('#identity { color: red; }', 'identity')).toBe(true);
+    expect(leaksValue('.postgresql:hover {}', 'postgresql')).toBe(true);
+    expect(leaksValue('.jwt, .outra {}', 'jwt')).toBe(true);
+    expect(leaksValue('<div class="option clean"></div>', 'clean')).toBe(true);
+    expect(leaksValue(`<div [class]="'option sqlite'"></div>`, 'sqlite')).toBe(true);
+    expect(leaksValue('<div data-arch=jwt></div>', 'jwt')).toBe(true);
+
+    // O modificador `i` existe para casar outra caixa. Aceitá-lo e continuar
+    // comparando a caixa exata era a cerca se autoderrotando: o seletor abaixo
+    // **funciona** contra o valor real.
+    expect(leaksValue('.option[data-value="Clean" i] {}', 'clean')).toBe(true);
+    expect(leaksValue('.option[data-value=IDENTITY i] {}', 'identity')).toBe(true);
+    expect(leaksValue('.option[data-value="Clean"] {}', 'clean')).toBe(false);
+
+    // Inocentes que as formas novas não podem acusar: classe cujo nome só
+    // *contém* o valor não existe (a comparação é pelo nome todo), e `=` com
+    // espaço em volta é atribuição de TypeScript, não atributo de HTML.
+    expect(leaksValue('.card { display: none; }', 'clean')).toBe(false);
+    expect(leaksValue('const x = jwt;', 'jwt')).toBe(false);
+    expect(leaksValue('<div class="cleanup fila"></div>', 'clean')).toBe(false);
+
+    // Já era verdade antes de T04 e continua sendo, de propósito: acesso a
+    // propriedade com o nome de um valor é ramificar por opção, e a forma 3 o
+    // pega pelo ponto.
+    expect(leaksValue('const t = catalog.clean.total;', 'clean')).toBe(true);
+
     // E as variantes vizinhas das mesmas, que uma regra de "um separador só"
     // deixaria escapar.
     expect(leaksValue('.opt_clean {}', 'clean')).toBe(true);
@@ -477,7 +611,7 @@ describe('contenção dos valores de opção', () => {
     // RF-02: fora deste módulo, nenhum código de produção da tela conhece os
     // valores — eles vêm do catálogo. Aqui a varredura é do repositório de
     // verdade, não do arquivo autorizado.
-    const files = productionFiles();
+    const files = [...productionFiles('src'), ...productionFiles('public')];
 
     // Se a varredura deixar de enxergar os arquivos, o teste passaria à toa.
     expect(files).toContain('src/app/features/configurator/configurator.ts');

@@ -146,6 +146,38 @@ internal static class PackageLayout
     }
 
     /// <summary>
+    /// As <c>PackageReference</c> declaradas em <paramref name="projectPath"/>, em ordem ordinal
+    /// de nome.
+    /// </summary>
+    /// <remarks>
+    /// Mora aqui, ao lado de <see cref="ProjectReferences"/>, porque são <strong>dois</strong> os
+    /// testes que precisam da mesma leitura: RF-20 e RNF-06 em
+    /// <see cref="Layer1.PackageReferenceMatrixTests"/>, e a segunda metade do critério de aceite
+    /// 2 em <see cref="Layer1.CleanDependencyGraphTests"/> — "o domínio não referencia ninguém,
+    /// <em>nem pacote de infraestrutura</em>". Duas cópias da mesma leitura divergiriam, e a que
+    /// divergisse em silêncio seria a que ninguém está olhando.
+    /// </remarks>
+    public static IReadOnlyList<(string Name, string? Version)> PackageReferences(
+        GeneratedPackage package,
+        string projectPath)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+        ArgumentNullException.ThrowIfNull(projectPath);
+
+        return
+        [
+            .. XDocument.Parse(package.Read(projectPath)).Root!
+                .Descendants()
+                .Where(element =>
+                    element.Name.LocalName.Equals("PackageReference", StringComparison.Ordinal))
+                .Select(element => (
+                    Name: element.Attribute("Include")?.Value ?? string.Empty,
+                    Version: element.Attribute("Version")?.Value))
+                .OrderBy(reference => reference.Name, StringComparer.Ordinal),
+        ];
+    }
+
+    /// <summary>
     /// Junta o caminho relativo declarado no <c>Include</c> ao diretório do projeto que o declara
     /// e devolve o caminho na forma do ZIP: separadores <c>/</c>, sem <c>..</c>.
     /// </summary>

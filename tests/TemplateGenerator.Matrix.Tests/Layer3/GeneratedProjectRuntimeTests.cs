@@ -114,6 +114,38 @@ public sealed class GeneratedProjectRuntimeTests
         }
     }
 
+    [Fact]
+    public async Task A_Clean_compila_sobe_e_atende_o_mesmo_CRUD_que_a_Simples()
+    {
+        // A Clean entrou em T04 e, até este teste, NENHUM teste automatizado compilava ou
+        // executava o pacote dela: as camadas 1 e 2 leem o `.csproj`, e os critérios 2 e 4 são
+        // estáticos por natureza. Faltava a única afirmação que o produto promete em
+        // docs/product/vision.md — "um ZIP compilável" — e que só a execução prova.
+        //
+        // É UM roteiro, e não dois: o que a Clean acrescenta sobre a Simples é a divisão em
+        // quatro projetos, e o que precisa ser provado é que ela COMPILA com essa divisão e que o
+        // comportamento comum de generated-projects.md continua o mesmo. RF-20 e RF-16 já estão
+        // exercitados nos dois roteiros da Simples, e repeti-los aqui dobraria o custo da camada
+        // mais cara da suíte para reafirmar o que não muda com a arquitetura.
+        //
+        // Este teste também é o que prova, executando, a decisão de T04 de pôr a porta no
+        // `Domain`: se `Infrastructure` não enxergasse `IItemStore`, o build falharia aqui — e
+        // falharia com a saída do compilador na mensagem, não com uma asserção abstrata.
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+
+        await using GeneratedProject project = await GeneratedProject.BuildAsync(
+            new GenerationRequest(ProjectName, "clean", "none", "none", true, "net10.0"),
+            cancellationToken);
+
+        await project.StartAsync(cancellationToken);
+
+        using HttpClient client = project.Client();
+
+        await SaudeEhPublica(client, cancellationToken);
+        await CrudCompleto(client, cancellationToken);
+        await CorpoInvalidoNaoViraErroDeServidor(client, cancellationToken);
+    }
+
     /// <summary>RF-12: <c>GET /health</c> responde 200 e sem exigir token.</summary>
     private static async Task SaudeEhPublica(HttpClient client, CancellationToken cancellationToken)
     {

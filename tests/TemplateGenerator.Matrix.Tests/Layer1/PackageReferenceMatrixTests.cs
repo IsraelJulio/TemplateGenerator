@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using TemplateGenerator.Generation;
 using Xunit;
 
@@ -272,15 +271,7 @@ public sealed partial class PackageReferenceMatrixTests
     private static IReadOnlyList<(string Name, string? Version)> PackageReferences(
         GeneratedPackage package,
         string path) =>
-    [
-        .. XDocument.Parse(package.Read(path)).Root!
-            .Descendants()
-            .Where(element =>
-                element.Name.LocalName.Equals("PackageReference", StringComparison.Ordinal))
-            .Select(element => (
-                Name: element.Attribute("Include")?.Value ?? string.Empty,
-                Version: element.Attribute("Version")?.Value)),
-    ];
+        PackageLayout.PackageReferences(package, path);
 
     [GeneratedRegex(@"^\d+\.\d+\.\d+$", RegexOptions.CultureInvariant)]
     private static partial Regex ExactVersion();

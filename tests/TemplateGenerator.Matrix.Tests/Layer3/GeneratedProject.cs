@@ -90,13 +90,22 @@ internal sealed class GeneratedProject : IAsyncDisposable
             archive.ExtractToDirectory(root);
         }
 
-        string project = Path.Combine(root, "src", request.ProjectName, $"{request.ProjectName}.csproj");
+        // O projeto Web API é achado pelo `Program.cs`, e NÃO pelo nome. É a mesma regra por papel
+        // de `PackageLayout`, pelo mesmo motivo: na Simples o projeto de código se chama
+        // exatamente `<projectName>`, na Clean ele é `<projectName>.Api` entre quatro irmãos, e
+        // reimplementar aqui a regra de nomes de generated-projects.md criaria uma segunda cópia
+        // dela. Ponto de entrada há um só, nas duas arquiteturas.
+        //
+        // Até T04 este caminho era literal — `src/<projectName>/<projectName>.csproj` —, e por
+        // isso a camada 3 simplesmente não tinha como receber um pacote de Clean.
+        string? project = WebApiProject(root);
 
-        if (!File.Exists(project))
+        if (project is null || !File.Exists(project))
         {
             throw new InvalidOperationException(
                 $"O pacote de {request.Architecture}/{request.Database}/{request.Authentication} " +
-                $"não trouxe '{project}'. A camada 3 não tem o que compilar.");
+                "não trouxe um projeto Web API com 'Program.cs' e '.csproj' ao lado, sob 'src/'. " +
+                "A camada 3 não tem o que compilar.");
         }
 
         // Só o projeto Web API. Compilar a solução arrastaria o projeto de testes gerado e os
@@ -117,14 +126,18 @@ internal sealed class GeneratedProject : IAsyncDisposable
                 Environment.NewLine + output);
         }
 
+        // O nome do assembly acompanha o do projeto, que é o nome da pasta — e é decisão de
+        // generated-projects.md que os três sejam a mesma string. Derivar do `.csproj` encontrado,
+        // em vez de reconstruir a partir de `projectName`, é o que faz isto valer nas duas
+        // arquiteturas sem um `if`.
+        string projectName = Path.GetFileNameWithoutExtension(project);
+
         string assembly = Path.Combine(
-            root,
-            "src",
-            request.ProjectName,
+            Path.GetDirectoryName(project)!,
             "bin",
             "Debug",
             request.DotnetVersion,
-            $"{request.ProjectName}.dll");
+            $"{projectName}.dll");
 
         if (!File.Exists(assembly))
         {
@@ -135,7 +148,41 @@ internal sealed class GeneratedProject : IAsyncDisposable
                 Environment.NewLine + output);
         }
 
-        return new GeneratedProject(root, request.ProjectName, assembly, FreePort());
+        return new GeneratedProject(root, projectName, assembly, FreePort());
+    }
+
+    /// <summary>
+    /// O <c>.csproj</c> do projeto Web API extraído em <paramref name="root"/>: aquele cuja pasta
+    /// tem o <c>Program.cs</c>. <c>null</c> quando não há exatamente um.
+    /// </summary>
+    private static string? WebApiProject(string root)
+    {
+        string source = Path.Combine(root, "src");
+
+        if (!Directory.Exists(source))
+        {
+            return null;
+        }
+
+        string[] entryPoints =
+        [
+            .. Directory.EnumerateFiles(source, "Program.cs", SearchOption.AllDirectories)
+                .Order(StringComparer.Ordinal),
+        ];
+
+        if (entryPoints.Length != 1)
+        {
+            return null;
+        }
+
+        string directory = Path.GetDirectoryName(entryPoints[0])!;
+
+        string[] projects =
+        [
+            .. Directory.EnumerateFiles(directory, "*.csproj", SearchOption.TopDirectoryOnly),
+        ];
+
+        return projects.Length == 1 ? projects[0] : null;
     }
 
     /// <summary>

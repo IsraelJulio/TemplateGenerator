@@ -164,6 +164,18 @@ public sealed class CleanDependencyGraphTests
         // Critério de aceite 2, afirmado sozinho e não só como consequência da igualdade acima:
         // é a regra que o `.csproj` do Domain existe para cumprir, e a mensagem de falha precisa
         // dizer isso com essas palavras para quem a encontrar.
+        //
+        // São DUAS metades, e as duas são asserção. A segunda — "nem pacote de infraestrutura" —
+        // estava só na mensagem até o `reviewer` de T04 apontar: a afirmação era verdadeira no
+        // pacote real, mas nada a verificava. A consequência tinha data marcada: quando T05
+        // trouxer EF Core, um `Microsoft.EntityFrameworkCore` caindo no `Domain` não derrubaria
+        // nada, e a mensagem continuaria prometendo que derrubaria. Um verificador que promete
+        // mais do que checa é pior que um que não promete.
+        //
+        // E note o que ela afirma, que é mais forte que uma lista de pacotes proibidos: o
+        // `Domain` não declara pacote NENHUM. Não há lista a manter, não há provider novo a
+        // lembrar de acrescentar, e `Os_dois_pacotes_de_Swagger_entram_no_projeto_Web_API_e_em_
+        // nenhum_outro` — que é por nome — deixa de ser o único olhar sobre isto.
         GeneratedPackage package = await GeneratedPackage.GenerateAsync(
             Request(architecture, database, authentication, swagger),
             TestContext.Current.CancellationToken);
@@ -179,9 +191,22 @@ public sealed class CleanDependencyGraphTests
         Assert.True(
             references.Count == 0,
             $"{GeneratedPackage.Describe(package.Request)}: '{domain}' declara " +
-            $"{string.Join(", ", references)}. O DOMÍNIO NÃO REFERENCIA NINGUÉM — nem projeto, " +
-            "nem pacote de infraestrutura (generated-projects.md, 'Clean Architecture'; critério " +
-            "de aceite 2 de T04).");
+            $"{string.Join(", ", references)}. O DOMÍNIO NÃO REFERENCIA PROJETO NENHUM " +
+            "(generated-projects.md, 'Clean Architecture'; critério de aceite 2 de T04).");
+
+        string[] packages =
+        [
+            .. PackageLayout.PackageReferences(package, domain)
+                .Select(reference => reference.Name),
+        ];
+
+        Assert.True(
+            packages.Length == 0,
+            $"{GeneratedPackage.Describe(package.Request)}: '{domain}' declara " +
+            $"{string.Join(", ", packages)}. O DOMÍNIO NÃO DECLARA PACOTE NENHUM — entidades, " +
+            "regras e portas não dependem de infraestrutura, e a dependência de uma opção entra " +
+            "no projeto de composição (generated-projects.md, 'Clean Architecture'; critério de " +
+            "aceite 2 de T04).");
     }
 
     [Theory]
