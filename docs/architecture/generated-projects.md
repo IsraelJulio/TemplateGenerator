@@ -1,8 +1,9 @@
 # Projetos gerados
 
-> A tela já mostra uma **projeção** desta árvore, derivada no frontend enquanto não há ZIP real;
-> amarrá-la ao pacote gerado — e decidir o nome da pasta do projeto Web API na arquitetura Simples —
-> é obrigação de T03/T04. Ver [ADR-0010](../decisions/adr-0010-estrutura-prevista-e-projecao.md).
+> A tela mostra uma **projeção** desta árvore, derivada no frontend. Este documento é a fonte; a
+> projeção o segue, e não o contrário. Ver
+> [ADR-0010](../decisions/adr-0010-estrutura-prevista-e-projecao.md). A regra de nomes abaixo é a
+> decisão que ADR-0010 deixou para T03/T04; a **Simples** está decidida, a **Clean** não.
 
 ## Conteúdo obrigatório de todo ZIP
 
@@ -14,6 +15,64 @@
 - `.gitignore`, `.editorconfig`, `global.json` fixando o SDK
 - `README.md` específico da combinação (RF-21)
 - `.templategenerator/manifest.json` (RF-22)
+
+## Nomes de projeto e de pasta
+
+`projectName` é a raiz de tudo: da solução, dos projetos, dos namespaces e do nome do ZIP.
+
+### Arquitetura Simples — **decidida em T03**
+
+**O projeto Web API se chama exatamente `<ProjectName>`. Nada é acrescentado ao nome.**
+
+```
+<ProjectName>.sln
+src/<ProjectName>/<ProjectName>.csproj      namespace raiz: <ProjectName>
+tests/<ProjectName>.Tests/<ProjectName>.Tests.csproj
+```
+
+`Acme.Billing` ⇒ `src/Acme.Billing/`. `Acme.Billing.Api` ⇒ `src/Acme.Billing.Api/`. É exatamente o
+que `dotnet new webapi -n <nome>` produziria, nos dois casos.
+
+**Por quê, e por que isto não é uma regra de deduplicação.** ADR-0010 avisa que inventar
+deduplicação de sufixo seria "trocar um palpite por outro", e o aviso está certo. A saída não é
+deduplicar melhor: é **perguntar para que serve o sufixo**. Em Clean, `.Api` existe para distinguir
+um dos quatro projetos irmãos — `.Api`, `.Application`, `.Domain`, `.Infrastructure`. É um
+desambiguador. Na Simples **não há irmão**: há um projeto de código, e nada a desambiguar. O sufixo
+não tem função, então não é acrescentado — e o `.Api` dobrado simplesmente não chega a existir,
+porque nada é concatenado. Nenhuma regra condicional, nenhuma comparação de sufixo, nenhum caso
+especial para `Acme.Billing.Api`.
+
+Três consequências que confirmam a escolha:
+
+- O nome do projeto é o nome que a pessoa digitou. Quem chamou de `Acme.Billing` recebe
+  `Acme.Billing`, e não um `Acme.Billing.Api` que não pediu.
+- O namespace raiz é `<ProjectName>` e o token `__ProjectName__` basta para tudo. Não nasce um
+  segundo marcador nem uma regra em C# para calculá-lo
+  ([`generation-engine.md`](generation-engine.md)).
+- Um único projeto de código chamado `<ProjectName>` e um de teste chamado `<ProjectName>.Tests`
+  cobrem o ZIP inteiro, sem colisão de nome.
+
+**A assimetria com `.Tests` é deliberada.** `.Tests` é acrescentado sempre, porque ali ele *tem*
+função: sem ele, o projeto de teste e o de produção teriam o mesmo nome. Um `projectName` que já
+termine em `.Tests` produz `Foo.Tests.Tests` — caso degenerado, explicitamente pedido por quem
+digitou o nome, e que não colide com nada.
+
+### Clean Architecture — **em aberto, decide T04**
+
+Os quatro projetos são `<ProjectName>.Api`, `<ProjectName>.Application`, `<ProjectName>.Domain` e
+`<ProjectName>.Infrastructure`. Aqui os sufixos **têm** função e não podem ser abandonados, então a
+ambiguidade de ADR-0010 sobrevive: `Acme.Billing.Api` produz hoje `src/Acme.Billing.Api.Api/`.
+
+T04 escolhe entre duas saídas, e nenhuma delas é a da Simples:
+
+1. **Aceitar o nome dobrado**, tratando-o como consequência visível de um nome que a pessoa
+   escolheu. Custo zero em regra, custo em aparência.
+2. **Deduplicar o sufixo**, e então escrever a regra sem ambiguidade: comparação exata ou
+   *case-insensitive*, o que acontece com `Acme.API`, o que acontece com `Acme.Api.Api`, e como o
+   namespace raiz acompanha.
+
+Até T04 decidir, a projeção da tela continua mostrando `<ProjectName>.Api` para Clean, e isto
+**é** o comportamento documentado — não uma divergência.
 
 ## Arquitetura Simples
 

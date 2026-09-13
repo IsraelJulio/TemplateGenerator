@@ -88,7 +88,7 @@ hoje projeção do cliente — ver [ADR-0010](../decisions/adr-0010-estrutura-pr
 ```
 
 **Resposta 429** — quando o limite de requisições ou de gerações simultâneas é atingido, também
-em `ProblemDetails`, com `Retry-After`.
+em `ProblemDetails`, com `Retry-After`. Detalhe na seção "Limites de geração" adiante.
 
 ## Regras de serialização
 
@@ -122,22 +122,65 @@ cravados:
    exigiria confiar num valor que ninguém escolheu; assumir `false` inverteria o padrão em
    silêncio.
 8. **Os exemplos deste documento são o mínimo, não a lista fechada de chaves.** A RFC 9457
-   permite extensões, e as respostas reais trazem `traceId`; o `501` traz `templateVersion`.
+   permite extensões, e as respostas reais trazem `traceId`; o `429` traz `retryAfterSeconds`.
    Nenhum cliente deve assumir "exatamente estas chaves".
 
-## Estado transitório: `501`
+## Limites de geração
 
-Enquanto o motor de geração não existe (até T03), uma configuração **válida** responde
-`501 Not Implemented` em `ProblemDetails`, com
-`type: .../problems/generation-not-implemented`.
+Os dois limites de RNF-04 valem **só para `POST /api/templates`** e são lidos da seção
+`Generation:Limits` da configuração a cada requisição — não capturados na inicialização, o que
+permite a um teste fixar um limite sem depender da ordem em que o host monta a configuração.
 
-A alternativa — devolver `200 application/zip` com um pacote vazio — foi descartada: um `200`
-com `Content-Disposition` é uma **afirmação de que a geração aconteceu**. O cliente salvaria o
-arquivo e o defeito só apareceria ao abrir o pacote, longe da causa. O `501` diz a verdade exata
-do estado: a configuração passou pela validação, o motor não existe.
+| Chave | Default | O que protege |
+|---|---|---|
+| `Generation:Limits:MaxConcurrentGenerations` | `4` | a máquina: quantas gerações cabem ao mesmo tempo, no processo inteiro |
+| `Generation:Limits:RequestsPerWindow` | `30` | contra uma origem sozinha ocupar a fila inteira |
+| `Generation:Limits:WindowSeconds` | `60` | tamanho da janela fixa do limite por origem |
+| `Generation:Limits:RetryAfterSeconds` | `5` | `Retry-After` quando o limitador não sabe dizer quanto falta |
 
-Em T03 isso vira `200 application/zip`, e a troca aparece no diff do teste que hoje afirma o
-`501`.
+São dois limites diferentes de propósito, encadeados; um sem o outro deixa um dos dois buracos
+aberto. **Os defaults estão no código, e não só no `appsettings.json`:** uma instalação que apague a
+seção fica com o limite default, nunca sem limite.
+
+Pontos que o contrato crava:
+
+- **`GET /api/health` fica de fora.** Ele existe para o cliente distinguir "API fora do ar" de "rota
+  ausente", e um health limitado responderia `429` exatamente quando alguém precisa saber se o
+  servidor está vivo.
+- **Sem fila.** O excedente é recusado na hora. Enfileirar faria o cliente esperar sem saber por
+  quê, e um download que demora é indistinguível de um servidor travado.
+- **O status é `429`, não `503`** — que é o default do middleware. `429` informa "tente de novo";
+  `503` afirma indisponibilidade, que não é o caso.
+- **A origem é o endereço da conexão, não `X-Forwarded-For`.** Um limite baseado em cabeçalho que o
+  próprio cliente escreve não é limite. Atrás de proxy reverso, a forma certa é configurar
+  `ForwardedHeaders` com a lista de proxies confiáveis — decisão de implantação, que não está tomada
+  aqui e não deve ser fingida por default.
+- **`Retry-After` em segundos**, sempre ≥ 1, com o mesmo número repetido na extensão
+  `retryAfterSeconds` do `ProblemDetails`. A janela fixa sabe dizer quanto falta; o limite de
+  concorrência não — ele depende de outra requisição terminar, e aí vale `RetryAfterSeconds`.
+
+## Histórico: o `501` que existiu até T03
+
+**Não é mais emitido.** Desde T03 uma configuração válida responde `200 application/zip`, e
+`ProblemTypes.GenerationNotImplemented` foi removido do código. Um cliente **não** deve tratar
+`501` como estado esperado deste contrato.
+
+O registro fica porque o próprio texto anterior previa a troca, e porque o raciocínio continua
+valendo caso a situação se repita em outro endpoint. Enquanto o motor não existia (T01 e T02), uma
+configuração válida respondia `501 Not Implemented` em `ProblemDetails`, com
+`type: .../problems/generation-not-implemented`. A alternativa — devolver `200 application/zip` com
+um pacote vazio — foi descartada: um `200` com `Content-Disposition` é uma **afirmação de que a
+geração aconteceu**. O cliente salvaria o arquivo e o defeito só apareceria ao abrir o pacote, longe
+da causa. O `501` dizia a verdade exata do estado: a configuração passou pela validação, o motor não
+existia.
+
+**Consequência para T09:** o tratamento de `501` no frontend virou **código morto**. Ele vive em
+`src/web/src/app/core/catalog/generation-failure.ts` (a marca `notImplemented`), nos testes que a
+exercitam e no `configurator.html`, que escolhe entre `notice--pending` e `notice--error` a partir
+dela. Nenhum servidor produz mais esse status, então o ramo `notImplemented` só é alcançável por
+dublê de rede: ele passa a testar a si mesmo. Quem pegar T09 decide entre remover o ramo — e com ele
+o estado visual "pendente" da tela, se nada mais o usar — ou mantê-lo deliberadamente como defesa
+genérica contra `5xx`, caso em que ele deixa de se chamar `notImplemented`.
 
 ## Regras
 
