@@ -35,8 +35,15 @@ public sealed class TemplateContributionsTests
         string projectName = "Acme.Billing") =>
         new(projectName, architecture, database, authentication, swagger, "net10.0");
 
+    // `Unrestricted`: o assunto aqui é o mecanismo de contribuição, não a disponibilidade. Um
+    // repositório mínimo montado no teste seria recusado por ser mínimo, e a recusa por combinação
+    // indisponível tem teste próprio (ADR-0012).
     private static GenerationPlan Resolve(ITemplateSource source, GenerationRequest? request = null) =>
-        GenerationPlan.Resolve(_catalog, request ?? Request(), source);
+        GenerationPlan.Resolve(
+            _catalog,
+            request ?? Request(),
+            source,
+            TemplateAvailability.Unrestricted);
 
     /// <summary>O caminho de um arquivo de contribuição na raiz do fragmento.</summary>
     private static string Part(string file) => $"{PartsDirectory}/{file}";

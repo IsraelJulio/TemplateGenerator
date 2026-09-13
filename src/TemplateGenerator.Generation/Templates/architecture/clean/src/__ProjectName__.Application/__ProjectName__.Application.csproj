@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Casos de uso. Depende SÓ do domínio — nenhuma referência a `Infrastructure` e nenhuma a `Api`
+    (docs/architecture/generated-projects.md, "Clean Architecture").
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>__TargetFramework__</TargetFramework>
+    <RootNamespace>__ProjectName__.Application</RootNamespace>
+    <AssemblyName>__ProjectName__.Application</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\__ProjectName__.Domain\__ProjectName__.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

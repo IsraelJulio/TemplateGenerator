@@ -23,10 +23,11 @@ public sealed class GenerationEngine : IGenerationEngine
 {
     private readonly TemplateOptionsCatalog _catalog;
     private readonly ITemplateSource _source;
+    private readonly TemplateAvailability _availability;
 
     /// <summary>Cria o motor sobre o catálogo vigente e os templates embutidos.</summary>
     public GenerationEngine()
-        : this(TemplateCatalog.Current, EmbeddedTemplateSource.Default)
+        : this(TemplateCatalog.Current, EmbeddedTemplateSource.Default, TemplateAvailability.Current)
     {
     }
 
@@ -34,14 +35,33 @@ public sealed class GenerationEngine : IGenerationEngine
     /// <remarks>
     /// A origem entra por construtor para que os testes componham um conjunto mínimo de
     /// fragmentos. Em produção há uma única origem — <see cref="EmbeddedTemplateSource.Default"/>.
+    /// A disponibilidade é <strong>derivada dessa mesma origem</strong>: um motor montado sobre um
+    /// repositório de teste recusa exatamente o que aquele repositório não tem.
     /// </remarks>
     public GenerationEngine(TemplateOptionsCatalog catalog, ITemplateSource source)
+        : this(catalog, source, new TemplateAvailability(catalog, source))
+    {
+    }
+
+    /// <summary>
+    /// Cria o motor sobre um catálogo, uma origem e uma disponibilidade já derivada.
+    /// </summary>
+    /// <remarks>
+    /// A disponibilidade é calculada uma vez e compartilhada (ADR-0012): ela varre o repositório
+    /// inteiro, e o resultado é imutável porque os templates são recursos embutidos.
+    /// </remarks>
+    public GenerationEngine(
+        TemplateOptionsCatalog catalog,
+        ITemplateSource source,
+        TemplateAvailability availability)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(availability);
 
         _catalog = catalog;
         _source = source;
+        _availability = availability;
     }
 
     /// <summary>
@@ -52,7 +72,7 @@ public sealed class GenerationEngine : IGenerationEngine
     /// precisa, para isso, de um ZIP — e porque separa explicitamente "decidir" de "escrever".
     /// </remarks>
     public GenerationPlan Plan(GenerationRequest request) =>
-        GenerationPlan.Resolve(_catalog, request, _source);
+        GenerationPlan.Resolve(_catalog, request, _source, _availability);
 
     /// <inheritdoc />
     public async Task WriteArchiveAsync(

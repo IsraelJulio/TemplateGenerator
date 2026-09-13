@@ -2,7 +2,7 @@
 #
 # Execute direto do editor: Visual Studio abre este formato nativamente e o VS Code o executa
 # com a extensão REST Client. O endereço é o mesmo do `dotnet run`
-# (src/__ProjectName__/Properties/launchSettings.json).
+# (__ApiProjectDir__/Properties/launchSettings.json).
 
 @host = http://localhost:5100
 

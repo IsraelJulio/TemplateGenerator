@@ -24,8 +24,23 @@ public static class ProblemTypes
     public const string TooManyRequests =
         "https://templategenerator.local/problems/too-many-requests";
 
-    // Havia aqui `GenerationNotImplemented`, o 501 que a Api respondia enquanto o motor de
-    // geração não existia (T01/T02). O motor entrou em T03 e o `POST /api/templates` passou a
-    // responder `200 application/zip` — não existe mais estado em que a Api afirme "válido, mas
-    // não implementado". Ver docs/architecture/http-contract.md, "Estado transitório: 501".
+    /// <summary>
+    /// A configuração é válida e o servidor não tem template para ela (ADR-0012).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>É o mesmo URI que existiu até T02</strong>, e isso é deliberado: o significado — "a
+    /// configuração passou pela validação, quem está incompleto é o servidor" — é o mesmo, com
+    /// escopo menor. Antes era "o motor de geração ainda não existe"; agora é "esta combinação
+    /// ainda não gera projeto". Um URI novo faria um cliente antigo tratar como desconhecido um
+    /// caso que ele já sabia tratar.
+    /// </para>
+    /// <para>
+    /// <c>501</c> e não <c>400</c>: a escolha da pessoa está certa e não há nada que ela possa
+    /// consertar. Dizer o contrário repetiria, num lugar novo, o erro que o contrato já recusou uma
+    /// vez.
+    /// </para>
+    /// </remarks>
+    public const string GenerationNotImplemented =
+        "https://templategenerator.local/problems/generation-not-implemented";
 }

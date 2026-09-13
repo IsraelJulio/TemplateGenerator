@@ -32,8 +32,14 @@ public static class TemplateAxes
     /// <summary>Fragmento presente em toda combinação.</summary>
     public const string Common = "common";
 
+    /// <summary>
+    /// O valor de diretório da posição <em>ligada</em> de um eixo booleano. A posição desligada
+    /// não tem diretório: ela é a <strong>ausência</strong> do fragmento (RF-20).
+    /// </summary>
+    public const string Enabled = "enabled";
+
     /// <summary>Diretório do eixo booleano de Swagger quando ele está ligado.</summary>
-    public const string SwaggerEnabled = "swagger/enabled";
+    public const string SwaggerEnabled = "swagger/" + Enabled;
 
     /// <summary>Separador de fragmento, dentro do identificador e no caminho do recurso.</summary>
     public const char Separator = '/';
@@ -115,6 +121,47 @@ public static class TemplateAxes
         return null;
     }
 
+    /// <summary>
+    /// O fragmento que a escolha de <paramref name="value"/> no campo <paramref name="field"/>
+    /// implica, ou <c>null</c> quando ela <strong>não implica fragmento nenhum</strong>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Os dois casos de <c>null</c> são a regra R2 de ADR-0012, e não exceções:
+    /// </para>
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///     <strong>Campo sem eixo</strong> — <c>dotnetVersion</c> entra no pacote por marcador de
+    ///     valor, não por seleção de arquivos, e nenhum diretório corresponde a ele.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///     <strong>Posição desligada de um eixo booleano</strong> — <c>swagger = false</c> é a
+    ///     ausência do fragmento, e não um <c>swagger/disabled</c> vazio existindo por simetria
+    ///     (RF-20). É por isto que ela nunca pode ser lida como "template não escrito".
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
+    public static string? FragmentFor(string field, CatalogValue value)
+    {
+        ArgumentNullException.ThrowIfNull(field);
+
+        if (!_directoryByField.TryGetValue(field, out string? directory))
+        {
+            return null;
+        }
+
+        if (!value.IsText)
+        {
+            return value.Flag ? $"{directory}{Separator}{Enabled}" : null;
+        }
+
+        return $"{directory}{Separator}{value.Text}";
+    }
+
     /// <summary>Monta o identificador do fragmento de um campo com um valor.</summary>
     private static string Fragment(string field, string value) =>
         $"{_directoryByField[field]}{Separator}{value}";
@@ -154,7 +201,7 @@ public static class TemplateAxes
 
             if (entry.Value.IsToggle)
             {
-                yield return $"{directory}{Separator}enabled";
+                yield return $"{directory}{Separator}{Enabled}";
 
                 continue;
             }

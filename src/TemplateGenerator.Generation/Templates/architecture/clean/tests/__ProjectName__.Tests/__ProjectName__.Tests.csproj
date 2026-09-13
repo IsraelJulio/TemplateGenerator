@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>__TargetFramework__</TargetFramework>
+    <RootNamespace>__ProjectName__.Tests</RootNamespace>
+    <AssemblyName>__ProjectName__.Tests</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+
+    <!-- xUnit v3 roda o projeto de teste como executável. -->
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
+  </ItemGroup>
+
+  <!--
+    O alvo dos testes são os casos de uso, que moram em `Application`. `Domain` chega por
+    transitividade; `Infrastructure` não é referenciada de propósito — o dublê de persistência
+    deste projeto é que ocupa o lugar dela, e é assim que os mesmos testes valem com banco e sem.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\__ProjectName__.Application\__ProjectName__.Application.csproj" />
+  </ItemGroup>
+
+</Project>

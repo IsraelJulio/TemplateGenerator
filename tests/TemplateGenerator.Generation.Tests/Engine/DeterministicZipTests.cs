@@ -63,7 +63,13 @@ public sealed class DeterministicZipTests
 
         // Contribuições entram no conteúdo de um arquivo de outro fragmento e não viram entrada
         // do ZIP (ADR-0011).
+        //
+        // Todo fragmento que a combinação sob teste seleciona precisa contribuir alguma coisa: o
+        // motor recusa uma combinação cujo template não existe (ADR-0012), e um repositório de
+        // teste incompleto seria recusado por estar incompleto. `auth/none` contribui texto, como
+        // no repositório de produção, onde ele também só tem `__parts__/`.
         .With("database/none", $"{TemplateContributions.Directory}/Itens.txt", "// sem banco")
+        .With("auth/none", $"{TemplateContributions.Directory}/Itens.txt", "// sem auth")
         .With("swagger/enabled", $"{TemplateContributions.Directory}/Itens.txt", "// swagger");
 
     private static async Task<byte[]> GenerateAsync(
@@ -184,9 +190,9 @@ public sealed class DeterministicZipTests
 
         using StreamReader reader = new(program.Open(), Encoding.UTF8);
 
-        // Na ordem de seleção: database antes de swagger.
+        // Na ordem de seleção: database, depois auth, depois swagger.
         Assert.Equal(
-            "// Acme.Billing.Api\n// sem banco\n// swagger\n",
+            "// Acme.Billing.Api\n// sem banco\n// sem auth\n// swagger\n",
             await reader.ReadToEndAsync(TestContext.Current.CancellationToken));
     }
 

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Implementa as portas do domínio: persistência e, quando a geração inclui Identity, identidade.
+    Depende SÓ do domínio — é ele que declara as portas, então a seta aponta para dentro
+    (docs/architecture/generated-projects.md, "Clean Architecture").
+
+    Os arquivos deste projeto que dependem da opção de banco — `Persistence/ItemStore.cs`, o
+    `DbContext` e as migrações — vêm do fragmento `database/<opção>`, e não daqui: um arquivo cujo
+    conteúdo inteiro é decidido por outro eixo pertence ao fragmento que o preenche
+    (docs/architecture/generation-engine.md, "A regra do hospedeiro mínimo").
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>__TargetFramework__</TargetFramework>
+    <RootNamespace>__ProjectName__.Infrastructure</RootNamespace>
+    <AssemblyName>__ProjectName__.Infrastructure</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\__ProjectName__.Domain\__ProjectName__.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

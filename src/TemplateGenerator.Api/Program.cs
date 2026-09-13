@@ -14,6 +14,12 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // ProblemDetails (RFC 9457) é o formato de erro do contrato, inclusive para falhas não tratadas.
 builder.Services.AddProblemDetails();
 
+// Quais valores do catálogo têm template, derivado dos fragmentos embutidos (ADR-0012). Uma
+// instância, calculada uma vez: os templates são recursos embutidos e imutáveis, e a varredura não
+// pode acontecer por requisição. É a MESMA instância que o motor usa — os dois lados da recusa
+// perguntam à mesma verdade.
+builder.Services.AddSingleton(TemplateAvailability.Current);
+
 // O motor de geração. Singleton porque ele não tem estado: catálogo e templates são imutáveis e
 // compartilhados, e tudo que pertence a uma geração vive na pilha daquela requisição (RNF-04).
 builder.Services.AddSingleton<IGenerationEngine, GenerationEngine>();

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using TemplateGenerator.Generation;
 using TemplateGenerator.Generation.Catalog;
+using TemplateGenerator.Generation.Engine;
 using TemplateGenerator.Generation.Validation;
 
 namespace TemplateGenerator.Api.Endpoints;
@@ -102,11 +103,20 @@ public static class GeneratorEndpoints
     /// português, padrões e restrições.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Sem parâmetro e sem negociação: o catálogo é o mesmo para todo mundo, e é ele a fonte de
     /// verdade das opções (RF-02).
+    /// </para>
+    /// <para>
+    /// Junto vai o membro <c>unavailable</c>: quais valores ainda não têm template, como DADO, para
+    /// a tela desabilitar o que vier desabilitado e mostrar a razão sem codificar um único valor
+    /// (ADR-0012). Ele é <strong>derivado</strong> dos fragmentos — quando alguém escrever o
+    /// template que falta, a opção acende sozinha.
+    /// </para>
     /// </remarks>
-    private static Ok<TemplateOptionsCatalog> GetTemplateOptions() =>
-        TypedResults.Ok(TemplateCatalog.Current);
+    private static Ok<TemplateOptionsResponse> GetTemplateOptions(
+        [FromServices] TemplateAvailability availability) =>
+        TypedResults.Ok(TemplateOptionsResponse.From(TemplateCatalog.Current, availability));
 
     /// <summary>
     /// <c>POST /api/templates</c> — valida a configuração pedida e, quando ela é válida, gera o
@@ -125,14 +135,27 @@ public static class GeneratorEndpoints
     /// byte, o status já foi enviado e não há mais como dizer "não".
     /// </para>
     /// <para>
-    /// Até T02 o caminho feliz respondia <c>501</c>, porque o motor não existia e um <c>200</c>
-    /// com pacote vazio teria afirmado uma geração que não aconteceu. O motor existe desde T03 e
-    /// o <c>501</c> deixou de ser emitido.
+    /// <strong>A ordem das duas recusas</strong> (ADR-0012, item 4): primeiro a validação inteira
+    /// — nome do projeto, pertinência ao catálogo e a restrição <c>identity-requires-database</c>
+    /// —, e só depois a disponibilidade. Nunca ao contrário: antes da validação a derivação mente.
+    /// Um <c>architecture: "banana"</c> não tem fragmento, logo seria recusado com "o template
+    /// desta opção ainda não foi escrito" para um valor que <em>não existe no catálogo</em>, e a
+    /// resposta verdadeira é <c>400, o valor não pertence ao catálogo</c>. Inverter a ordem
+    /// transforma um erro claro de quem chamou num defeito inventado do servidor.
+    /// </para>
+    /// <para>
+    /// <strong>E a recusa entra antes de <see cref="GeneratedArchiveResult"/> existir</strong>:
+    /// aquele resultado escreve <c>Content-Type: application/zip</c> e
+    /// <c>Content-Disposition: attachment</c> como primeira coisa que faz, e uma recusa depois
+    /// disso sairia com cabeçalho de download em cima. O motor impõe a mesma recusa do lado dele,
+    /// perguntando ao mesmo <see cref="TemplateAvailability"/>: o que se duplica é a imposição,
+    /// não a verdade.
     /// </para>
     /// </remarks>
-    private static Results<ValidationProblem, GeneratedArchiveResult> CreateTemplate(
+    private static Results<ValidationProblem, ProblemHttpResult, GeneratedArchiveResult> CreateTemplate(
         TemplateRequestBody? body,
-        [FromServices] IGenerationEngine engine)
+        [FromServices] IGenerationEngine engine,
+        [FromServices] TemplateAvailability availability)
     {
         // Corpo ausente não é um caso à parte: é um corpo em que nenhum campo veio, e a resposta
         // útil é a mesma lista de campos obrigatórios.
@@ -164,7 +187,50 @@ public static class GeneratorEndpoints
                 type: ProblemTypes.InvalidConfiguration);
         }
 
+        IReadOnlyList<string> unavailable = availability.UnavailableFields(request);
+
+        if (unavailable.Count > 0)
+        {
+            return NotImplemented(unavailable);
+        }
+
         return new GeneratedArchiveResult(request, engine);
+    }
+
+    /// <summary>
+    /// A resposta <c>501</c> de uma combinação sem template (ADR-0012, item 3).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>errors</c>, e não uma extensão nova, é quem diz <strong>qual campo</strong> causou a
+    /// recusa: é a mesma estrutura do <c>400</c>, o mesmo caminho de código e a mesma marcação
+    /// <em>inline</em> na tela. Uma extensão paralela seria um segundo formato para a mesma
+    /// informação. Uma entrada por campo indisponível, na ordem dos campos no catálogo, cada uma
+    /// com a mesma frase — a mesma que o catálogo publica em <c>unavailable</c>.
+    /// </para>
+    /// <para>
+    /// <strong>Sem <c>detail</c>:</strong> com <c>errors</c> preenchido, um <c>detail</c> genérico
+    /// só repetiria em prosa o que já está endereçado ao campo, e o frontend trata <c>detail</c>
+    /// como o que se mostra <em>quando não há</em> erro de campo.
+    /// </para>
+    /// </remarks>
+    private static ProblemHttpResult NotImplemented(IReadOnlyList<string> fields)
+    {
+        // Ordenado, e não `Dictionary`: a ordem das entradas é a ordem dos campos no catálogo, e
+        // ela é declarada — não um efeito colateral de como as chaves caem nos buckets.
+        OrderedDictionary<string, string[]> errors = new(StringComparer.Ordinal);
+
+        foreach (string field in fields)
+        {
+            errors[field] = [TemplateAvailability.UnavailableReason];
+        }
+
+        return TypedResults.Problem(new HttpValidationProblemDetails(errors)
+        {
+            Type = ProblemTypes.GenerationNotImplemented,
+            Title = "Esta combinação ainda não gera projeto",
+            Status = StatusCodes.Status501NotImplemented,
+        });
     }
 
     /// <summary>

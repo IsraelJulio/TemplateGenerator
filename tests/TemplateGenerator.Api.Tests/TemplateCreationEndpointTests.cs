@@ -36,14 +36,24 @@ public sealed class TemplateCreationEndpointTests : IClassFixture<GeneratorApiFa
         _factory = factory;
     }
 
-    /// <summary>Uma configuração válida, usada como base dos casos negativos.</summary>
+    /// <summary>
+    /// Uma configuração válida <strong>e disponível</strong>, usada como base dos casos negativos
+    /// e de todo teste que espera um pacote.
+    /// </summary>
+    /// <remarks>
+    /// Era <c>sqlite</c> + <c>identity</c> até T04. Continua válida — passa pela validação, pertence
+    /// ao catálogo, satisfaz as restrições —, mas o template dela não existe, e desde ADR-0012 uma
+    /// combinação sem template responde <c>501</c> em vez de um pacote com buraco dentro. Quem
+    /// espera ZIP precisa pedir uma combinação que gera ZIP; a recusa da outra está em
+    /// <see cref="GenerationNotImplementedEndpointTests"/>.
+    /// </remarks>
     private static Dictionary<string, object?> ValidConfiguration() =>
         new(StringComparer.Ordinal)
         {
             [CatalogFields.ProjectName] = "Acme.Billing.Api",
             [CatalogFields.Architecture] = "simple",
-            [CatalogFields.Database] = "sqlite",
-            [CatalogFields.Authentication] = "identity",
+            [CatalogFields.Database] = "none",
+            [CatalogFields.Authentication] = "none",
             [CatalogFields.Swagger] = true,
             [CatalogFields.DotnetVersion] = "net10.0",
         };
@@ -104,8 +114,8 @@ public sealed class TemplateCreationEndpointTests : IClassFixture<GeneratorApiFa
 
         Assert.Equal("Acme.Billing.Api", options.GetProperty(CatalogFields.ProjectName).GetString());
         Assert.Equal("simple", options.GetProperty(CatalogFields.Architecture).GetString());
-        Assert.Equal("sqlite", options.GetProperty(CatalogFields.Database).GetString());
-        Assert.Equal("identity", options.GetProperty(CatalogFields.Authentication).GetString());
+        Assert.Equal("none", options.GetProperty(CatalogFields.Database).GetString());
+        Assert.Equal("none", options.GetProperty(CatalogFields.Authentication).GetString());
         Assert.True(options.GetProperty(CatalogFields.Swagger).GetBoolean());
         Assert.Equal("net10.0", options.GetProperty(CatalogFields.DotnetVersion).GetString());
     }
@@ -158,6 +168,7 @@ public sealed class TemplateCreationEndpointTests : IClassFixture<GeneratorApiFa
     public async Task Identity_sem_banco_responde_400_apontando_o_campo_authentication()
     {
         Dictionary<string, object?> configuration = ValidConfiguration();
+        configuration[CatalogFields.Authentication] = "identity";
         configuration[CatalogFields.Database] = "none";
 
         using HttpResponseMessage response = await PostAsync(configuration);

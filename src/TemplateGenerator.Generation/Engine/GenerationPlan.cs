@@ -43,8 +43,16 @@ public sealed class GenerationPlan
     /// <param name="catalog">Catálogo vigente.</param>
     /// <param name="request">Configuração pedida.</param>
     /// <param name="source">Origem dos fragmentos.</param>
+    /// <param name="availability">
+    /// Quais valores têm template. Em produção é <see cref="TemplateAvailability.Current"/>, que
+    /// <see cref="GenerationEngine"/> injeta; o teste de mecanismo passa
+    /// <see cref="TemplateAvailability.Unrestricted"/>, porque o assunto dele é a composição.
+    /// </param>
     /// <exception cref="GenerationRequestRejectedException">
     /// Quando a configuração não passa na validação.
+    /// </exception>
+    /// <exception cref="GenerationNotAvailableException">
+    /// Quando a configuração é válida mas seleciona um valor sem template (ADR-0012).
     /// </exception>
     /// <exception cref="TemplateDefectException">
     /// Quando o conjunto de templates está errado: caminho inválido, marcador inexistente ou
@@ -53,11 +61,13 @@ public sealed class GenerationPlan
     public static GenerationPlan Resolve(
         TemplateOptionsCatalog catalog,
         GenerationRequest request,
-        ITemplateSource source)
+        ITemplateSource source,
+        TemplateAvailability availability)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(availability);
 
         // Passo 1 de docs/architecture/generation-engine.md. A validação não é reimplementada
         // aqui: é a mesma que a Api chama para responder 400.
@@ -66,6 +76,19 @@ public sealed class GenerationPlan
         if (!validation.IsValid)
         {
             throw new GenerationRequestRejectedException(validation);
+        }
+
+        // O passo entre a validação e a composição (ADR-0012, item 4). A ordem é a decisão, não um
+        // detalhe: DEPOIS da validação inteira, porque um valor fora do catálogo também não tem
+        // fragmento e responder "o template não existe" a um valor inexistente inverteria a culpa;
+        // ANTES de qualquer composição, porque nada pode ter sido escrito.
+        IReadOnlyList<string> unavailable = availability.UnavailableFields(request);
+
+        if (unavailable.Count > 0)
+        {
+            throw new GenerationNotAvailableException(
+                unavailable,
+                TemplateAvailability.UnavailableReason);
         }
 
         IReadOnlyDictionary<string, string> tokens =

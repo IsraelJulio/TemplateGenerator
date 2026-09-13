@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using TemplateGenerator.Generation.Catalog;
 using Xunit;
@@ -16,6 +17,13 @@ namespace TemplateGenerator.Api.Tests;
 /// </remarks>
 public sealed class TemplateOptionsEndpointTests : IClassFixture<GeneratorApiFactory>
 {
+    /// <summary>
+    /// As opções com que a Api serializa: camelCase e o mesmo <em>encoder</em> relaxado que o
+    /// ASP.NET usa, para que "persistência" saia como texto e não como <c>ê</c>.
+    /// </summary>
+    private static readonly JsonSerializerOptions _apiLike =
+        new(JsonSerializerDefaults.Web) { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+
     private readonly GeneratorApiFactory _factory;
 
     public TemplateOptionsEndpointTests(GeneratorApiFactory factory)
@@ -217,6 +225,138 @@ public sealed class TemplateOptionsEndpointTests : IClassFixture<GeneratorApiFac
                 Assert.Equal(JsonValueKind.Object, constraint.GetProperty("when").ValueKind);
                 Assert.Equal(JsonValueKind.Object, constraint.GetProperty("requires").ValueKind);
             });
+    }
+
+    [Fact]
+    public async Task O_topo_da_resposta_e_o_catalogo_mais_unavailable()
+    {
+        // A trava do acréscimo (ADR-0012): a resposta é o catálogo MAIS um membro, e nada além
+        // disso. No dia em que o catálogo ganhar um membro novo e a composição da Api esquecer de
+        // repassá-lo, este teste falha — em vez de o membro sumir em silêncio da rede, que é o
+        // modo de falha de compor uma resposta à mão.
+        using JsonDocument response = await GetCatalogAsync();
+
+        string[] actual =
+        [
+            .. response.RootElement.EnumerateObject().Select(member => member.Name),
+        ];
+
+        using JsonDocument catalogOnly = JsonDocument.Parse(
+            JsonSerializer.Serialize(TemplateCatalog.Current, _apiLike));
+
+        string[] expected =
+        [
+            .. catalogOnly.RootElement.EnumerateObject().Select(member => member.Name),
+            "unavailable",
+        ];
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task Unavailable_e_irmao_de_constraints_e_vem_como_lista()
+    {
+        using JsonDocument catalog = await GetCatalogAsync();
+
+        JsonElement unavailable = catalog.RootElement.GetProperty("unavailable");
+
+        Assert.Equal(JsonValueKind.Array, unavailable.ValueKind);
+
+        Assert.All(
+            unavailable.EnumerateArray(),
+            option =>
+            {
+                // Legível sem conhecer valor nenhum: o frontend casa `field`/`value` contra o que
+                // o próprio catálogo lhe entregou (RF-02 continua literal).
+                Assert.False(string.IsNullOrWhiteSpace(option.GetProperty("field").GetString()));
+                Assert.False(string.IsNullOrWhiteSpace(option.GetProperty("reason").GetString()));
+
+                JsonElement value = option.GetProperty("value");
+
+                // `value` carrega o TIPO do campo: texto no campo de escolha, booleano no
+                // interruptor. Nunca a string "true".
+                Assert.Contains(
+                    value.ValueKind,
+                    (JsonValueKind[])[JsonValueKind.String, JsonValueKind.True, JsonValueKind.False]);
+            });
+    }
+
+    [Fact]
+    public async Task Todo_par_de_unavailable_pertence_ao_catalogo_que_a_mesma_resposta_entregou()
+    {
+        // A propriedade que o frontend depende: não há `field`/`value` em `unavailable` que a tela
+        // não consiga localizar em `fields`. Um par órfão desabilitaria uma opção que não existe.
+        using JsonDocument catalog = await GetCatalogAsync();
+
+        JsonElement fields = catalog.RootElement.GetProperty("fields");
+
+        Assert.All(
+            catalog.RootElement.GetProperty("unavailable").EnumerateArray(),
+            option =>
+            {
+                JsonElement field = fields.GetProperty(option.GetProperty("field").GetString()!);
+                JsonElement value = option.GetProperty("value");
+
+                if (field.GetProperty("type").GetString() == CatalogFieldTypes.Boolean)
+                {
+                    // O interruptor não tem `values`, e é exatamente por isso que a
+                    // disponibilidade não mora lá dentro.
+                    Assert.False(field.TryGetProperty("values", out _));
+                    Assert.NotEqual(JsonValueKind.String, value.ValueKind);
+
+                    return;
+                }
+
+                Assert.Contains(
+                    field.GetProperty("values").EnumerateArray(),
+                    candidate => candidate.GetProperty("value").GetString() == value.GetString());
+            });
+    }
+
+    [Fact]
+    public async Task Swagger_desligado_nunca_aparece_em_unavailable()
+    {
+        // R2, lida do JSON que sai pela rede: `swagger = false` é a AUSÊNCIA do fragmento, não um
+        // template que ninguém escreveu. Marcá-lo indisponível desabilitaria o interruptor na
+        // posição desligada e recusaria metade da matriz.
+        using JsonDocument catalog = await GetCatalogAsync();
+
+        Assert.DoesNotContain(
+            catalog.RootElement.GetProperty("unavailable").EnumerateArray(),
+            option => option.GetProperty("field").GetString() == CatalogFields.Swagger
+                && option.GetProperty("value").ValueKind == JsonValueKind.False);
+    }
+
+    [Fact]
+    public async Task Nenhum_valor_de_dotnetVersion_aparece_em_unavailable()
+    {
+        // O outro caso de R2: campo sem eixo de fragmento. Não existe `dotnetVersion/net10.0/` e
+        // nunca existiu — não há ausência que se possa confundir com template incompleto.
+        using JsonDocument catalog = await GetCatalogAsync();
+
+        Assert.DoesNotContain(
+            catalog.RootElement.GetProperty("unavailable").EnumerateArray(),
+            option => option.GetProperty("field").GetString() == CatalogFields.DotnetVersion);
+    }
+
+    [Fact]
+    public async Task Fields_e_constraints_nao_mudaram_com_o_membro_novo()
+    {
+        // O acréscimo é acréscimo: um cliente que ignore `unavailable` se comporta exatamente como
+        // antes. As duas regras do contrato que a especificação existe em parte para proteger —
+        // ordem de `fields` (regra 1) e `type` restrito (regra 3) — continuam de pé, e o corpo de
+        // `fields` e `constraints` é byte a byte o do catálogo.
+        using JsonDocument catalog = await GetCatalogAsync();
+
+        using JsonDocument catalogOnly = JsonDocument.Parse(
+            JsonSerializer.Serialize(TemplateCatalog.Current, _apiLike));
+
+        foreach (string member in (string[])["templateVersion", "fields", "constraints"])
+        {
+            Assert.Equal(
+                catalogOnly.RootElement.GetProperty(member).GetRawText(),
+                catalog.RootElement.GetProperty(member).GetRawText());
+        }
     }
 
     private async Task<HttpResponseMessage> GetCatalogResponseAsync()

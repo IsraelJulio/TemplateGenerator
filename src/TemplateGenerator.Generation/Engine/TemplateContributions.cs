@@ -79,6 +79,34 @@ public sealed class TemplateContributions
     /// </summary>
     public string Inline(string marker) => string.Join("\n", Selected(marker));
 
+    /// <summary>
+    /// Diz se o conteúdo de um arquivo de contribuição <strong>contribui alguma coisa</strong>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// É o teste de "não vazio" do motor, exposto de um lugar só (ADR-0012, regra R1.1). Quem
+    /// pergunta são dois: a composição, em <see cref="Resolve"/>, que descarta a contribuição vazia
+    /// para não inserir linha em branco no arquivo gerado; e a derivação de disponibilidade, em
+    /// <see cref="TemplateAvailability"/>, que precisa saber se o fragmento contribui.
+    /// </para>
+    /// <para>
+    /// Duas noções de vazio dariam duas respostas para a mesma pergunta — "este fragmento
+    /// contribui?" — e a divergência apareceria como uma opção marcada disponível que gera arquivo
+    /// com buraco dentro. Por isso a definição é uma função, e não uma linha repetida.
+    /// </para>
+    /// </remarks>
+    public static bool Contributes(string content) => Trimmed(content).Length != 0;
+
+    /// <summary>
+    /// A forma final do texto de uma contribuição: normalizado (ADR-0003, item 4) e sem as quebras
+    /// finais.
+    /// </summary>
+    /// <remarks>
+    /// A quebra final é do empacotamento, não da contribuição: quem insere decide se ela termina em
+    /// nova linha (<see cref="Block"/>) ou se é colada em uma (<see cref="Inline"/>).
+    /// </remarks>
+    private static string Trimmed(string content) => TextContent.Normalize(content).TrimEnd('\n');
+
     /// <summary>Diz se algum segmento de <paramref name="path"/> é o diretório reservado.</summary>
     /// <remarks>
     /// Roda para todo arquivo de todo fragmento, em toda geração. O teste de substring é a peneira
@@ -189,9 +217,7 @@ public sealed class TemplateContributions
                     known,
                     origin);
 
-                // A quebra final é do empacotamento, não da contribuição: quem insere decide se
-                // ela termina em nova linha (Block) ou se é colada em uma (Inline).
-                content = content.TrimEnd('\n');
+                content = Trimmed(content);
 
                 if (content.Length == 0)
                 {

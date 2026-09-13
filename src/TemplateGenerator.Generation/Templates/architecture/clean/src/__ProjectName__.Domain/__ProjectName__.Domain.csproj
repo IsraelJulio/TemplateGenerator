@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    O DOMÍNIO NÃO REFERENCIA NINGUÉM.
+
+    Nem projeto, nem pacote de infraestrutura. É a única regra da Clean que este arquivo consegue
+    afirmar sozinho, e ela é conferida por teste arquitetural: qualquer `ProjectReference` ou
+    `PackageReference` de persistência aqui é "referência arquitetural indevida"
+    (docs/architecture/generated-projects.md, "Clean Architecture").
+
+    Por isso este `.csproj` não hospeda ponto de contribuição nenhum: as dependências das opções
+    escolhidas na geração entram no projeto de API, não aqui.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>__TargetFramework__</TargetFramework>
+    <RootNamespace>__ProjectName__.Domain</RootNamespace>
+    <AssemblyName>__ProjectName__.Domain</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

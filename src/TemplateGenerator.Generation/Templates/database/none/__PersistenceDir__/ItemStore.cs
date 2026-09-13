@@ -1,3 +1,4 @@
+__PersistenceHeader__
 
 /// <summary>
 /// Armazenamento <strong>em memória</strong> de <see cref="Item"/>.

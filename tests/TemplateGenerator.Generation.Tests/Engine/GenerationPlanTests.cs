@@ -22,8 +22,16 @@ public sealed class GenerationPlanTests
         string projectName = "Acme.Billing.Api") =>
         new(projectName, architecture, database, authentication, swagger, "net10.0");
 
+    // `Unrestricted`: o assunto destes testes é a composição — seleção, marcador, caminho,
+    // conflito, ordem —, e o repositório mínimo que cada um monta seria recusado por ser mínimo.
+    // A recusa por combinação indisponível é assunto de `Combinacao_indisponivel_*` adiante, que
+    // passa uma disponibilidade de verdade.
     private static GenerationPlan Resolve(ITemplateSource source, GenerationRequest? request = null) =>
-        GenerationPlan.Resolve(_catalog, request ?? Request(), source);
+        GenerationPlan.Resolve(
+            _catalog,
+            request ?? Request(),
+            source,
+            TemplateAvailability.Unrestricted);
 
     private static string TextOf(GenerationPlan plan, string path) =>
         Encoding.UTF8.GetString(plan.Files.Single(file => file.Path == path).Content);
@@ -217,6 +225,87 @@ public sealed class GenerationPlanTests
 
         Assert.False(rejected.Validation.IsValid);
         Assert.Contains(CatalogFields.Authentication, rejected.Validation.Errors.Keys);
+    }
+
+    [Fact]
+    public void Combinacao_indisponivel_e_recusada_pelo_motor_sem_passar_por_HTTP()
+    {
+        // ADR-0012, item 4: a Api recusa antes de chegar aqui, mas quem chama o motor DIRETO —
+        // que é a camada 1 inteira — continuaria recebendo o pacote defeituoso sem este lado.
+        // O repositório traz `architecture/simple` e mais nada: `database/none` e `auth/none` não
+        // contribuem, e a combinação não gera projeto.
+        FakeTemplateSource source = new FakeTemplateSource()
+            .With("architecture/simple", "src/Api/Program.cs");
+
+        GenerationNotAvailableException refused = Assert.Throws<GenerationNotAvailableException>(
+            () => GenerationPlan.Resolve(
+                _catalog,
+                Request(swagger: false),
+                source,
+                new TemplateAvailability(_catalog, source)));
+
+        Assert.Equal<string>(
+            [CatalogFields.Database, CatalogFields.Authentication],
+            refused.Fields);
+
+        Assert.Equal(TemplateAvailability.UnavailableReason, refused.Reason);
+    }
+
+    [Fact]
+    public void A_recusa_por_indisponibilidade_vem_DEPOIS_da_validacao()
+    {
+        // Antes da validação a derivação mente: `architecture: "banana"` não tem fragmento, logo
+        // seria recusado como "o template desta opção ainda não foi escrito" para um valor que não
+        // existe no catálogo. A resposta verdadeira é "o valor não pertence ao catálogo".
+        FakeTemplateSource source = new();
+
+        GenerationRequestRejectedException rejected =
+            Assert.Throws<GenerationRequestRejectedException>(() => GenerationPlan.Resolve(
+                _catalog,
+                Request(architecture: "banana"),
+                source,
+                new TemplateAvailability(_catalog, source)));
+
+        Assert.Contains(CatalogFields.Architecture, rejected.Validation.Errors.Keys);
+    }
+
+    [Fact]
+    public void A_restricao_de_catalogo_vence_a_indisponibilidade()
+    {
+        // `identity` + `database: none` num repositório onde nada tem template: a recusa que sai é
+        // a da RESTRIÇÃO, que é a única que a pessoa consegue consertar.
+        FakeTemplateSource source = new();
+
+        GenerationRequestRejectedException rejected =
+            Assert.Throws<GenerationRequestRejectedException>(() => GenerationPlan.Resolve(
+                _catalog,
+                Request(architecture: "clean", authentication: "identity", database: "none"),
+                source,
+                new TemplateAvailability(_catalog, source)));
+
+        Assert.Contains(
+            "O Identity nativo precisa de um banco para persistir os usuários.",
+            rejected.Validation.Errors[CatalogFields.Authentication]);
+    }
+
+    [Fact]
+    public void Combinacao_disponivel_continua_gerando_o_pacote()
+    {
+        // A contraprova da recusa: com o fragmento de cada valor selecionado presente, o plano
+        // sai. Sem esta, uma derivação que dissesse "tudo indisponível" passaria nos testes acima.
+        FakeTemplateSource source = new FakeTemplateSource()
+            .With("common", "global.json")
+            .With("architecture/simple", "src/Api/Program.cs")
+            .With("database/none", "__parts__/ItemStoreImplementation.cs", "public sealed class X;\n")
+            .With("auth/none", "__parts__/ReadmeSetup.md", "## Autenticação\n");
+
+        GenerationPlan plan = GenerationPlan.Resolve(
+            _catalog,
+            Request(swagger: false),
+            source,
+            new TemplateAvailability(_catalog, source));
+
+        Assert.Contains("src/Api/Program.cs", plan.Files.Select(file => file.Path));
     }
 
     [Fact]

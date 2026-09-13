@@ -53,7 +53,7 @@ public static class GenerationRequestValidator
         {
             CatalogValue? value = omitted.Contains(entry.Key)
                 ? null
-                : ValueOf(entry.Key, request);
+                : request.ValueOf(entry.Key);
 
             if (value is null)
             {
@@ -88,29 +88,6 @@ public static class GenerationRequestValidator
 
         return ValidationResult.From(failures);
     }
-
-    /// <summary>
-    /// Lê do <paramref name="request"/> o valor do campo <paramref name="field"/>, ou
-    /// <c>null</c> quando o valor não foi informado.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Quando o catálogo declara um campo que <see cref="GenerationRequest"/> não carrega. É
-    /// defeito de programação, não entrada inválida, e precisa aparecer alto.
-    /// </exception>
-    private static CatalogValue? ValueOf(string field, GenerationRequest request) => field switch
-    {
-        CatalogFields.Architecture => AsText(request.Architecture),
-        CatalogFields.Database => AsText(request.Database),
-        CatalogFields.Authentication => AsText(request.Authentication),
-        CatalogFields.Swagger => CatalogValue.OfFlag(request.Swagger),
-        CatalogFields.DotnetVersion => AsText(request.DotnetVersion),
-        _ => throw new InvalidOperationException(
-            $"O catálogo declara o campo '{field}', mas GenerationRequest não carrega valor " +
-            "para ele. Acrescente a propriedade correspondente antes de publicar o campo."),
-    };
-
-    private static CatalogValue? AsText(string? value) =>
-        string.IsNullOrWhiteSpace(value) ? null : CatalogValue.OfText(value);
 
     private static string NotInCatalog(TemplateField field, CatalogValue value)
     {
