@@ -216,6 +216,15 @@ invisível no diff. É a duplicação que o modelo de fragmentos existe para evi
 - **Um novo caso de defeito de template**, com teste próprio: `__parts__` mal posicionado, nome de
   marcador inválido, colisão com marcador de valor, marcador indentado sozinho na linha. Todos
   falham na camada 1, que é onde um erro de template tem de aparecer.
+- **O item 9 tem um corolário que custou um defeito em T04: o motor não sabe o que é comentário.**
+  Como ele não interpreta nada, um comentário de template que cite um marcador **pelo nome** recebe
+  o valor dele ali dentro. Na Clean isso injetou o `<ItemGroup>` do Swagger dentro de um
+  `<!-- … -->` e o projeto gerado passou a falhar com `MSB4025`, **só com `swagger = true`** — com
+  `swagger = false` o marcador resolvia vazio e o comentário sobrevivia. A regra
+  ("nenhum comentário de template cita um marcador pelo nome") e as duas guardas estão em
+  [`../architecture/generation-engine.md`](../architecture/generation-engine.md). É a mesma família
+  da regra 7b: as duas são casos de o texto em volta do marcador ter uma estrutura que o motor,
+  por decisão, não enxerga.
 - **A ordem de concatenação vira conteúdo do arquivo e, portanto, entra no SHA-256.** Trocar a ordem
   de seleção de fragmentos muda o hash de todos os pacotes. Ela está declarada em
   `TemplateAxes.Select` e agora também aqui.

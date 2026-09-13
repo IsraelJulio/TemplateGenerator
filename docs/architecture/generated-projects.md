@@ -213,13 +213,117 @@ Api ──▶ Application ──▶ Domain
  └────▶ Infrastructure ───┘
 ```
 
-- `Domain` — entidades e regras. **Sem referência de projeto e sem pacote de infraestrutura.**
-- `Application` — casos de uso e interfaces (portas). Depende só de `Domain`.
-- `Infrastructure` — implementa as portas (persistência, identidade).
+- `Domain` — entidades, regras **e as portas que `Infrastructure` implementa**. **Sem referência de
+  projeto e sem pacote de infraestrutura.**
+- `Application` — casos de uso e os tipos de entrada e saída deles. Depende só de `Domain`.
+- `Infrastructure` — implementa as portas declaradas em `Domain` (persistência, identidade).
 - `Api` — composição, endpoints, configuração.
 
-Um teste arquitetural verifica essas direções (RF-11 / T04). "Referência arquitetural indevida" é
-qualquer aresta fora do diagrama.
+### Onde a porta mora, e por quê — **decidido em T04**
+
+**Toda porta que `Infrastructure` implementa é declarada em `Domain`.** `IItemStore` mora em
+`Domain`; `ItemService` e os tipos que ele recebe e devolve moram em `Application`.
+
+Isto corrige uma contradição que este documento carregou até T04 e que o `template-engineer`
+escalou ao escrever o template, em vez de escolher sozinho — corretamente. O texto anterior dizia
+que as portas ficavam em `Application` **e** que `Infrastructure` as implementava, e as duas coisas
+juntas **são impossíveis em .NET**: quem implementa uma interface referencia o assembly que a
+declara, logo `Application` estaria obrigando uma aresta `Infrastructure ──▶ Application` que o
+diagrama não tem. Com o critério "qualquer aresta fora do diagrama é indevida", as duas metades do
+parágrafo se reprovavam mutuamente.
+
+As duas saídas eram legítimas — declarar a porta em `Application` e **acrescentar a quinta aresta**
+ao diagrama, que é a forma mais comum nos templates .NET de mercado; ou declarar a porta em `Domain`
+e **manter o diagrama exato**, que é a convenção de repositório do DDD. Escolhemos a segunda, por
+três razões, em ordem de peso.
+
+1. **Ela mantém a afirmação mais forte, e afirmação forte aqui é o produto.** Com a porta em
+   `Domain`, `Infrastructure` **não pode enxergar** `Application` — e essa proibição é verificável
+   lendo o `.csproj`, sem `restore` e sem `build`, nas 32 combinações. O que ela impede é concreto:
+   um adaptador chamando um caso de uso, que é a inversão de controle que a arquitetura existe para
+   proibir. Com a porta em `Application`, essa proibição **deixa de ser verificável na camada 1** —
+   a aresta passa a ser permitida, e "o adaptador não chama o caso de uso" vira convenção sem
+   verificador. Este projeto tem por critério que decisão arquitetural sem verificação executável
+   não está pronta; entre duas leituras defensáveis de "Clean", a que sobra verificada vale mais.
+2. **O custo dela não se materializa dentro do escopo declarado.** O argumento contrário é bom e
+   precisa ser respondido de frente: com a porta em `Domain`, **`Domain` passa a ser o único lugar
+   onde uma porta pode morar**, porque é só isso que `Infrastructure` enxerga — e uma porta que não
+   seja conceito de domínio (um relógio, um enviador de e-mail) seria empurrada para dentro da
+   camada que o critério de aceite 2 mais protege. A pergunta certa é então: **o que falta do MVP
+   puxa alguma porta?** Conferido, item a item, e a resposta é não:
+   - `database/sqlite` e `database/postgresql` acrescentam `AppDbContext` em `Infrastructure`, com
+     `DbSet<Item>` — precisa de `Domain` e de mais nada;
+   - `auth/identity` usa os endpoints nativos (`MapIdentityApi`) e `AppUser : IdentityUser`, que é
+     tipo de pacote de infraestrutura e por isso já está projetado em
+     `Infrastructure/Identity/AppUser.cs` — **não há porta a declarar**;
+   - `auth/jwt` é validação por `Authority`/`Audience`, composição pura, sem porta;
+   - RF-15 fixa dados compartilhados **sem regra de proprietário**, o que elimina o `ICurrentUser`
+     que seria a porta mais provável da autenticação.
+
+   A premissa geral de que "autenticação puxa mais portas que persistência" é verdadeira no mundo e
+   **falsa para o que resta deste produto**. T05 a T08 cabem no diagrama sem uma aresta nova.
+3. **A `Api` não leva teste arquitetural dentro do ZIP.** A verificação de arestas é da **camada 1
+   da nossa suíte** ([`../quality/test-strategy.md`](../quality/test-strategy.md)), lendo o `.csproj`
+   gerado — ela não é entregue ao pacote. Então a restrição extra não dispara na cara de quem
+   receber o projeto e acrescentar uma porta própria: essa pessoa muda o que quiser no projeto dela,
+   sem nada nosso reclamando. O custo da escolha 1 fica **inteiramente do nosso lado**, onde
+   sabemos pagá-lo.
+
+**Quando revisitar, e o que custa.** O sinal é uma porta que `Infrastructure` precise implementar e
+que **não** seja conceito de domínio. No dia em que ela aparecer, a saída é declarar a porta em
+`Application` e **acrescentar `Infrastructure ──▶ Application` ao diagrama acima** — uma seta, uma
+linha na lista de arestas permitidas do teste, e os arquivos de porta de lugar. Fica registrado aqui
+para que quem chegar nesse ponto saiba que é uma mudança prevista, com preço conhecido, e não uma
+violação a contornar em silêncio. **O que não vale é declarar a porta em `Application` e deixar o
+diagrama como está**: é exatamente a contradição que T04 veio consertar.
+
+### O conjunto de arestas, para o teste do critério 4
+
+"Referência arquitetural indevida" é **qualquer aresta fora desta lista**. A comparação é por
+**igualdade de conjunto**, não por "não contém" — um pacote que perdesse uma referência legítima
+precisa falhar tanto quanto um que ganhasse uma indevida.
+
+**Permitidas — e todas as quatro são usadas**, em `<ProjectReference>` **declarada** no `.csproj`:
+
+| De | Para |
+|---|---|
+| `Api` | `Application` |
+| `Api` | `Infrastructure` |
+| `Application` | `Domain` |
+| `Infrastructure` | `Domain` |
+
+**Proibidas**, e cada uma é a negação de algo que importa:
+
+- **`Domain` → qualquer coisa.** `Domain` tem **zero** `<ProjectReference>`. É o critério de aceite
+  2 e é a afirmação mais forte do conjunto.
+- `Application` → `Infrastructure`, `Application` → `Api` — o caso de uso não conhece adaptador nem
+  transporte.
+- `Infrastructure` → `Application`, `Infrastructure` → `Api` — o adaptador não chama caso de uso.
+  É a proibição que a decisão acima comprou.
+- **`Api` → `Domain` declarada.** Não está no diagrama, logo não pode ser declarada. **Isto não
+  impede o `Api` de usar tipos do `Domain`:** referência de projeto é transitiva por padrão no SDK
+  moderno, e `Api → Application → Domain` já entrega os tipos. Declarar a aresta não mudaria nada em
+  compilação e faria o `.csproj` afirmar uma dependência que o diagrama nega — por isso ela é
+  proibida como **declaração**, não como uso. Se algum template um dia precisar dela declarada, isso
+  é mudança de diagrama, não exceção de teste.
+
+**O projeto de testes fica fora do diagrama, de propósito.** Ele não é camada: pode referenciar
+qualquer projeto de produção, e a regra que vale é a inversa — **nada pode referenciar o projeto de
+testes**. Afirmar as arestas dele só congelaria o acidente de hoje (`Tests → Application`) e
+quebraria no primeiro teste que precisasse de outro projeto.
+
+**A comparação é por papel, não por nome.** As arestas são entre `.Api`, `.Application`, `.Domain`,
+`.Infrastructure` e `.Tests`, qualquer que seja o `projectName` — a regra de nomes está na seção
+"Nomes de projeto e de pasta" e não pode ser reimplementada no teste.
+
+**Assert de sanidade, obrigatório**, pelo mesmo motivo de [ADR-0008](../decisions/adr-0008-fronteira-por-grafo-de-restore.md)
+e de [ADR-0011](../decisions/adr-0011-contribuicao-por-marcador.md), e mais necessário agora que
+[ADR-0012](../decisions/adr-0012-combinacao-sem-template.md) faz a maioria das combinações recusar:
+o teste **falha** se não encontrar nenhum pacote de `clean`, se algum deles não tiver os quatro
+`.csproj`, ou se o conjunto de arestas lido da matriz inteira vier vazio. "Nenhuma aresta indevida"
+é verdade por vacuidade num pacote sem projeto.
+
+Na arquitetura **Simples** não há diagrama a verificar: há um projeto de código e um de testes.
 
 ## Comportamento comum
 

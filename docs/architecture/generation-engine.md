@@ -86,6 +86,40 @@ legível e revisável por diff, e um `$"..."` devolveria o template para dentro 
 sobreviveria em silêncio até o `.csproj` gerado, e o defeito apareceria como falha de compilação no
 projeto de outra pessoa, longe da causa.
 
+### Nenhum comentário de template cita um marcador pelo nome
+
+**Regra de T04, achada ao escrever a Clean.** O motor substitui marcador **em qualquer posição do
+texto** — ele não sabe o que é comentário, porque ADR-0011, item 9, é justamente a decisão de o
+motor não interpretar nada. Então um comentário que **explique** um marcador citando-o pelo nome
+recebe, ali dentro, o valor dele.
+
+O caso real: um `<!-- … __ApiPackageReferences__ … -->` no `.csproj` do `Domain` virou o
+`<ItemGroup>` inteiro do Swagger **dentro do comentário**, e o projeto gerado passou a falhar com
+`MSB4025: An XML comment cannot contain '--'`. **Só aparecia com `swagger = true`**, porque com
+`swagger = false` o marcador resolvia vazio e o comentário continuava um comentário.
+
+A regra é geral e não tem exceção:
+
+> Comentário de template **não cita marcador pelo nome**. Para falar de um, descreva-o
+> (`a contribuição de PackageReferences`) ou quebre a forma (`__ ApiPackageReferences __`).
+
+Vale para todo formato, não só XML: o mesmo texto num `//` de C# injetaria várias linhas dentro de
+um comentário de uma linha só, e num `#` de `.gitignore` transformaria a explicação em regra.
+
+**Duas guardas, porque a regra sozinha depende de alguém lembrar:**
+
+1. **No template**, ao lado da guarda da regra 7b: um marcador conhecido citado dentro de um
+   comentário XML de um arquivo hospedeiro é violação. O reconhecedor é de **linha**, como o de 7b —
+   entre `<!--` e `-->` na mesma linha, ou numa linha depois de `<!--` sem `-->` fechado — e o
+   alcance dele precisa estar escrito onde ele mora: comentário de C#, de Markdown e de outros
+   formatos ficam de fora, e isso é limite declarado, não descuido.
+2. **No pacote**, a rede geral: **todo arquivo gerado de extensão XML — `.csproj` à frente — tem de
+   ser XML válido**, com mensagem dizendo qual combinação e qual arquivo. Ela não depende de
+   reconhecer a causa e pega qualquer estrago da mesma família. É barata: a camada 1 já abre esses
+   arquivos como XML para outras verificações.
+
+A guarda 2 é a que teria pegado este defeito; a 1 é a que o pega **antes** de virar pacote.
+
 ### Marcadores de valor
 
 Vêm da requisição e do catálogo. São três:
@@ -179,7 +213,40 @@ ainda é um arquivo?** Se a resposta é não, o arquivo é do outro eixo.
 - `Program.cs` e o `.csproj` **passam**: sem contribuição nenhuma continuam sendo um programa e um
   projeto válidos, só que menores. Permanecem em `architecture/*`.
 - `ItemStore.cs` **não passa**: sem contribuição ele não é nada. Pertence a `database/*`, que é quem
-  sabe como um item é guardado — e aí cada banco traz o seu, inteiro, sem marcador.
+  sabe como um item é guardado — e aí cada banco traz o seu, **inteiro**.
+
+**Correção de T04: "inteiro" não quer dizer "sem marcador nenhum".** A primeira redação desta regra
+dizia que o arquivo mudado de eixo viria "sem marcador", e isso é forte demais — o
+`template-engineer` esbarrou nisso ao escrever a Clean e tinha razão. Um `ItemStore.cs` que mora em
+`database/*` precisa saber **em que namespace ele nasce**, e namespace é decisão da arquitetura, não
+do banco. O que a regra proíbe é o arquivo depender de marcador para ter **a própria substância**;
+marcador que traz o que pertence a **outro** eixo — namespace, caminho — é o mecanismo funcionando
+como deve.
+
+A forma precisa, e é ela que o `template-engineer` aplica:
+
+> O hospedeiro tem de trazer o conteúdo **do próprio eixo** escrito nele. Pode carregar marcador
+> alimentado por outro eixo.
+
+E há um critério mais afiado, que dispensa julgamento no caso comum: **um marcador alimentado
+exclusivamente por um eixo sempre selecionado — `common` ou `architecture/*` — nunca resolve
+vazio.** `TemplateAxes.Select` sempre escolhe os dois, então a contribuição sempre existe e o caso
+que esta regra teme não chega a ser possível. Um `__PersistenceHeader__` alimentado só por
+`architecture/*` é seguro por construção, não por sorte.
+
+**Marcador de caminho que varia por arquitetura: use o mecanismo que já existe.** Um arquivo de
+`database/*` que precise cair dentro da pasta de um projeto cujo nome depende da arquitetura resolve
+isso com um marcador **no caminho**, que é o item 8 de
+[ADR-0011](../decisions/adr-0011-contribuicao-por-marcador.md) e já tem teste — `__ApiProjectDir__`
+é o exemplo nomeado ali. É o uso pretendido; não invente mecanismo novo para isso.
+
+Um cuidado de nome, e vale conferir antes de T05: **o marcador precisa dizer o que resolve.** Se em
+`clean` ele resolver para o projeto de `Infrastructure` — que é onde a implementação da porta mora,
+pela seção "Clean Architecture" de [`generated-projects.md`](generated-projects.md) — então
+`__ApiProjectDir__` está misnomeado, porque o valor dele não é o diretório do `Api`. Nesse caso o
+nome certo descreve o papel (`__PersistenceProjectDir__`), e trocar custa renomear dois arquivos de
+`__parts__`. Marcador com nome que mente é a classe de defeito que ADR-0011 evita dando o nome do
+marcador ao arquivo: o nome é a documentação.
 
 A regra não substitui a verificação de casca da camada 1; ela evita o caso em vez de detectá-lo. As
 duas ficam, porque a segunda alcança também o arquivo que alguém escrever amanhã sem ler esta.
