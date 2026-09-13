@@ -302,6 +302,32 @@
       "report": null
     },
     {
+      "id": "T09b",
+      "order": 9.5,
+      "title": "Corrigir a corrida entre a troca de opcao e a leitura da arvore no e2e",
+      "state": "pending",
+      "dependsOn": ["T09"],
+      "roles": ["frontend", "qa"],
+      "skills": ["verify-mvp"],
+      "objective": "Tornar assertiva a leitura da arvore no fluxo de ponta a ponta, para que nenhum teste que mude o estado antes de le-la herde a corrida.",
+      "acceptanceCriteria": [
+        "OBSERVADO, NAO SUSPEITADO: na primeira execucao da suite e2e de T04, a perna celular de 'a outra arquitetura do catalogo tambem baixa o que a tela prometeu' falhou na comparacao arvore x ZIP. Uma falha em quatro execucoes. As tres seguintes passaram 8/8 - e nao reproduzir nao e evidencia de correcao.",
+        "Mecanismo identificado pelo architect, nao confirmado por traco: toBeChecked() sincroniza com o checked que o navegador poe sincronamente no ArrowDown, nao com o re-render OnPush do painel lateral. treeOnScreen() pode ler a arvore da arquitetura anterior enquanto o ZIP e o da nova. A guarda length>20 nao discrimina, porque vale para as duas arvores. O celular e onde a corrida aparece, nao a causa.",
+        "O escopo e o helper, nao o teste: treeOnScreen() le a lista sem sincronizar com o fim do render. Todo teste futuro que mexer no estado antes de chama-lo herda a corrida, e T05 a T08 vao acrescentar mais.",
+        "A leitura da arvore passa a ser assertiva: poll ate ser diferente da anterior E estavel entre duas leituras consecutivas. Precisa das duas - estabilidade sozinha e satisfeita por uma arvore que ainda nao mudou; diferenca sozinha pode pegar estado intermediario de render.",
+        "A correcao e provada nos dois sentidos: um teste que planta a leitura obsoleta - ler a arvore ANTES da troca - tem de falhar, e passar com a correcao. Repetir a suite N vezes NAO fecha este item.",
+        "NAO ligar retries. O playwright.config.ts tem retries: 0 com o comentario certo: o retry esconderia justamente a falha intermitente que interessa. Ligar retry transforma este item em nada e seria a quinta ocorrencia do padrao de verificador que para de verificar em silencio.",
+        "NAO aumentar timeout. Nao ha timeout estourando: a assercao que falhou compara conjuntos e falha rapido, determinada pela ordem dos eventos."
+      ],
+      "verifications": [
+        "Executar a suite e2e e conferir que a prova por mutacao da leitura obsoleta falha antes e passa depois.",
+        "Executar a suite e2e completa, desktop e celular."
+      ],
+      "blockers": [],
+      "report": null,
+      "note": "Licao de processo registrada em T04: ao observar um flake, salve test-results/ ANTES de reexecutar. As tres reexecucoes sobrescreveram o traco, que estava sendo gravado por retain-on-failure, e destruiram a unica evidencia que existia."
+    },
+    {
       "id": "T10",
       "order": 10,
       "title": "Matriz completa e revisao funcional, visual e de seguranca",
