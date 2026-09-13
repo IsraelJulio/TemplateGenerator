@@ -56,10 +56,15 @@ public sealed class DeterministicZipTests
 
     private static ITemplateSource Source() => new FakeTemplateSource()
         .With("common", "global.json", "{ \"sdk\": { \"version\": \"10.0.302\" } }")
-        .With("common", "src/__ProjectName__.Api/Program.cs", "// __ProjectName__\n")
+        .With("common", "src/__ProjectName__/Program.cs", "// __ProjectName__\n__Itens__\n")
         .With("common", "Z.md", "z")
         .With("common", "a.md", "a")
-        .With("architecture/simple", "src/__ProjectName__.Api/Endpoints/HealthEndpoints.cs", "// health\n");
+        .With("architecture/simple", "src/__ProjectName__/Endpoints/HealthEndpoints.cs", "// health\n")
+
+        // Contribuições entram no conteúdo de um arquivo de outro fragmento e não viram entrada
+        // do ZIP (ADR-0011).
+        .With("database/none", $"{TemplateContributions.Directory}/Itens.txt", "// sem banco")
+        .With("swagger/enabled", $"{TemplateContributions.Directory}/Itens.txt", "// swagger");
 
     private static async Task<byte[]> GenerateAsync(
         GenerationRequest? request = null,
@@ -157,9 +162,32 @@ public sealed class DeterministicZipTests
 
         Assert.Contains(_catalog.TemplateVersion, reader.ReadToEnd(), StringComparison.Ordinal);
 
+        // O nome do projeto é o nome que a pessoa digitou, sem sufixo acrescentado
+        // (docs/architecture/generated-projects.md, "Nomes de projeto e de pasta").
         Assert.Contains(
-            "src/Acme.Billing.Api.Api/Program.cs",
+            "src/Acme.Billing.Api/Program.cs",
             archive.Entries.Select(entry => entry.FullName));
+    }
+
+    [Fact]
+    public async Task Arquivo_de_contribuicao_nao_chega_ao_pacote_e_o_texto_dele_chega()
+    {
+        using ZipArchive archive = new(new MemoryStream(await GenerateAsync()), ZipArchiveMode.Read);
+
+        Assert.DoesNotContain(
+            archive.Entries.Select(entry => entry.FullName),
+            path => path.Contains(TemplateContributions.Directory, StringComparison.Ordinal));
+
+        ZipArchiveEntry program = Assert.Single(
+            archive.Entries,
+            entry => entry.FullName == "src/Acme.Billing.Api/Program.cs");
+
+        using StreamReader reader = new(program.Open(), Encoding.UTF8);
+
+        // Na ordem de seleção: database antes de swagger.
+        Assert.Equal(
+            "// Acme.Billing.Api\n// sem banco\n// swagger\n",
+            await reader.ReadToEndAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]

@@ -91,15 +91,18 @@ public sealed class GenerationPlanTests
     [Fact]
     public void Marcador_e_substituido_no_caminho_e_no_conteudo()
     {
+        // Na arquitetura Simples o projeto se chama exatamente `<ProjectName>`: nada é
+        // concatenado, e por isso o `.Api` dobrado não chega a existir
+        // (docs/architecture/generated-projects.md, "Nomes de projeto e de pasta").
         FakeTemplateSource source = new FakeTemplateSource()
             .With(
                 "common",
-                "src/__ProjectName__.Api/__ProjectName__.Api.csproj",
+                "src/__ProjectName__/__ProjectName__.csproj",
                 "<TargetFramework>__TargetFramework__</TargetFramework>\n<Version>__TemplateVersion__</Version>");
 
         GenerationPlan plan = Resolve(source);
 
-        string path = "src/Acme.Billing.Api.Api/Acme.Billing.Api.Api.csproj";
+        string path = "src/Acme.Billing.Api/Acme.Billing.Api.csproj";
 
         Assert.Contains(path, plan.Files.Select(file => file.Path));
         Assert.Equal(

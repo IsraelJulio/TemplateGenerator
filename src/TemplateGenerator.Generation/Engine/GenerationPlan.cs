@@ -71,6 +71,13 @@ public sealed class GenerationPlan
         IReadOnlyDictionary<string, string> tokens =
             TemplateTokens.For(request, catalog.TemplateVersion);
 
+        // Os marcadores saem em duas etapas (ADR-0011). Primeiro as contribuições: elas varrem o
+        // repositório inteiro para saber quais marcadores existem e concatenam, na ordem de
+        // seleção, o texto dos fragmentos escolhidos. Só então os arquivos do pacote são compostos,
+        // já com os dois conjuntos de marcadores resolvidos.
+        TemplateContributions contributions =
+            TemplateContributions.Resolve(source, request, tokens);
+
         Dictionary<string, GeneratedFile> byPath = new(StringComparer.Ordinal);
 
         // Passo 2 e 3: seleção por eixo e união ordenada.
@@ -79,7 +86,15 @@ public sealed class GenerationPlan
             foreach (TemplateFile file in source.Read(fragment))
             {
                 string origin = $"{fragment}/{file.Path}";
-                string path = TemplateTokens.Apply(file.Path, tokens, origin);
+
+                // Arquivo de contribuição não vira entrada do ZIP: ele já foi lido acima, e o
+                // conteúdo dele mora dentro do arquivo de outro fragmento.
+                if (TemplateContributions.MentionsReservedDirectory(file.Path))
+                {
+                    continue;
+                }
+
+                string path = TemplateTokens.ApplyToPath(file.Path, tokens, contributions, origin);
 
                 if (!ArchivePath.IsValid(path, out string? error))
                 {
@@ -87,10 +102,16 @@ public sealed class GenerationPlan
                         $"O template '{origin}' produz um caminho inválido. {error}");
                 }
 
-                Add(byPath, new GeneratedFile(
-                    path,
-                    TextContent.ToBytes(TemplateTokens.Apply(file.Content, tokens, origin)),
-                    fragment));
+                // A normalização vem ANTES da substituição: a regra da linha do item 7 precisa
+                // enxergar `LF` e uma última linha terminada, e um template salvo com CRLF por um
+                // editor do Windows não pode mudar o resultado.
+                string content = TemplateTokens.ApplyToContent(
+                    TextContent.Normalize(file.Content),
+                    tokens,
+                    contributions,
+                    origin);
+
+                Add(byPath, new GeneratedFile(path, TextContent.ToBytes(content), fragment));
             }
         }
 
