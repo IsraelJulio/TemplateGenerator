@@ -1,11 +1,13 @@
 using TemplateGenerator.Generation;
 using TemplateGenerator.Generation.Catalog;
+using TemplateGenerator.Generation.Engine;
 using TemplateGenerator.Generation.Validation;
 
 namespace TemplateGenerator.Matrix.Tests;
 
 /// <summary>
-/// As combinações válidas da matriz, derivadas do catálogo — nunca escritas à mão.
+/// As combinações válidas da matriz, derivadas do catálogo — nunca escritas à mão —, e o corte
+/// entre <strong>disponíveis</strong> e <strong>indisponíveis</strong> de ADR-0012.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -19,35 +21,73 @@ namespace TemplateGenerator.Matrix.Tests;
 /// para responder 400. Uma segunda implementação da regra de compatibilidade aqui seria uma
 /// segunda oportunidade de errá-la.
 /// </para>
+/// <para>
+/// <strong>E quem decide o que está disponível é <see cref="TemplateAvailability.Current"/></strong>,
+/// o mesmo que a Api usa para responder 501 e que o motor usa para recusar. Este arquivo
+/// <strong>não tem lista de combinações implementadas</strong>, e não pode ter: uma lista à mão é
+/// a segunda fonte de verdade que ADR-0012 existe inteira para não criar, e ela derivaria na
+/// primeira tarefa seguinte — no dia em que T05 escrever <c>database/sqlite</c>, o valor acende,
+/// as combinações entram aqui sozinhas, e todo teste que depende do recorte passa a cobrá-las.
+/// </para>
 /// </remarks>
 public static class Combinations
 {
     /// <summary>Nome de projeto usado pelas combinações da matriz.</summary>
     public const string ProjectName = "Matriz.Exemplo.Api";
 
+    /// <summary>O valor de <c>architecture</c> da arquitetura Simples.</summary>
+    public const string SimpleArchitecture = "simple";
+
+    /// <summary>
+    /// O valor de <c>architecture</c> da Clean, cujo fragmento entrou em T04.
+    /// </summary>
+    /// <remarks>
+    /// Citar o valor aqui é diferente de listar o que está implementado: o recorte de
+    /// <see cref="Clean"/> nasce da interseção com <see cref="Available"/>, então ele some sozinho
+    /// se a Clean apagar e cresce sozinho se ela acender. O que está proibido é a lista de
+    /// disponibilidade, não o nome do eixo — o teste do diagrama de dependências precisa dizer de
+    /// qual arquitetura ele fala, porque a Simples não tem diagrama a verificar.
+    /// </remarks>
+    public const string CleanArchitecture = "clean";
+
     /// <summary>Todas as combinações válidas, em ordem estável.</summary>
     public static IReadOnlyList<GenerationRequest> Valid { get; } = [.. Build()];
 
     /// <summary>
-    /// As combinações da arquitetura <strong>Simples</strong>, que é a única com fragmento escrito
-    /// até T04.
+    /// As combinações que <strong>geram projeto</strong>: todo valor que elas selecionam tem
+    /// fragmento com conteúdo (ADR-0012, R3).
     /// </summary>
     /// <remarks>
-    /// Existe para que um teste cujo assunto é a Simples receba <em>só</em> as combinações dela, em
-    /// vez de receber as 32 e sair pela porta dos fundos com um <c>return</c> antecipado. A
-    /// diferença não é de estilo: um teste escopado por <c>return</c> aparece <strong>verde</strong>
-    /// para as 16 combinações de Clean que ele não olhou, e um resultado verde que não afirma nada
-    /// é a forma mais barata de perder uma verificação sem ninguém notar — a lição de ADR-0008 e
-    /// ADR-0010. Recortando os dados, o nome do teste só aparece para o que ele de fato examinou.
+    /// É o recorte das afirmações que olham <em>dentro</em> do pacote — conteúdo obrigatório,
+    /// verificação de casca, XML válido, diagrama de dependências. Nenhuma delas faz sentido para
+    /// uma combinação que não produz pacote nenhum, e escrever a lista à mão faria o recorte
+    /// envelhecer em silêncio.
     /// </remarks>
-    public static IReadOnlyList<GenerationRequest> Simple { get; } =
+    public static IReadOnlyList<GenerationRequest> Available { get; } =
     [
         .. Valid.Where(request =>
-            string.Equals(request.Architecture, SimpleArchitecture, StringComparison.Ordinal)),
+            TemplateAvailability.Current.UnavailableFields(request).Count == 0),
     ];
 
-    /// <summary>O valor de <c>architecture</c> cujo fragmento existe em T03.</summary>
-    public const string SimpleArchitecture = "simple";
+    /// <summary>
+    /// As combinações que o motor <strong>recusa</strong> e a Api responde com <c>501</c>: pelo
+    /// menos um valor selecionado não tem fragmento.
+    /// </summary>
+    public static IReadOnlyList<GenerationRequest> Unavailable { get; } =
+    [
+        .. Valid.Where(request =>
+            TemplateAvailability.Current.UnavailableFields(request).Count > 0),
+    ];
+
+    /// <summary>
+    /// As combinações disponíveis da <strong>Clean</strong>, para o teste do diagrama de
+    /// dependências (critério 4 de T04).
+    /// </summary>
+    public static IReadOnlyList<GenerationRequest> Clean { get; } =
+    [
+        .. Available.Where(request =>
+            string.Equals(request.Architecture, CleanArchitecture, StringComparison.Ordinal)),
+    ];
 
     private static IEnumerable<GenerationRequest> Build()
     {

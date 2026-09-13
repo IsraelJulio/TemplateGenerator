@@ -34,19 +34,16 @@ public sealed partial class PackageReferenceMatrixTests
         "Swashbuckle.AspNetCore",
     ];
 
-    public static TheoryData<string, string, string, bool> ValidCombinations =>
-        GenerationMatrixTests.ValidCombinations;
-
     /// <summary>
-    /// As combinações da Simples, para as afirmações que só valem onde existe fragmento escrito.
-    /// Ver <see cref="Combinations.Simple"/>.
+    /// As combinações que geram pacote. Ver <see cref="Combinations.Available"/>: o recorte é
+    /// derivado de <c>TemplateAvailability</c>, e não de uma lista do que já foi escrito.
     /// </summary>
-    public static TheoryData<string, string, string, bool> SimpleCombinations =>
-        GenerationMatrixTests.SimpleCombinations;
+    public static TheoryData<string, string, string, bool> AvailableCombinations =>
+        GenerationMatrixTests.AvailableCombinations;
 
-    /// <summary>As combinações da Simples com Swagger marcado.</summary>
-    public static TheoryData<string, string, string, bool> SimpleWithSwaggerCombinations =>
-        GenerationMatrixTests.SimpleWithSwaggerCombinations;
+    /// <summary>As combinações disponíveis com Swagger marcado.</summary>
+    public static TheoryData<string, string, string, bool> AvailableWithSwaggerCombinations =>
+        GenerationMatrixTests.AvailableWithSwaggerCombinations;
 
     [Fact]
     public async Task A_matriz_produz_csproj_e_PackageReference_para_conferir()
@@ -57,7 +54,7 @@ public sealed partial class PackageReferenceMatrixTests
         int projects = 0;
         int references = 0;
 
-        foreach (GenerationRequest request in Combinations.Valid)
+        foreach (GenerationRequest request in Combinations.Available)
         {
             GeneratedPackage package = await GeneratedPackage.GenerateAsync(
                 request,
@@ -84,7 +81,7 @@ public sealed partial class PackageReferenceMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(AvailableCombinations))]
     public async Task Toda_versao_declarada_e_exata(
         string architecture,
         string database,
@@ -112,7 +109,7 @@ public sealed partial class PackageReferenceMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(AvailableCombinations))]
     public async Task Com_swagger_desligado_nenhum_csproj_declara_os_pacotes_de_Swagger(
         string architecture,
         string database,
@@ -148,7 +145,7 @@ public sealed partial class PackageReferenceMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(SimpleWithSwaggerCombinations))]
+    [MemberData(nameof(AvailableWithSwaggerCombinations))]
     public async Task Com_swagger_ligado_o_projeto_web_declara_os_dois_pacotes(
         string architecture,
         string database,
@@ -158,11 +155,9 @@ public sealed partial class PackageReferenceMatrixTests
         // A contraprova do teste acima: sem ela, um `__ApiPackageReferences__` que nunca fosse
         // preenchido faria a verificação de RF-20 passar sempre.
         //
-        // O escopo está nos DADOS, não num `return`: Clean ainda não tem fragmento (T04), e um
-        // `return` antecipado faria este nome aparecer verde para as 16 combinações de Clean sem
-        // ter olhado nenhuma. Quando T04 escrever o fragmento, troque por `ValidCombinations` e
-        // apague o filtro de Swagger — `Os_recortes_da_matriz_tem_o_tamanho_que_afirmam` é quem
-        // garante que o recorte não encolheu sozinho até lá.
+        // O escopo está nos DADOS, e agora ele é a disponibilidade: uma combinação recusada não
+        // tem `.csproj` para declarar pacote nenhum. O filtro de Swagger continua porque a
+        // afirmação é sobre a posição LIGADA do interruptor.
         GeneratedPackage package = await GeneratedPackage.GenerateAsync(
             Request(architecture, database, authentication, swagger),
             TestContext.Current.CancellationToken);
@@ -179,30 +174,76 @@ public sealed partial class PackageReferenceMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(SimpleCombinations))]
-    public async Task A_arquitetura_simples_traz_o_projeto_web_e_o_de_testes(
+    [MemberData(nameof(AvailableCombinations))]
+    public async Task Os_dois_pacotes_de_Swagger_entram_no_projeto_Web_API_e_em_nenhum_outro(
         string architecture,
         string database,
         string authentication,
         bool swagger)
     {
-        // O fragmento de Clean é de T04, então o escopo é dado pelos DADOS e não por um `return`:
-        // assim este nome nunca aparece verde por uma combinação de Clean que ele não examinou.
+        // RF-20 tem um lado que a Clean torna verificável e a Simples não conseguia mostrar: com
+        // quatro projetos irmãos, "a dependência da opção entra no projeto certo" deixa de ser
+        // trivialmente verdadeira. Um `Swashbuckle` que caísse em `Domain` seria, além de RF-20
+        // mal cumprido, a violação do critério de aceite 2 — e nenhum teste de "não contém"
+        // rodando sobre a Simples teria como acusá-lo.
+        //
+        // O projeto Web API é achado pelo `Program.cs`, e não pelo sufixo do nome
+        // (`PackageLayout`): é a única definição que vale nas duas arquiteturas.
         GeneratedPackage package = await GeneratedPackage.GenerateAsync(
             Request(architecture, database, authentication, swagger),
             TestContext.Current.CancellationToken);
 
-        string name = Combinations.ProjectName;
+        string? webProject = PackageLayout.WebProjectDirectory(package);
 
-        string[] expected =
-        [
-            $"src/{name}/{name}.csproj",
-            $"tests/{name}.Tests/{name}.Tests.csproj",
-        ];
+        Assert.NotNull(webProject);
 
-        // Também é aqui que a regra de nomes de generated-projects.md é cobrada: `Matriz.Exemplo.Api`
-        // produz `src/Matriz.Exemplo.Api/`, e não `src/Matriz.Exemplo.Api.Api/`. Nada é concatenado.
-        Assert.Equal(expected, ProjectFiles(package));
+        foreach (string path in ProjectFiles(package))
+        {
+            string[] declared =
+            [
+                .. PackageReferences(package, path)
+                    .Select(reference => reference.Name)
+                    .Where(name => _swaggerPackages.Contains(name, StringComparer.Ordinal)),
+            ];
+
+            Assert.True(
+                declared.Length == 0 || path.StartsWith(webProject, StringComparison.Ordinal),
+                $"{GeneratedPackage.Describe(package.Request)}: '{path}' declara " +
+                $"{string.Join(", ", declared)}, e não é o projeto Web API ('{webProject}'). A " +
+                "dependência de uma opção entra no projeto de composição — em Clean, pô-la em " +
+                "'Domain' ou 'Application' é referência arquitetural indevida " +
+                "(generated-projects.md, 'Clean Architecture').");
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(AvailableCombinations))]
+    public async Task Toda_combinacao_disponivel_traz_projeto_de_codigo_e_projeto_de_testes(
+        string architecture,
+        string database,
+        string authentication,
+        bool swagger)
+    {
+        // A quantidade de projetos de código varia por arquitetura — um na Simples, quatro na
+        // Clean —, e por isso este teste afirma a EXISTÊNCIA, não a lista. Quem fixa a lista
+        // exata, com a regra de nomes junto, é `ZipStructureContractTests`, comparando a árvore
+        // inteira do pacote real contra o contrato versionado.
+        GeneratedPackage package = await GeneratedPackage.GenerateAsync(
+            Request(architecture, database, authentication, swagger),
+            TestContext.Current.CancellationToken);
+
+        Assert.NotEmpty(PackageLayout.SourceProjects(package));
+        Assert.Single(PackageLayout.TestProjects(package));
+
+        // Todo `.csproj` do pacote está sob `src/` ou sob `tests/`. Um projeto solto na raiz, ou
+        // numa pasta terceira, é forma de pacote que nenhum documento descreve.
+        Assert.All(
+            ProjectFiles(package),
+            path => Assert.True(
+                path.StartsWith(PackageLayout.SourceDirectory, StringComparison.Ordinal) ||
+                path.StartsWith(PackageLayout.TestsDirectory, StringComparison.Ordinal),
+                $"{GeneratedPackage.Describe(package.Request)}: '{path}' não está sob 'src/' " +
+                "nem sob 'tests/'."));
     }
 
     private static GenerationRequest Request(

@@ -28,16 +28,21 @@ public sealed class GenerationMatrixTests
         DataFrom(Combinations.Valid);
 
     /// <summary>
-    /// Só as combinações da arquitetura Simples, para o teste cujo assunto é ela. Ver
-    /// <see cref="Combinations.Simple"/>: o recorte existe para que nenhum teste apareça verde por
-    /// uma combinação em que ele desistiu logo na primeira linha.
+    /// Só as combinações que geram projeto, para os testes que olham <em>dentro</em> do pacote.
+    /// Ver <see cref="Combinations.Available"/>: o recorte é derivado de
+    /// <c>TemplateAvailability</c>, e existe para que nenhum teste apareça verde por uma
+    /// combinação em que ele desistiu logo na primeira linha.
     /// </summary>
-    public static TheoryData<string, string, string, bool> SimpleCombinations =>
-        DataFrom(Combinations.Simple);
+    public static TheoryData<string, string, string, bool> AvailableCombinations =>
+        DataFrom(Combinations.Available);
 
-    /// <summary>As combinações da Simples <strong>com</strong> Swagger marcado.</summary>
-    public static TheoryData<string, string, string, bool> SimpleWithSwaggerCombinations =>
-        DataFrom([.. Combinations.Simple.Where(request => request.Swagger)]);
+    /// <summary>As combinações disponíveis <strong>com</strong> Swagger marcado.</summary>
+    public static TheoryData<string, string, string, bool> AvailableWithSwaggerCombinations =>
+        DataFrom([.. Combinations.Available.Where(request => request.Swagger)]);
+
+    /// <summary>As combinações que o motor recusa e a Api responde com <c>501</c>.</summary>
+    public static TheoryData<string, string, string, bool> UnavailableCombinations =>
+        DataFrom(Combinations.Unavailable);
 
     private static TheoryData<string, string, string, bool> DataFrom(
         IReadOnlyList<GenerationRequest> requests)
@@ -72,27 +77,41 @@ public sealed class GenerationMatrixTests
     }
 
     [Fact]
-    public void Os_recortes_da_matriz_tem_o_tamanho_que_afirmam()
+    public void Nenhum_recorte_da_matriz_chega_vazio_a_uma_teoria()
     {
-        // Guarda dos recortes, e não decoração. Um teste escopado à Simples recebe
-        // `SimpleCombinations`; no dia em que esse recorte devolvesse zero linha — porque o valor
-        // 'simple' mudou de nome, porque o catálogo perdeu o campo, porque o filtro quebrou —, o
-        // xUnit não falharia: uma teoria sem dados simplesmente não roda, e a suíte ficaria verde
-        // com metade da camada 1 desligada. É o mesmo modo de falha que o assert de sanidade de
-        // ADR-0011 vigia do lado do conteúdo, e por isso ele tem de existir também aqui.
-        Assert.Equal(16, Combinations.Simple.Count);
-
+        // Guarda dos recortes, e não decoração. Um teste escopado às combinações disponíveis
+        // recebe `AvailableCombinations`; no dia em que esse recorte devolvesse zero linha —
+        // porque a derivação de disponibilidade quebrou, porque o catálogo perdeu um campo,
+        // porque o filtro errou —, o xUnit não falharia: uma teoria sem dados simplesmente não
+        // roda, e a suíte ficaria verde com metade da camada 1 desligada. É o mesmo modo de falha
+        // que o assert de sanidade de ADR-0011 vigia do lado do conteúdo.
+        //
+        // Os tamanhos NÃO são constantes aqui, com a única exceção das 32, que vêm da matriz do
+        // produto. Escrever "4 disponíveis" seria a lista à mão que ADR-0012 recusa, com outro
+        // nome: ela quebraria em T05 por um motivo que é sucesso, não regressão.
         Assert.Equal(32, ValidCombinations.Count);
-        Assert.Equal(16, SimpleCombinations.Count);
-        Assert.Equal(8, SimpleWithSwaggerCombinations.Count);
+
+        Assert.NotEmpty(AvailableCombinations);
+        Assert.NotEmpty(AvailableWithSwaggerCombinations);
+
+        // `UnavailableCombinations` fica de fora desta lista de propósito: ele TEM de esvaziar em
+        // T08, quando o último fragmento for escrito, e exigir que ele tenha linha seria escrever
+        // aqui uma dívida com prazo indeterminado. Quem o vigia enquanto ele precisa existir é
+        // `AvailabilityMatrixTests`, que condiciona a exigência à presença de fragmento vazio no
+        // repositório — e por isso cai sozinho quando não houver mais nenhum.
+        Assert.NotEmpty(Combinations.Clean);
 
         Assert.All(
-            Combinations.Simple,
-            request => Assert.Equal(Combinations.SimpleArchitecture, request.Architecture));
+            Combinations.Clean,
+            request => Assert.Equal(Combinations.CleanArchitecture, request.Architecture));
+
+        Assert.All(
+            Combinations.Clean,
+            request => Assert.Contains(request, Combinations.Available));
     }
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(AvailableCombinations))]
     public async Task A_combinacao_gera_um_pacote_sem_conflito_de_fragmento(
         string architecture,
         string database,
@@ -110,7 +129,7 @@ public sealed class GenerationMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(AvailableCombinations))]
     public async Task Gerar_duas_vezes_produz_o_mesmo_SHA256(
         string architecture,
         string database,
@@ -131,7 +150,7 @@ public sealed class GenerationMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(AvailableCombinations))]
     public async Task Nenhum_caminho_sai_da_raiz_e_nenhum_caminho_se_repete(
         string architecture,
         string database,
@@ -155,7 +174,7 @@ public sealed class GenerationMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(AvailableCombinations))]
     public async Task O_manifesto_corresponde_a_combinacao_pedida(
         string architecture,
         string database,
@@ -190,7 +209,7 @@ public sealed class GenerationMatrixTests
         // sem medir nada.
         List<string> hashes = [];
 
-        foreach (GenerationRequest request in Combinations.Valid)
+        foreach (GenerationRequest request in Combinations.Available)
         {
             GeneratedPackage package = await GeneratedPackage.GenerateAsync(
                 request,

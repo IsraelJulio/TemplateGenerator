@@ -56,32 +56,99 @@ public sealed class ZipStructureContractTests
         "src/web/src/app/core/summary/zip-structure.contract.json";
 
     /// <summary>
-    /// As combinações amarradas. Hoje só a Simples: é a única com fragmento escrito (T03), e
-    /// ADR-0010 deixa a Clean para T04 — inclusive a decisão sobre o <c>.Api</c> dobrado, que
-    /// <strong>é</strong> o comportamento documentado até lá e não uma divergência a corrigir.
+    /// Os dois nomes de projeto que toda combinação amarrada percorre.
     /// </summary>
     /// <remarks>
-    /// Os dois nomes de projeto são deliberados. <c>Acme.Billing</c> é o caso comum;
-    /// <c>Acme.Billing.Api</c> é o caso que ADR-0010 deixou em aberto e que
-    /// generated-projects.md decidiu para a Simples — nada é concatenado, logo
-    /// <c>src/Acme.Billing.Api/</c> e nunca <c>src/Acme.Billing.Api.Api/</c>. Sem ele, a regra de
-    /// nomes ficaria amarrada só do lado do backend.
+    /// <para>
+    /// <c>Acme.Billing</c> é o caso comum. <c>Acme.Billing.Api</c> é o caso de borda da regra de
+    /// nomes, e em T04 ele passou a fixar <strong>duas</strong> decisões opostas de
+    /// generated-projects.md, uma em cada arquitetura:
+    /// </para>
+    /// <list type="bullet">
+    ///   <item><description>
+    ///   na <strong>Simples</strong>, nada é concatenado — <c>src/Acme.Billing.Api/</c>, e nunca
+    ///   <c>src/Acme.Billing.Api.Api/</c>, porque não há irmão a desambiguar;
+    ///   </description></item>
+    ///   <item><description>
+    ///   na <strong>Clean</strong>, o sufixo é concatenado sempre —
+    ///   <c>src/Acme.Billing.Api.Api/</c>, com o <c>.Api</c> dobrado, porque um desambiguador
+    ///   aplicado só às vezes não desambigua.
+    ///   </description></item>
+    /// </list>
+    /// <para>
+    /// O nome dobrado é <strong>decisão</strong> desde T04, não pendência, e este par é o que
+    /// impede as duas de mudarem em silêncio. Sem ele a regra de nomes valeria só do lado do
+    /// documento.
+    /// </para>
+    /// </remarks>
+    private static readonly string[] _tiedProjectNames = ["Acme.Billing", "Acme.Billing.Api"];
+
+    /// <summary>
+    /// As combinações amarradas: <strong>toda combinação disponível</strong>, nos dois nomes de
+    /// projeto de <see cref="_tiedProjectNames"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>Derivada, não enumerada</strong> — é a condição 1 de ADR-0010, "O que T04 precisa
+    /// fazer para expirar o resto", e ela não é opcional. Uma lista escrita à mão envelheceria
+    /// exatamente como envelheceria o catálogo de disponibilidade que ADR-0012 se recusou a
+    /// escrever à mão, e envelheceria <em>em silêncio</em>: um teste que olha menos combinações
+    /// continua verde.
+    /// </para>
+    /// <para>
+    /// <strong>Derivada, ela cresce sozinha.</strong> No dia em que T05 escrever
+    /// <c>database/sqlite</c>, o valor acende, as combinações novas entram nesta lista, o contrato
+    /// versionado deixa de bater e a suíte cai até alguém regenerá-lo e ajustar a projeção. É o
+    /// que faz a dívida restante se fechar sem ninguém precisar lembrar dela — e é a condição que
+    /// tira de ADR-0010 o risco de divergência.
+    /// </para>
+    /// <para>
+    /// O outro lado da condição é
+    /// <see cref="Toda_combinacao_disponivel_esta_amarrada_e_vice_versa"/>: sem ele, "derivada" é
+    /// só uma intenção no código.
+    /// </para>
     /// </remarks>
     public static IEnumerable<(string ProjectName, GenerationRequest Request)> Tied()
     {
-        foreach (string name in (string[])["Acme.Billing", "Acme.Billing.Api"])
+        foreach (string name in _tiedProjectNames)
         {
-            foreach (bool swagger in (bool[])[true, false])
+            foreach (GenerationRequest request in Combinations.Available)
             {
-                yield return (name, new GenerationRequest(
-                    name,
-                    "simple",
-                    "none",
-                    "none",
-                    swagger,
-                    "net10.0"));
+                yield return (name, request with { ProjectName = name });
             }
         }
+    }
+
+    [Fact]
+    public void Toda_combinacao_disponivel_esta_amarrada_e_vice_versa()
+    {
+        // ADR-0010, condição 2: os dois conjuntos coincidem. Sem esta afirmação, `Tied()` poderia
+        // filtrar, recortar ou perder uma combinação e nada ficaria vermelho — um teste que olha
+        // menos continua verde, e é esse o modo de falha que a ADR registra quatro vezes.
+        //
+        // A comparação é sobre a SELEÇÃO, não sobre o nome do projeto: cada combinação aparece uma
+        // vez por nome, e é isso que os dois nomes existem para fazer.
+        GenerationRequest[] tied =
+        [
+            .. Tied()
+                .Select(entry => entry.Request with { ProjectName = Combinations.ProjectName })
+                .Distinct(),
+        ];
+
+        Assert.Empty(Combinations.Available.Except(tied));
+        Assert.Empty(tied.Except(Combinations.Available));
+
+        Assert.Equal(
+            Combinations.Available.Count * _tiedProjectNames.Length,
+            Tied().Count());
+
+        // E a sanidade: uma lista vazia faria as duas igualdades acima passarem por vacuidade.
+        Assert.NotEmpty(tied);
+
+        // Os dois nomes continuam percorridos — é o segundo que fixa o `.Api` dobrado da Clean.
+        Assert.Equal(
+            _tiedProjectNames.Order(StringComparer.Ordinal),
+            Tied().Select(entry => entry.ProjectName).Distinct().Order(StringComparer.Ordinal));
     }
 
     [Fact]
@@ -116,7 +183,11 @@ public sealed class ZipStructureContractTests
         JsonNode contract = JsonNode.Parse(await BuildContractAsync(TestContext.Current.CancellationToken))!;
         JsonArray combinations = contract["combinacoes"]!.AsArray();
 
-        Assert.Equal(4, combinations.Count);
+        // O número NÃO é constante: ele é o tamanho da derivação, e cresce sozinho quando um
+        // fragmento novo acende. Escrever "4" aqui reintroduziria, no assert de sanidade, a lista
+        // à mão que `Tied()` existe para não ter.
+        Assert.Equal(Combinations.Available.Count * _tiedProjectNames.Length, combinations.Count);
+        Assert.NotEmpty(combinations);
 
         foreach (JsonNode? combination in combinations)
         {
@@ -124,9 +195,9 @@ public sealed class ZipStructureContractTests
 
             Assert.True(
                 paths.Length >= 20,
-                $"A árvore amarrada tem só {paths.Length} caminhos. Um pacote da Simples tem " +
-                "mais de vinte; um número menor é sinal de geração quebrada, e um contrato " +
-                "curto faria a comparação passar por vacuidade.");
+                $"A árvore amarrada tem só {paths.Length} caminhos. Um pacote de qualquer das " +
+                "duas arquiteturas tem mais de vinte; um número menor é sinal de geração " +
+                "quebrada, e um contrato curto faria a comparação passar por vacuidade.");
 
             Assert.Contains("src/", paths);
             Assert.Contains("tests/", paths);

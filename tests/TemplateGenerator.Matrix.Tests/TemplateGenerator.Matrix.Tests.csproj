@@ -2,8 +2,17 @@
 
   <!--
     As quatro camadas da matriz (ADR-0002 e docs/quality/test-strategy.md).
-    Referencia apenas a biblioteca de geração: as camadas 1 a 4 exercitam as 32 combinações
-    SEM subir a Api — é exatamente isso que a fronteira de TemplateGenerator.Generation compra.
+
+    A referência central continua sendo a biblioteca de geração: as camadas 1 a 4 exercitam as 32
+    combinações SEM subir a Api, e é exatamente isso que a fronteira de TemplateGenerator.Generation
+    compra. Praticamente tudo aqui roda sobre ela.
+
+    A Api entra por UM motivo, escrito para não virar porta aberta: ADR-0012, item 5, linha 4 exige
+    que a camada 1 afirme, para TODA combinação indisponível, que `POST /api/templates` responde
+    501 em problem+json e SEM cabeçalho de download. Essa afirmação é por combinação, e as
+    combinações são derivadas aqui — prová-la em outro projeto significaria duplicar a derivação,
+    que é a segunda fonte de verdade que a decisão inteira existe para não criar. A recusa do MOTOR
+    (linha 3) continua sendo verificada sem HTTP nenhum, sobre `GenerationEngine` direto.
   -->
 
   <PropertyGroup>
@@ -15,10 +24,12 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\TemplateGenerator.Generation\TemplateGenerator.Generation.csproj" />
+    <ProjectReference Include="..\..\src\TemplateGenerator.Api\TemplateGenerator.Api.csproj" />
   </ItemGroup>
 
 </Project>

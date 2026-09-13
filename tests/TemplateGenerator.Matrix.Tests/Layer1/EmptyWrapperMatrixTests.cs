@@ -1,25 +1,27 @@
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using TemplateGenerator.Generation;
+using TemplateGenerator.Generation.Engine;
 using Xunit;
 
 namespace TemplateGenerator.Matrix.Tests.Layer1;
 
 /// <summary>
-/// A guarda da <strong>regra 7b</strong> de ADR-0011: quem escreve template não envolve o marcador
-/// de contribuição em <c>&lt;ItemGroup&gt;</c>, <c>{ }</c> ou qualquer outro par de abre-fecha,
-/// porque o motor apaga a linha do marcador e o invólucro vazio sobreviveria — entregue a um
-/// humano dentro do pacote.
+/// A guarda da <strong>regra 7b</strong> de ADR-0011 — quem escreve template não envolve o
+/// marcador de contribuição em <c>&lt;ItemGroup&gt;</c>, <c>{ }</c>, uma cerca Markdown ou
+/// qualquer outro par de abre-fecha, porque o motor apaga a linha do marcador e o invólucro vazio
+/// sobreviveria — e a guarda da regra de T04 de docs/architecture/generation-engine.md:
+/// <strong>nenhum comentário de template cita um marcador pelo nome</strong>.
 /// </summary>
 /// <remarks>
 /// <para>
-/// A regra nasceu em T03 a partir de um <c>&lt;ItemGroup&gt;&lt;/ItemGroup&gt;</c> real, e nasceu
+/// A 7b nasceu em T03 a partir de um <c>&lt;ItemGroup&gt;&lt;/ItemGroup&gt;</c> real, e nasceu
 /// <strong>sem verificador</strong>: o motor não tem como detectá-la, porque um invólucro é só
 /// texto e ADR-0011, item 9, proíbe o motor de interpretar texto. Uma regra que vive de revisão
-/// humana de diff é uma regra que o primeiro fragmento distraído de T04 quebra em silêncio — o
-/// mesmo padrão que ADR-0010 registrou três vezes e ADR-0008 uma.
+/// humana de diff é uma regra que o primeiro fragmento distraído quebra em silêncio — o mesmo
+/// padrão que ADR-0010 registrou três vezes e ADR-0008 uma.
 /// </para>
-/// <para><strong>São três guardas, e cada uma diz até onde alcança:</strong></para>
+/// <para><strong>São quatro guardas, e cada uma diz até onde alcança:</strong></para>
 /// <list type="number">
 ///   <item><description>
 ///   <see cref="Nenhum_csproj_gerado_traz_grupo_vazio"/> — no <strong>pacote</strong>, o sintoma
@@ -31,50 +33,56 @@ namespace TemplateGenerator.Matrix.Tests.Layer1;
 ///   </description></item>
 ///   <item><description>
 ///   <see cref="Nenhum_marcador_de_contribuicao_esta_envolvido_no_template"/> — no
-///   <strong>template</strong>, que é onde a regra 7b de fato mora, e a que responde ao ponto
-///   levantado pelo papel <c>template-engineer</c>: sem ela, um invólucro novo em
-///   <c>Program.cs</c> ou em <c>appsettings.json</c> não derrubaria nada até alguém abrir o ZIP.
-///   O alcance dela é <strong>exatamente</strong> o que <see cref="Opens"/> e <see cref="Closes"/>
-///   reconhecem — ver a lista de limites abaixo, que não é curta.
+///   <strong>template</strong>, que é onde a regra 7b de fato mora. O alcance dela é
+///   <strong>exatamente</strong> o que <see cref="Opens"/> e <see cref="Closes"/> reconhecem — ver
+///   os limites abaixo.
+///   </description></item>
+///   <item><description>
+///   <see cref="Nenhum_comentario_de_template_cita_marcador_pelo_nome"/> — no
+///   <strong>template</strong>, a regra de T04. É a guarda que pega o defeito <em>antes</em> de
+///   ele virar pacote; a rede geral do lado do pacote é
+///   <c>GeneratedFileIntegrityMatrixTests.Todo_arquivo_gerado_de_extensao_XML_e_XML_valido</c>.
 ///   </description></item>
 /// </list>
 /// <para>
-/// <strong>O QUE A GUARDA 3 NÃO ALCANÇA.</strong> Ela reconhece um par abre-fecha em uma forma só:
-/// linha que termina em <c>{</c>, <c>[</c> ou <c>(</c>, ou é tag XML de abertura; seguida de linha
-/// que começa em <c>}</c>, <c>]</c>, <c>)</c> ou <c>&lt;/</c>. Isso cobre XML (o <c>.csproj</c>) e
-/// as chaves de C# e JSON. <strong>Não cobre:</strong>
+/// <strong>O que a guarda 3 passou a alcançar em T04</strong>, e que era limite declarado em T03:
 /// </para>
 /// <list type="bullet">
 ///   <item><description>
-///   <strong>Os invólucros próprios do Markdown</strong> — a cerca <c>```</c>, a citação
-///   <c>&gt;</c>, o item de lista, a tabela. <c>Opens("```bash")</c> é <c>false</c> e
-///   <c>Closes("```")</c> é <c>false</c>, e os dois estão afirmados assim em
-///   <see cref="O_reconhecedor_sabe_distinguir_involucro_de_linha_inocente"/>. Um marcador posto
-///   <em>dentro</em> de uma cerca não seria acusado, e sem contribuição sobraria uma cerca vazia no
-///   <c>README.md</c> — o defeito literal da regra 7b, no formato que hoje mais hospeda marcador.
-///   <strong>Hoje não há violação:</strong> em <c>architecture/simple/README.md</c> os dois
-///   marcadores estão <em>entre</em> cercas, nunca dentro (as 16 linhas de <c>```</c> formam 8
-///   pares balanceados). O que falta é a guarda, não o conserto.
+///   <strong>A cerca Markdown</strong> (<c>```</c>). <c>Opens("```bash")</c> e <c>Closes("```")</c>
+///   agora respondem <c>true</c>. Era o buraco mais caro dos três, porque <c>.md</c> é justamente
+///   o formato que mais hospeda marcador: um marcador posto <em>dentro</em> de uma cerca deixaria,
+///   sem contribuição, uma cerca vazia no <c>README.md</c> — e uma cerca vazia não deixa linha em
+///   branco nem elemento XML, então escapava também das guardas 1 e 2.
+///   <strong>Não há violação hoje:</strong> nos dois <c>README.md</c> os marcadores estão
+///   <em>entre</em> cercas, nunca dentro. O que faltava era a guarda, não o conserto.
 ///   </description></item>
 ///   <item><description>
-///   <strong>Invólucro separado do marcador por um comentário.</strong> A guarda olha a linha
-///   não-vazia imediatamente anterior e a seguinte. Com
+///   <strong>Invólucro separado do marcador por um comentário.</strong>
+///   <see cref="PreviousNonBlank"/> e <see cref="NextNonBlank"/> agora pulam também comentário —
+///   XML de uma ou de várias linhas, e <c>//</c>. Com
 ///   <c>&lt;ItemGroup&gt;</c> / <c>&lt;!-- … --&gt;</c> / marcador / <c>&lt;/ItemGroup&gt;</c>, o
-///   "anterior" é o comentário, <c>Opens</c> devolve <c>false</c> e o grupo vazio passa.
-///   </description></item>
-///   <item><description>
-///   <strong>Invólucro de mais de uma linha</strong> — uma tag XML de abertura quebrada em várias
-///   linhas de atributos, por exemplo.
+///   "anterior" deixou de ser o comentário e o grupo vazio passa a ser acusado.
 ///   </description></item>
 /// </list>
 /// <para>
+/// <strong>O QUE A GUARDA 3 CONTINUA NÃO ALCANÇANDO</strong>, e é limite declarado, não descuido:
+/// os outros invólucros do Markdown — a citação <c>&gt;</c>, o item de lista, a tabela —, porque
+/// nenhum deles tem forma de par abre-fecha em linha própria; e o invólucro de mais de uma linha,
+/// como uma tag XML de abertura quebrada em várias linhas de atributos.
+/// </para>
+/// <para>
+/// <strong>E ela acusa o marcador que está SOZINHO dentro do invólucro</strong>, que é a condição
+/// exata do defeito: é só nesse caso que o invólucro sobrevive <em>vazio</em> quando ninguém
+/// contribui. Um marcador dentro de uma cerca que também tem outras linhas não é violação da
+/// regra 7b — a cerca continua com conteúdo — e não ser acusado ali é acerto, não buraco.
+/// </para>
+/// <para>
 /// Nada disso é acidente: a guarda 3 é um reconhecedor de <em>linha</em>, não um parser. Escrever
 /// um analisador de blocos por formato seria trazer para o verificador a linguagem de template que
-/// ADR-0011, item 9, recusa no motor. Mas <strong>o limite precisa estar escrito</strong>: ADR-0008
-/// e ADR-0010 registram que herdar uma permissão que a pessoa <em>acha</em> vigiada é pior que
-/// herdar uma que ela sabe que precisa conferir. As guardas 1 e 2 continuam olhando o pacote e
-/// pegam o sintoma de saída onde ele deixa rastro — mas uma cerca Markdown vazia não deixa linha em
-/// branco nem elemento XML vazio, então ela escapa das três.
+/// ADR-0011, item 9, recusa no motor. Mas <strong>o limite precisa estar escrito</strong>:
+/// ADR-0008 e ADR-0010 registram que herdar uma permissão que a pessoa <em>acha</em> vigiada é
+/// pior que herdar uma que ela sabe que precisa conferir.
 /// </para>
 /// </remarks>
 public sealed partial class EmptyWrapperMatrixTests
@@ -110,11 +118,25 @@ public sealed partial class EmptyWrapperMatrixTests
         "Otherwise",
     ];
 
-    public static TheoryData<string, string, string, bool> ValidCombinations =>
-        GenerationMatrixTests.ValidCombinations;
+    /// <summary>
+    /// Os marcadores de <strong>valor</strong> (docs/architecture/generation-engine.md). Entram na
+    /// guarda 4 junto com os de contribuição: a regra de T04 é sobre marcador, e o motor substitui
+    /// os dois tipos em qualquer posição do texto. Um <c>__ProjectName__</c> dentro de um
+    /// comentário não quebra XML, mas transforma a explicação numa afirmação sobre um projeto — e a
+    /// regra existe justamente para não ter de julgar caso a caso qual substituição é inofensiva.
+    /// </summary>
+    private static readonly string[] _valueMarkers =
+    [
+        TemplateTokens.ProjectName,
+        TemplateTokens.TargetFramework,
+        TemplateTokens.TemplateVersion,
+    ];
+
+    public static TheoryData<string, string, string, bool> AvailableCombinations =>
+        GenerationMatrixTests.AvailableCombinations;
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(AvailableCombinations))]
     public async Task Nenhum_csproj_gerado_traz_grupo_vazio(
         string architecture,
         string database,
@@ -153,7 +175,7 @@ public sealed partial class EmptyWrapperMatrixTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidCombinations))]
+    [MemberData(nameof(AvailableCombinations))]
     public async Task Nenhum_arquivo_gerado_traz_bloco_de_linhas_em_branco(
         string architecture,
         string database,
@@ -187,22 +209,16 @@ public sealed partial class EmptyWrapperMatrixTests
     [Fact]
     public void Nenhum_marcador_de_contribuicao_esta_envolvido_no_template()
     {
-        // A regra 7b onde ela mora: no template. Varre todo arquivo hospedeiro, qualquer que seja a
-        // extensão — mas só acusa os invólucros que `Opens`/`Closes` reconhecem, que são os de XML
-        // e os de chave/colchete/parêntese. Ver a lista de limites no `<remarks>` da classe: os
-        // invólucros próprios do Markdown ficam de fora, e é justamente `.md` que mais hospeda
-        // marcador hoje.
-        //
-        // O ganho real está em `appsettings.json`, no dia em que T04 escrever o primeiro fragmento
-        // com banco: um `{}` vazio não deixa linha em branco nem elemento XML, então as duas
-        // guardas de saída ficariam cegas e só esta acusaria.
+        // A regra 7b onde ela mora: no template. Varre todo arquivo hospedeiro, qualquer que seja
+        // a extensão — mas só acusa os invólucros que `Opens`/`Closes` reconhecem: XML, as chaves
+        // de C#/JSON e, desde T04, a cerca Markdown. Ver a lista de limites no `<remarks>`.
         TemplateInventory inventory = TemplateInventory.Read();
 
         List<string> violations = [];
 
         foreach (TemplateHost host in inventory.Hosts)
         {
-            string[] lines = host.Content.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
+            string[] lines = Lines(host.Content);
 
             for (int index = 0; index < lines.Length; index++)
             {
@@ -238,6 +254,45 @@ public sealed partial class EmptyWrapperMatrixTests
     }
 
     [Fact]
+    public void Nenhum_comentario_de_template_cita_marcador_pelo_nome()
+    {
+        // A regra de T04, achada ao escrever a Clean e achada EXECUTANDO: o motor substitui
+        // marcador em qualquer posição do texto — ele não sabe o que é comentário, porque
+        // ADR-0011, item 9, é a decisão de o motor não interpretar nada. Um
+        // `<!-- … __ApiPackageReferences__ … -->` no `.csproj` do Domain virou o `<ItemGroup>`
+        // inteiro do Swagger DENTRO do comentário, e o projeto gerado passou a falhar com
+        // MSB4025. Só com `swagger = true`: com ele desmarcado o marcador resolvia vazio e o
+        // comentário continuava um comentário.
+        //
+        // O ALCANCE, escrito onde o reconhecedor mora: comentário XML, aberto e fechado na mesma
+        // linha ou atravessando várias. Comentário de C# (`//`, `/* */`), de Markdown e de outros
+        // formatos ficam DE FORA — não porque a regra não valha para eles (ela vale para todo
+        // formato), mas porque este reconhecedor não os lê. Para esses, o que existe é a rede do
+        // lado do pacote, e ela só cobre a família XML.
+        TemplateInventory inventory = TemplateInventory.Read();
+
+        string[] known = [.. inventory.Markers, .. _valueMarkers];
+
+        List<string> violations = [];
+
+        foreach (TemplateHost host in inventory.Hosts)
+        {
+            violations.AddRange(MarkersInsideXmlComments(host, known));
+        }
+
+        Assert.True(
+            violations.Count == 0,
+            "Comentário de template citando marcador pelo nome " +
+            "(docs/architecture/generation-engine.md, 'Nenhum comentário de template cita um " +
+            $"marcador pelo nome'):{Environment.NewLine}  " +
+            string.Join(Environment.NewLine + "  ", violations) + Environment.NewLine +
+            "O motor substitui o marcador ali dentro, e a contribuição injetada quebra o " +
+            "comentário — no XML isso é MSB4025, e no '//' de C# vira código comentado. Para " +
+            "falar de um marcador, descreva-o ('a contribuição de PackageReferences') ou quebre a " +
+            "forma dele ('__ ApiPackageReferences __').");
+    }
+
+    [Fact]
     public void O_reconhecedor_sabe_distinguir_involucro_de_linha_inocente()
     {
         // A decisão que `Opens` e `Closes` tomam, executável — pelo mesmo motivo que
@@ -245,13 +300,15 @@ public sealed partial class EmptyWrapperMatrixTests
         // que ninguém mexeu é uma hipótese, e a próxima pessoa que acrescentar um formato precisa
         // de onde reatacar.
 
-        // Abre: as três chaves de bloco e a tag XML de abertura.
+        // Abre: as três chaves de bloco, a tag XML de abertura e a cerca Markdown.
         Assert.True(Opens("  <ItemGroup>"));
         Assert.True(Opens("  <ItemGroup Label=\"Swagger\">"));
         Assert.True(Opens("  \"Logging\": {"));
         Assert.True(Opens("{"));
         Assert.True(Opens("  builder.Services.Configure(options => {"));
         Assert.True(Opens("  \"itens\": ["));
+        Assert.True(Opens("```bash"));
+        Assert.True(Opens("```"));
 
         // Não abre: tag que se fecha sozinha, tag de fechamento, comentário, instrução terminada.
         Assert.False(Opens("  <PackageReference Include=\"X\" Version=\"1.0.0\" />"));
@@ -261,24 +318,107 @@ public sealed partial class EmptyWrapperMatrixTests
         Assert.False(Opens("<?xml version=\"1.0\"?>"));
         Assert.False(Opens("app.UseStatusCodePages();"));
         Assert.False(Opens("namespace Acme.Billing.Persistence;"));
-        Assert.False(Opens("```bash"));
+        Assert.False(Opens("`código inline`"));
         Assert.False(Opens(string.Empty));
 
-        // Fecha: as três chaves e a tag XML de fechamento.
+        // Fecha: as três chaves, a tag XML de fechamento e a cerca que fecha — que, ao contrário
+        // da que abre, NUNCA carrega linguagem depois das crases. É o que distingue as duas pontas
+        // de um par em Markdown, onde o mesmo símbolo faz os dois papéis.
         Assert.True(Closes("  </ItemGroup>"));
         Assert.True(Closes("}"));
         Assert.True(Closes("  ]"));
         Assert.True(Closes("  );"));
+        Assert.True(Closes("```"));
 
         // Não fecha: qualquer outra coisa.
         Assert.False(Closes("## Executar"));
         Assert.False(Closes("dotnet restore"));
         Assert.False(Closes("  <ItemGroup>"));
+        Assert.False(Closes("```bash"));
         Assert.False(Closes(string.Empty));
 
-        // E o par inteiro, que é o que a guarda pergunta: a forma exata do defeito de T03.
+        // E o par inteiro, que é o que a guarda pergunta: a forma exata do defeito de T03, e a
+        // forma que a cerca Markdown lhe dá.
         Assert.True(Opens("  <ItemGroup>") && Closes("  </ItemGroup>"));
+        Assert.True(Opens("```bash") && Closes("```"));
         Assert.False(Opens("  -->") && Closes("</Project>"));
+    }
+
+    [Fact]
+    public void O_reconhecedor_pula_comentario_ao_procurar_o_involucro()
+    {
+        // O segundo limite que T04 fechou. A guarda olha a linha não-vazia imediatamente anterior
+        // e a seguinte; com `<ItemGroup>` / `<!-- … -->` / marcador / `</ItemGroup>`, o "anterior"
+        // era o comentário, `Opens` devolvia false e o grupo vazio passava. Agora o comentário é
+        // pulado, e o par volta a ser visível.
+        string[] oneLine =
+        [
+            "  <ItemGroup>",
+            "    <!-- a contribuição de PackageReferences entra aqui -->",
+            "__ApiPackageReferences__",
+            "  </ItemGroup>",
+        ];
+
+        Assert.Equal("  <ItemGroup>", PreviousNonBlank(oneLine, 2));
+        Assert.Equal("  </ItemGroup>", NextNonBlank(oneLine, 2));
+
+        string[] manyLines =
+        [
+            "  <ItemGroup>",
+            "    <!--",
+            "      um comentário de várias linhas",
+            "    -->",
+            "",
+            "__ApiPackageReferences__",
+            "    <!-- e outro depois -->",
+            "  </ItemGroup>",
+        ];
+
+        Assert.Equal("  <ItemGroup>", PreviousNonBlank(manyLines, 5));
+        Assert.Equal("  </ItemGroup>", NextNonBlank(manyLines, 5));
+
+        // E a contraprova: pular comentário não pode fazer a busca atravessar código de verdade.
+        string[] innocent =
+        [
+            "  <PropertyGroup>",
+            "    <Nullable>enable</Nullable>",
+            "  </PropertyGroup>",
+            "__ApiPackageReferences__",
+            "",
+            "</Project>",
+        ];
+
+        Assert.Equal("  </PropertyGroup>", PreviousNonBlank(innocent, 3));
+    }
+
+    [Fact]
+    public void O_reconhecedor_de_comentario_XML_acha_o_marcador_dentro_e_ignora_o_de_fora()
+    {
+        // A decisão da guarda 4, executável. O caso real de T04 é o primeiro; os outros são as
+        // bordas que separam "dentro do comentário" de "fora dele".
+        TemplateHost dentroDeUmaLinha = new(
+            "exemplo.csproj",
+            "<!-- as dependências entram em __ApiPackageReferences__ -->\n");
+
+        Assert.NotEmpty(MarkersInsideXmlComments(dentroDeUmaLinha, ["__ApiPackageReferences__"]));
+
+        TemplateHost dentroDeVariasLinhas = new(
+            "exemplo.csproj",
+            "<!--\n  e aqui __ApiPackageReferences__ também\n-->\n");
+
+        Assert.NotEmpty(
+            MarkersInsideXmlComments(dentroDeVariasLinhas, ["__ApiPackageReferences__"]));
+
+        TemplateHost fora = new("exemplo.csproj", "<!-- nada aqui -->\n__ApiPackageReferences__\n");
+
+        Assert.Empty(MarkersInsideXmlComments(fora, ["__ApiPackageReferences__"]));
+
+        // Depois do fechamento, na MESMA linha: é fora, e confundir isto acusaria template limpo.
+        TemplateHost depoisDoFechamento = new(
+            "exemplo.csproj",
+            "<!-- nada --> __ApiPackageReferences__\n");
+
+        Assert.Empty(MarkersInsideXmlComments(depoisDoFechamento, ["__ApiPackageReferences__"]));
     }
 
     [Fact]
@@ -286,8 +426,8 @@ public sealed partial class EmptyWrapperMatrixTests
     {
         // Assert de sanidade, obrigatório — ADR-0011 já exige um para a classe de
         // PackageReferenceMatrixTests, e esta classe precisa do seu pelo mesmo motivo, só que mais
-        // forte: "nenhum invólucro vazio" é verdade por vacuidade num pacote sem `.csproj`, e HOJE
-        // 16 das 32 combinações são assim, porque o fragmento de Clean é de T04.
+        // forte: "nenhum invólucro vazio" é verdade por vacuidade num pacote sem `.csproj`, e
+        // ADR-0012 faz a maioria das combinações não produzir pacote nenhum.
         //
         // Então não basta contar arquivos. É preciso mostrar o par que prova que a regra 7b está
         // sendo exercida nos dois estados: uma combinação em que o grupo APARECE porque alguém
@@ -297,7 +437,7 @@ public sealed partial class EmptyWrapperMatrixTests
         int withItemGroup = 0;
         int withoutAnyItemGroup = 0;
 
-        foreach (GenerationRequest request in Combinations.Valid)
+        foreach (GenerationRequest request in Combinations.Available)
         {
             GeneratedPackage package = await GeneratedPackage.GenerateAsync(
                 request,
@@ -355,7 +495,7 @@ public sealed partial class EmptyWrapperMatrixTests
             "não está sendo exercida: é justamente a combinação em que NINGUÉM contribui que " +
             "revela se o invólucro some junto com o marcador.");
 
-        // E a guarda do lado do template, pelo mesmo raciocínio.
+        // E as guardas do lado do template, pelo mesmo raciocínio.
         TemplateInventory inventory = TemplateInventory.Read();
 
         Assert.True(
@@ -368,6 +508,17 @@ public sealed partial class EmptyWrapperMatrixTests
             inventory.Hosts.Count > 0,
             "Nenhum arquivo de template hospeda marcador de contribuição, embora existam " +
             $"{inventory.Markers.Count}. A varredura de arquivos hospedeiros quebrou.");
+
+        Assert.True(
+            inventory.Hosts.Any(host => host.Content.Contains("<!--", StringComparison.Ordinal)),
+            "Nenhum arquivo hospedeiro tem comentário XML. " +
+            $"'{nameof(Nenhum_comentario_de_template_cita_marcador_pelo_nome)}' não teria um " +
+            "único comentário para inspecionar e passaria por vacuidade.");
+
+        Assert.True(
+            inventory.Hosts.Any(host => host.Content.Contains("```", StringComparison.Ordinal)),
+            "Nenhum arquivo hospedeiro tem cerca Markdown. O reconhecimento de cerca que T04 " +
+            "acrescentou não teria onde ser exercido sobre template de verdade.");
     }
 
     private static GenerationRequest Request(
@@ -378,41 +529,200 @@ public sealed partial class EmptyWrapperMatrixTests
         new(Combinations.ProjectName, architecture, database, authentication, swagger, "net10.0");
 
     private static IReadOnlyList<string> ProjectFiles(GeneratedPackage package) =>
-    [
-        .. package.Paths
-            .Where(path => path.EndsWith(".csproj", StringComparison.Ordinal))
-            .Order(StringComparer.Ordinal),
-    ];
+        PackageLayout.ProjectFiles(package);
 
-    private static string? PreviousNonBlank(string[] lines, int index)
+    private static string[] Lines(string content) =>
+        content.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
+
+    /// <summary>
+    /// Os marcadores de <paramref name="known"/> que aparecem <strong>dentro</strong> de um
+    /// comentário XML de <paramref name="host"/>, com a linha em que estão.
+    /// </summary>
+    /// <remarks>
+    /// Reconhecedor de linha com um estado só — "estou dentro de um comentário?" —, que é o que
+    /// permite atravessar o comentário de várias linhas sem virar parser de XML. Ele não entende
+    /// <c>CDATA</c> nem <c>&lt;!--</c> dentro de atributo; nenhum dos dois aparece em template de
+    /// projeto, e o custo de errar para mais aqui é uma falha que se lê e se entende.
+    /// </remarks>
+    private static IReadOnlyList<string> MarkersInsideXmlComments(
+        TemplateHost host,
+        IReadOnlyList<string> known)
     {
-        for (int cursor = index - 1; cursor >= 0; cursor--)
+        const string open = "<!--";
+        const string close = "-->";
+
+        List<string> found = [];
+        string[] lines = Lines(host.Content);
+        bool inside = false;
+
+        for (int index = 0; index < lines.Length; index++)
         {
-            if (lines[cursor].Trim().Length > 0)
+            string line = lines[index];
+            int cursor = 0;
+
+            while (cursor <= line.Length)
             {
-                return lines[cursor];
+                if (!inside)
+                {
+                    int start = line.IndexOf(open, cursor, StringComparison.Ordinal);
+
+                    if (start < 0)
+                    {
+                        break;
+                    }
+
+                    inside = true;
+                    cursor = start + open.Length;
+
+                    continue;
+                }
+
+                int end = line.IndexOf(close, cursor, StringComparison.Ordinal);
+                string region = end < 0 ? line[cursor..] : line[cursor..end];
+
+                found.AddRange(known
+                    .Where(marker => region.Contains(marker, StringComparison.Ordinal))
+                    .Select(marker => $"{host.Path}:{index + 1} — '{marker}' em '{region.Trim()}'"));
+
+                if (end < 0)
+                {
+                    break;
+                }
+
+                inside = false;
+                cursor = end + close.Length;
             }
         }
 
-        return null;
+        return found;
     }
 
-    private static string? NextNonBlank(string[] lines, int index)
+    /// <summary>
+    /// A linha anterior a <paramref name="index"/> que não é branca <strong>nem comentário</strong>.
+    /// </summary>
+    private static string? PreviousNonBlank(string[] lines, int index)
     {
-        for (int cursor = index + 1; cursor < lines.Length; cursor++)
+        bool[] commentOnly = CommentOnlyLines(lines);
+
+        for (int cursor = index - 1; cursor >= 0; cursor--)
         {
-            if (lines[cursor].Trim().Length > 0)
+            if (Skippable(lines[cursor], commentOnly[cursor]))
             {
-                return lines[cursor];
+                continue;
             }
+
+            return lines[cursor];
         }
 
         return null;
     }
 
     /// <summary>
-    /// Diz se a linha <strong>abre</strong> um bloco: termina em <c>{</c>, <c>[</c> ou <c>(</c>, ou
-    /// é uma tag XML de abertura.
+    /// A linha seguinte a <paramref name="index"/> que não é branca <strong>nem comentário</strong>.
+    /// </summary>
+    private static string? NextNonBlank(string[] lines, int index)
+    {
+        bool[] commentOnly = CommentOnlyLines(lines);
+
+        for (int cursor = index + 1; cursor < lines.Length; cursor++)
+        {
+            if (Skippable(lines[cursor], commentOnly[cursor]))
+            {
+                continue;
+            }
+
+            return lines[cursor];
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Diz se a linha deve ser pulada na busca pelo invólucro: branca, comentário de <c>//</c>, ou
+    /// linha cujo conteúdo inteiro está dentro de um comentário XML.
+    /// </summary>
+    private static bool Skippable(string line, bool commentOnly) =>
+        line.Trim().Length == 0
+        || commentOnly
+        || line.TrimStart().StartsWith("//", StringComparison.Ordinal);
+
+    /// <summary>
+    /// Para cada linha, diz se <strong>todo</strong> o conteúdo dela está dentro de um comentário
+    /// XML — a linha do <c>&lt;!--</c>, as do miolo e a do <c>--&gt;</c> incluídas.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// É uma passada única com um estado só, "estou dentro de um comentário?", exatamente como
+    /// <see cref="MarkersInsideXmlComments"/>. A primeira versão desta guarda tentava responder a
+    /// pergunta <em>por linha</em>, varrendo para cima ou para baixo à procura da ponta mais
+    /// próxima — e errava: varrendo para trás, encontrar <c>&lt;!--</c> antes de <c>--&gt;</c>
+    /// significa estar <em>dentro</em>, e a versão anterior lia isso ao contrário. Uma passada
+    /// pelo arquivo inteiro não tem essa classe de engano, e a própria linha de delimitador cai no
+    /// lugar certo sem caso especial.
+    /// </para>
+    /// <para>
+    /// O que resta de fora, e é limite conhecido: <c>CDATA</c> e <c>&lt;!--</c> dentro de valor de
+    /// atributo. Nenhum dos dois aparece em template de projeto.
+    /// </para>
+    /// </remarks>
+    private static bool[] CommentOnlyLines(string[] lines)
+    {
+        const string open = "<!--";
+        const string close = "-->";
+
+        bool[] commentOnly = new bool[lines.Length];
+        bool inside = false;
+
+        for (int index = 0; index < lines.Length; index++)
+        {
+            string line = lines[index];
+            bool hasCode = false;
+            bool hasComment = inside;
+            int cursor = 0;
+
+            while (cursor < line.Length)
+            {
+                if (!inside)
+                {
+                    int start = line.IndexOf(open, cursor, StringComparison.Ordinal);
+
+                    if (start < 0)
+                    {
+                        hasCode |= line[cursor..].Trim().Length > 0;
+
+                        break;
+                    }
+
+                    hasCode |= line[cursor..start].Trim().Length > 0;
+                    hasComment = true;
+                    inside = true;
+                    cursor = start + open.Length;
+
+                    continue;
+                }
+
+                hasComment = true;
+
+                int end = line.IndexOf(close, cursor, StringComparison.Ordinal);
+
+                if (end < 0)
+                {
+                    break;
+                }
+
+                inside = false;
+                cursor = end + close.Length;
+            }
+
+            commentOnly[index] = hasComment && !hasCode;
+        }
+
+        return commentOnly;
+    }
+
+    /// <summary>
+    /// Diz se a linha <strong>abre</strong> um bloco: termina em <c>{</c>, <c>[</c> ou <c>(</c>, é
+    /// uma tag XML de abertura, ou é uma cerca Markdown.
     /// </summary>
     private static bool Opens(string line)
     {
@@ -428,19 +738,33 @@ public sealed partial class EmptyWrapperMatrixTests
             return true;
         }
 
+        if (Fence().IsMatch(text))
+        {
+            return true;
+        }
+
         return XmlOpenTag().IsMatch(text);
     }
 
     /// <summary>
     /// Diz se a linha <strong>fecha</strong> um bloco: começa com <c>}</c>, <c>]</c> ou <c>)</c>,
-    /// ou é uma tag XML de fechamento.
+    /// é uma tag XML de fechamento, ou é a cerca Markdown que fecha — só crases, sem linguagem.
     /// </summary>
     private static bool Closes(string line)
     {
         string text = line.Trim();
 
-        return text.Length > 0
-            && (text[0] is '}' or ']' or ')' || text.StartsWith("</", StringComparison.Ordinal));
+        if (text.Length == 0)
+        {
+            return false;
+        }
+
+        if (ClosingFence().IsMatch(text))
+        {
+            return true;
+        }
+
+        return text[0] is '}' or ']' or ')' || text.StartsWith("</", StringComparison.Ordinal);
     }
 
     /// <summary>Duas ou mais linhas em branco seguidas.</summary>
@@ -454,4 +778,12 @@ public sealed partial class EmptyWrapperMatrixTests
     /// </summary>
     [GeneratedRegex(@"^<[A-Za-z_][^>]*(?<!/)>$", RegexOptions.CultureInvariant)]
     private static partial Regex XmlOpenTag();
+
+    /// <summary>Cerca Markdown: três ou mais crases, com ou sem linguagem depois.</summary>
+    [GeneratedRegex(@"^`{3,}[A-Za-z0-9_+-]*$", RegexOptions.CultureInvariant)]
+    private static partial Regex Fence();
+
+    /// <summary>Cerca Markdown de fechamento: só crases, nada depois.</summary>
+    [GeneratedRegex(@"^`{3,}$", RegexOptions.CultureInvariant)]
+    private static partial Regex ClosingFence();
 }
