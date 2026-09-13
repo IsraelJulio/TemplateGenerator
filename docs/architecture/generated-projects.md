@@ -391,23 +391,45 @@ fixado aqui, e não no componente, porque ele afirma o estado da amarração ent
 e quem é dono desse estado é este documento, não o frontend
 ([ADR-0010](../decisions/adr-0010-estrutura-prevista-e-projecao.md)).
 
-**Texto vigente enquanto [ADR-0012](../decisions/adr-0012-combinacao-sem-template.md) não estiver
-implementada**, em `config-summary.html`:
+**Texto vigente**, em `config-summary.html` desde T04:
+
+> O que o ZIP contém para esta combinação. A suíte do gerador compara esta árvore com o pacote real
+> e falha se divergirem.
+
+Quatro coisas a conferir nele:
+
+- **"deve conter" virou "contém".** A árvore deixou de ser uma obrigação declarada e passou a ser um
+  fato verificado para tudo que a tela mostra.
+- **Não cita valor de opção, não varia por arquitetura e não sabe quais combinações estão
+  amarradas** — o confinamento de [ADR-0010](../decisions/adr-0010-estrutura-prevista-e-projecao.md)
+  e a ausência de segunda fonte de verdade seguem intactos.
+- **Ele repousa sobre uma precondição de outro papel:** a tela **desabilita** os valores
+  indisponíveis ([ADR-0012](../decisions/adr-0012-combinacao-sem-template.md)). Se isso deixar de
+  ser verdade, a pessoa alcança uma combinação sem template e **esta frase passa a mentir**. Quem
+  mexer no consumo de `unavailable` mexe nesta frase junto.
+- **Ele não volta a precisar de edição** quando T05 a T08 escreverem os fragmentos que faltam: cada
+  fragmento acende o valor, a amarração o alcança sozinha e a frase continua verdadeira sem uma
+  letra a mais.
+
+### Como se chegou nele, e por que o texto anterior caiu
+
+**Texto anterior**, vigente de T03 até T04:
 
 > O que o ZIP deve conter para esta combinação. Onde o template já existe, a suíte do gerador
 > compara esta árvore com o pacote real e falha se divergirem; nas demais combinações, ela ainda é
 > uma previsão derivada da documentação.
 
-Três coisas nesse texto são deliberadas:
+Três coisas nesse texto eram deliberadas:
 
 - **Não pede conferência à pessoa.** O texto anterior — *"O motor de geração entra em outra etapa,
   então confira a árvore contra o pacote quando ele existir"* — virou falso no instante em que a
   amarração passou a rodar: ele delegava ao leitor um trabalho que a suíte passou a fazer sozinha, a
   cada execução.
-- **Admite a assimetria sem enumerar combinação.** Hoje só `simple/none/none` está amarrada; as
-  demais são previsão. A frase diz isso por uma condição ("onde o template já existe") em vez de uma
-  lista, e por isso **não precisa mudar** quando T04 amarrar mais combinações.
-- **Não varia por arquitetura**, e isso foi pesado. Variar exigiria que o módulo autorizado soubesse
+- **Admitia a assimetria sem enumerar combinação.** Em T03 só `simple/none/none` estava amarrada; as
+  demais eram previsão. A frase dizia isso por uma condição ("onde o template já existe") em vez de
+  uma lista, e era **essa** a qualidade que se esperava fazê-la sobreviver a T04. Sobreviveu à
+  amarração da Clean, como previsto, e caiu por outro motivo — ver adiante.
+- **Não variava por arquitetura**, e isso foi pesado. Variar exigiria que o módulo autorizado soubesse
   *quais* combinações estão amarradas — uma segunda fonte de verdade sobre o estado da
   implementação, do tipo exato que ADR-0010 registra ter derivado em silêncio três vezes. Além
   disso, a fronteira real não é o eixo `architecture`: é a conjunção dos três eixos, então uma frase
@@ -418,42 +440,21 @@ Três coisas nesse texto são deliberadas:
 Nenhum valor de opção aparece no texto, então a regra de confinamento de ADR-0010 continua intacta:
 o `.html` segue sem citar `simple`, `clean` ou qualquer outro.
 
-### O texto que ADR-0012 torna necessário — **decisão de T04**
+**O que derrubou o texto anterior foi ADR-0012, e não a amarração da Clean.** A segunda qualidade da
+lista — "admite a assimetria sem enumerar combinação, e por isso não precisa mudar quando T04 amarrar
+mais combinações" — estava certa para o que ela previa e foi vencida por outra coisa: **mudou o que a
+tela consegue mostrar.** Com a disponibilidade consumida, a tela desabilita todo valor sem fragmento,
+a seleção que o resumo enxerga é sempre uma combinação **disponível**, e toda combinação disponível
+está amarrada por construção. A metade *"nas demais combinações, ela ainda é uma previsão"* passou a
+descrever um caso que a pessoa não alcança.
 
-A segunda qualidade da lista acima — "não precisa mudar quando T04 amarrar mais combinações" — foi
-escrita antes de ADR-0012 existir, e **ADR-0012 a derruba**. Não por amarrar mais combinações: por
-mudar o que a tela consegue mostrar.
-
-Com ADR-0012 implementada, a tela **desabilita todo valor cujo fragmento não existe** (ADR-0012,
-decisão 1). A seleção que o resumo enxerga passa, portanto, a ser sempre uma combinação
-**disponível** — e toda combinação disponível está amarrada, porque o teste de amarração deriva a
-lista dele da mesma disponibilidade (ADR-0010, "O que T04 precisa fazer"). A metade "nas demais
-combinações, ela ainda é uma previsão" descreve, a partir daí, um caso que a pessoa não tem como
-alcançar pela tela.
-
-Manter a frase antiga seria o espelho do erro que T03 corrigiu. Lá o texto afirmava uma garantia que
-não existia; aqui ele passaria a semear uma dúvida que não existe mais — dizer "talvez isto seja um
+Manter aquela frase seria **o espelho do erro que T03 corrigiu**. Lá o texto afirmava uma garantia
+que não existia; aqui ele semearia uma dúvida que não existe mais — dizer "talvez isto seja um
 palpite" sobre uma árvore que é sempre conferida. **Incerteza falsa custa o mesmo que garantia
-falsa:** ensina a pessoa a desconfiar do que está certo, e a próxima afirmação verdadeira da tela
-já nasce sem crédito.
+falsa:** ensina a pessoa a desconfiar do que está certo, e a próxima afirmação verdadeira da tela já
+nasce sem crédito.
 
-**Texto que passa a valer no mesmo commit em que o catálogo emitir a disponibilidade e a tela
-desabilitar o que vier indisponível** — não antes, porque até lá ele seria falso:
-
-> O que o ZIP contém para esta combinação. A suíte do gerador compara esta árvore com o pacote real
-> e falha se divergirem.
-
-Quatro coisas a conferir nele:
-
-- **"deve conter" virou "contém".** A árvore deixou de ser uma obrigação declarada e passou a ser um
-  fato verificado para tudo que a tela mostra.
-- **Continua sem citar valor de opção**, sem variar por arquitetura e sem saber quais combinações
-  estão amarradas — o confinamento de ADR-0010 e a ausência de segunda fonte de verdade seguem
-  intactos, pelas mesmas razões da lista acima.
-- **Ele depende de uma precondição que é de outro papel.** Se a tela não desabilitar os valores
-  indisponíveis, a pessoa alcança uma combinação sem template e a frase mente. Quem garante a
-  precondição é a implementação de ADR-0012 no frontend; quem a cobra é o `reviewer`. **Trocar esta
-  frase sem aquela implementação é um defeito, não um adiantamento.**
-- **Ele não volta a precisar de edição** quando T05 a T08 escreverem os fragmentos que faltam: cada
-  fragmento novo acende o valor, a amarração o alcança sozinha e a frase continua verdadeira sem
-  uma letra a mais.
+**A lição, que vale além desta frase:** um texto de interface que descreve o **estado da
+implementação** tem prazo de validade, mesmo quando escrito com o cuidado de não enumerar casos. Foi
+a segunda troca em duas tarefas. A frase atual é a primeira que não descreve estado nenhum — ela
+afirma uma propriedade que um teste mantém verdadeira —, e é por isso que se espera que sobreviva.

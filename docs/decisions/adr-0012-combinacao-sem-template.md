@@ -1,7 +1,12 @@
 # ADR-0012 — Combinação sem template não responde `200`
 
-**Data:** 2026-09-13 · **Estado:** aceita, **implementação pendente em T04** · **Levantada por:**
-papel `qa` em T03, decidida pelo `architect` na mesma tarefa
+**Data:** 2026-09-13 · **Estado:** aceita e **implementada em T04** · **Levantada por:** papel `qa`
+em T03, decidida pelo `architect` na mesma tarefa
+
+> **O comportamento corrente está em [`../architecture/http-contract.md`](../architecture/http-contract.md)** —
+> o membro `unavailable` do catálogo e a resposta `501`. Esta ADR é o **porquê**: o defeito que a
+> motivou, as alternativas descartadas e a forma escolhida. Quem quer saber *o que a API faz hoje* lê
+> o contrato; quem quer saber *por que ela faz assim* lê aqui.
 
 ## Contexto
 
@@ -143,15 +148,21 @@ existe.*
 O `problem+json` carrega quais campos causaram a recusa, para a mensagem poder ser específica
 ("A Clean Architecture entra em uma etapa seguinte") em vez de genérica.
 
-## Forma de implementação — especificação de T04
+## Forma de implementação — as razões por trás da forma
 
-**Acrescentada pelo `architect` em T04.** A decisão acima não mudou; o que faltava era a **forma**,
-e ela atravessa `backend`, `frontend` e `qa`. Sem isto escrito, cada papel inventa a sua e as três
-divergem no ponto em que se encontram.
+**Escrita pelo `architect` em T04, antes da implementação; mantida depois dela como registro.** A
+decisão acima não mudou; o que faltava era a **forma**, e ela atravessa `backend`, `frontend` e `qa`.
+Sem isto escrito, cada papel inventava a sua e as três divergiam no ponto em que se encontram.
 
-Esta seção **não** é descrição de comportamento corrente. Ela vira descrição — e migra para
-[`../architecture/http-contract.md`](../architecture/http-contract.md) — quando o código a tiver,
-pela mesma regra que a primeira consequência desta ADR já fixa.
+**A condição que esta seção declarava está cumprida:** o código emite o membro, a tela o consome, e
+**a descrição do comportamento corrente migrou para
+[`../architecture/http-contract.md`](../architecture/http-contract.md)** — o membro `unavailable` na
+seção do catálogo, a resposta `501` e a ordem entre `400` e `501` na seção do `POST`. O que fica aqui
+são as **razões** de cada escolha de forma, que o contrato não carrega: por que fora de `values`, por
+que só os indisponíveis, por que `errors` em vez de extensão, por que a ordem não pode ser a inversa.
+Se contrato e ADR divergirem um dia, **o contrato descreve o que é e esta ADR descreve o que se
+quis** — e a divergência é o sinal de que uma das duas precisa de revisão, não de que se pode
+escolher a mais conveniente.
 
 ### 1. Onde a derivação mora
 
@@ -389,10 +400,12 @@ verdade que esta decisão existe para não criar.
 
 ## Consequências
 
-- **É mudança de contrato HTTP**, nos dois endpoints. Cabe a T04, e
-  [`../architecture/http-contract.md`](../architecture/http-contract.md) só passa a descrevê-la como
-  comportamento corrente quando o código a tiver — documento não corre na frente de código, que é a
-  regra que esta mesma tarefa aplicou ao `501` antigo.
+- **É mudança de contrato HTTP**, nos dois endpoints. Coube a T04, e
+  [`../architecture/http-contract.md`](../architecture/http-contract.md) só passou a descrevê-la como
+  comportamento corrente **depois** de o código a ter — documento não corre na frente de código, que
+  é a regra que esta mesma tarefa aplicou ao `501` antigo. A regra tem o outro lado, e T04 o pagou
+  também: **código não corre na frente de documento por muito tempo.** Entre a implementação e a
+  migração da descrição para o contrato passou uma rodada, não uma tarefa.
 - **O `501` volta, com escopo menor.** `ProblemTypes.GenerationNotImplemented` foi removido em T03 e
   precisa ser restaurado. Isso muda a nota deixada para T09 em `http-contract.md`: o ramo
   `notImplemented` do frontend **não** é código morto — ele passa a ter um caso real e mais estreito,
@@ -424,5 +437,14 @@ verdade que esta decisão existe para não criar.
   de um único `__ItemStoreImplementation__`; um hospedeiro que sem contribuição não é nada deveria
   pertencer ao fragmento que o preenche, não ao de arquitetura. Isso é desenho de template e cabe a
   T04 revisar ao escrever `database/sqlite`.
-- **Enquanto isto não for implementado, o defeito está de pé e registrado.** T03 fecha com ele. O
-  `reviewer` não deve tratá-lo como resolvido por existir esta ADR — existe decisão, não conserto.
+- **O defeito ficou de pé durante T03 e foi consertado em T04.** T03 fechou com ele registrado, e a
+  frase que ficava aqui — *"o `reviewer` não deve tratá-lo como resolvido por existir esta ADR:
+  existe decisão, não conserto"* — valeu exatamente uma tarefa. Hoje existe conserto, e ele é
+  verificado nos dois sentidos pela camada 1.
+
+  **O que mudou de fato, em número:** das 32 combinações, **4 geram pacote** ao fim de T04 —
+  `simple` e `clean`, com `database: none`, `authentication: none`, nos dois valores de `swagger` —
+  e as outras **28 recusam com `501`**. As 30 que entregavam pacote enganoso deixaram de entregar
+  qualquer coisa, inclusive as 2 de `simple/none/jwt`, que eram o caso grave por não ter sintoma.
+  **Isso é o conserto, não uma regressão de cobertura**: um `501` honesto vale mais que um `200` que
+  mente, e o número volta a subir sozinho conforme T05 a T08 escreverem os fragmentos que faltam.

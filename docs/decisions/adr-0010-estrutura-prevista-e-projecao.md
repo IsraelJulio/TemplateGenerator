@@ -1,13 +1,26 @@
 # ADR-0010 — A "estrutura prevista" é projeção do frontend, não dado do backend
 
-**Data:** 2026-09-12 · **Estado:** **parcialmente expirada em T03** — ver
-["Estado em T03"](#estado-em-t03) · **Levantada por:** papel `po` em T02, registrada pelo
-`architect` na mesma tarefa
+**Data:** 2026-09-12 · **Estado:** **expirada quanto ao risco de divergência, com a exceção a RF-02
+de pé** (T04) — ver ["Estado em T04"](#estado-em-t04) · **Levantada por:** papel `po` em T02,
+registrada pelo `architect` na mesma tarefa
 
-> **Leia isto antes do resto.** A condição de expiração desta ADR foi cumprida **para a arquitetura
-> Simples** em T03: a árvore da tela está amarrada a um ZIP real, por teste. Para a **Clean** ela
-> continua valendo inteira. O texto original está preservado abaixo porque o histórico e a lição
-> valem mais que a decisão; o que mudou está em ["Estado em T03"](#estado-em-t03), no fim.
+> **Leia isto antes do resto.** Esta ADR fazia **duas** afirmações, e só uma expirou.
+>
+> **Expirou** o risco que ela nomeou — *"a projeção pode divergir do ZIP real sem que nada
+> quebre"*. Desde T04 a lista de combinações amarradas é **derivada da disponibilidade**, e a tela
+> desabilita o que não tem template: toda combinação que a tela consegue mostrar está conferida
+> contra um ZIP real, por teste, **por construção**. As condições estão em
+> ["O que T04 precisa fazer para expirar o resto"](#o-que-t04-precisa-fazer-para-expirar-o-resto) e
+> as três foram cumpridas.
+>
+> **Não expirou** a exceção a RF-02, e ela vale **inteira**: a árvore continua derivada no cliente,
+> e `PROJECT_STRUCTURE_RULES` — hoje com três mapas, ver ["Estado em T04"](#estado-em-t04) —
+> continua sendo o **único** módulo de produção do frontend autorizado a citar valor de opção. Só a
+> alternativa 2 ("o catálogo passar a carregar a árvore") encerra essa parte, e ela segue
+> descartada.
+>
+> O texto original está preservado abaixo porque o histórico e a lição valem mais que a decisão. O
+> que mudou está em ["Estado em T03"](#estado-em-t03) e ["Estado em T04"](#estado-em-t04), no fim.
 
 ## Contexto
 
@@ -113,7 +126,35 @@ verificação de confinamento.
   [`../../src/web/src/app/core/summary/project-structure.spec.ts`](../../src/web/src/app/core/summary/project-structure.spec.ts).
   **O conserto é de T04; o registro honesto é de agora** — a frase que dizia "nenhuma forma legível
   de citar um valor de opção passa" foi removida, porque cinco formas legíveis passam.
-- **Esta garantia já falhou duas vezes, e as duas apareceram por reataque, não por leitura.**
+- **Quinta falha, em T04 — e é o mecanismo funcionando, não falhando.** A projeção da Clean estava
+  errada em **nove pontos**, e **ninguém sabia**, porque até T04 não havia pacote de Clean contra o
+  que conferir. Assim que o template existiu e a amarração o alcançou, o teste acusou os nove de uma
+  vez. Três deles atravessaram **três tarefas** sem ninguém notar: `ItemEndpoints.cs`,
+  `HealthResponse.cs` e `Properties/launchSettings.json` estavam marcados como **exclusivos da
+  Simples** e sempre estiveram nos dois pacotes — saem do fragmento de arquitetura nas duas, com o
+  mesmo nome. E o **projeto de testes da Clean era inventado**: nomes de arquivo que nunca
+  existiram.
+  **A diferença entre esta falha e as quatro anteriores é toda a tese desta ADR.** As outras foram
+  achadas por alguém atacando a garantia; esta caiu sozinha, no instante em que passou a existir
+  algo contra o que comparar, e ninguém precisou desconfiar de nada. É a diferença entre uma
+  garantia que depende de vigilância e uma que depende de um teste — e é por isso que a condição 1
+  de ["O que T04 precisa fazer"](#o-que-t04-precisa-fazer-para-expirar-o-resto) exige que a lista de
+  combinações amarradas seja **derivada**: cada fragmento novo de T05 a T08 vai repetir este
+  episódio sozinho.
+- **Sexta — as cinco formas foram consertadas, e cada uma foi replantada para provar a correção.**
+  O reconhecedor passou a ler `.scss` e `.json` além de `.ts|.html|.css`, com lista de autorizados
+  para o `zip-structure.contract.json`, que **precisa** conter valores por ser gerado do ZIP; e
+  passou a pegar o valor colado a prefixo ou sufixo. As cinco formas do `reviewer` de T03 foram
+  replantadas **uma a uma** e todas caem.
+  **Fica um buraco, por decisão, e ele precisa estar aqui e não só no docstring:** **`.svg` sob
+  `src/` não é varrido.** `fill="none"` é a forma idiomática de dizer "sem preenchimento" num ícone
+  e casaria com a regra do valor colado, fazendo a cerca acusar o primeiro ícone que alguém
+  acrescentasse. Uma cerca que grita sem motivo é desligada pela próxima pessoa, e aí não protege
+  mais nada — é o custo que esta própria ADR manda pesar. **Quem puser um `.svg` em `src/` precisa
+  saber que ele não é lido**, e isso é permissão declarada, não cobertura.
+  Continua fora, pelo mesmo limite de sempre: **valor montado em tempo de execução**. A cerca segue
+  sendo cerca.
+- **As duas primeiras falhas apareceram por reataque, não por leitura.**
   Primeira: o teste original só conferia que os valores *estavam* no módulo autorizado, nunca que
   estavam *ausentes* nos demais — um `export const REVIEWER_LEAK_TEST = ['identity', 'sqlite',
   'clean', 'jwt'];` plantado em `configurator.ts` passou com a suíte inteira verde. Segunda, **já
@@ -264,3 +305,54 @@ que esta ADR registra ter cometido:
 **Enquanto as três condições não estiverem no lugar, o `reviewer` deve tratar esta ADR como dívida
 viva**, não como permissão — e em particular deve recusar a condição 1 implementada como lista
 escrita à mão, que é a forma mais fácil de parecer entregue.
+
+## Estado em T04
+
+**As três condições foram cumpridas.** Conferido pelo `architect` ao fim de T04:
+
+| Condição | Como ficou |
+|---|---|
+| 1. `Tied()` derivada, não enumerada | `Combinations.Available` filtra a matriz por `TemplateAvailability.Current`; o contrato gerado passou de 4 para **8** entradas **sozinho** quando a Clean acendeu |
+| 2. Teste afirmando que os conjuntos coincidem | `Toda_combinacao_disponivel_esta_amarrada_e_vice_versa` — igualdade, nos dois sentidos |
+| 3. A tela desabilita o indisponível | consumo de `unavailable`, com teste de ponta a ponta exigindo a razão **visível** e ligada por `aria-describedby` |
+
+As 8 entradas do contrato são **4 combinações × 2 nomes de projeto** — `Acme.Billing` e
+`Acme.Billing.Api` —, e o segundo nome existe para fixar o `.Api` dobrado da Clean, que virou
+decisão em T04 ([`../architecture/generated-projects.md`](../architecture/generated-projects.md)).
+
+### O que expirou
+
+**O risco nomeado em "Consequências"** — *"a projeção pode divergir do ZIP real sem que nada
+quebre"* — **deixou de valer para tudo que a tela alcança**, e não por enumeração: por construção. A
+tela só oferece combinação disponível; a lista de amarradas é derivada da mesma disponibilidade;
+logo os dois conjuntos são o mesmo, e a condição 2 é quem afirma isso em vez de deixar por conta da
+leitura.
+
+**A consequência mais útil disso é futura:** cada fragmento que T05 a T08 escreverem acende um valor,
+que entra na lista de amarradas sozinho, que derruba o contrato gerado, que derruba a suíte até
+alguém regenerá-lo e acertar a projeção. **A quinta falha desta ADR — nove pontos errados na Clean,
+invisíveis por três tarefas — vai se repetir a cada fragmento novo, e vai se resolver sozinha do
+mesmo jeito.** É o mecanismo, não o acidente.
+
+### O que sobrevive, e vale inteiro
+
+- **A exceção a RF-02 continua de pé, sem desconto.** A árvore segue derivada no cliente. Amarrá-la
+  não a moveu para o backend, e a alternativa 2 — o catálogo carregar a árvore — continua
+  descartada.
+- **O confinamento continua, e o módulo autorizado cresceu para três mapas:**
+  `PROJECT_STRUCTURE_RULES`, `API_PROJECT_NAME_RULES` e `PERSISTENCE_DIR_RULES` — o último nasceu em
+  T04, porque a pasta que hospeda a persistência muda por arquitetura. **Os três moram no mesmo
+  arquivo, e é isso que mantém a exceção sendo uma.** Um quarto mapa em outro arquivo seria uma
+  segunda exceção, e esta ADR não a autoriza: a próxima precisa de ADR própria.
+- **A cerca continua sendo cerca.** Valor montado em tempo de execução passa, e `.svg` sob `src/`
+  não é varrido por decisão — ver a sexta entrada de "Consequências". Permissão declarada é melhor
+  que permissão presumida.
+- **As regras de valores sem fragmento continuam palpite** — `sqlite`, `postgresql`, `identity`,
+  `jwt` —, agora palpite **inalcançável pela tela** e amarrado no instante em que acender. Não é
+  dívida; é trabalho ainda não feito, com a trava montada.
+
+### O que o `reviewer` ainda deve recusar
+
+A condição 1 **implementada como lista escrita à mão**, se alguém a reescrever assim por conveniência
+no futuro. É a forma mais fácil de parecer entregue, e o dia em que ela voltar, esta ADR volta a ser
+dívida viva sem que nada fique vermelho.

@@ -43,6 +43,12 @@ Devolve opções, rótulos em português, padrões e restrições.
       "requires": { "database": ["sqlite", "postgresql"] },
       "message": "O Identity nativo precisa de um banco para persistir os usuários."
     }
+  ],
+  "unavailable": [
+    { "field": "database",       "value": "sqlite",     "reason": "O template desta opção ainda não foi escrito." },
+    { "field": "database",       "value": "postgresql", "reason": "O template desta opção ainda não foi escrito." },
+    { "field": "authentication", "value": "identity",   "reason": "O template desta opção ainda não foi escrito." },
+    { "field": "authentication", "value": "jwt",        "reason": "O template desta opção ainda não foi escrito." }
   ]
 }
 ```
@@ -54,19 +60,41 @@ As restrições são **dados**, não código. Acrescentar uma restrição não d
 frontend.
 
 O catálogo **não** descreve a árvore de pastas do ZIP, e por isso a "estrutura prevista" da tela é
-hoje projeção do cliente — ver [ADR-0010](../decisions/adr-0010-estrutura-prevista-e-projecao.md).
+projeção do cliente — ver [ADR-0010](../decisions/adr-0010-estrutura-prevista-e-projecao.md).
 
-O catálogo também **ainda não** diz quais valores têm template. Que ele passe a dizer, como dado e
-derivado dos fragmentos, está decidido em
-[ADR-0012](../decisions/adr-0012-combinacao-sem-template.md) e cabe a T04. **A forma exata — o membro
-de topo `unavailable`, irmão de `constraints`, e por que ele não mora dentro de `values`** — está
-especificada em ADR-0012, seção "Forma de implementação". Nada neste documento descreve esse membro
-como existente enquanto o código não o emitir; quando emitir, a especificação migra para cá e a
-seção da ADR vira histórico.
+### `unavailable` — quais valores ainda não geram projeto
 
-Duas coisas deste documento o membro novo **não** toca, e a especificação existe em parte para
-garantir isso: a ordem de `fields` continua sendo a ordem da tela (regra 1) e `type` continua
-admitindo exatamente `"choice"` e `"boolean"` (regra 3).
+**Membro de topo, irmão de `constraints`**, entregue desde T04. Cada item é um par `(campo, valor)`
+que não tem template, com a razão em português. Decisão e alternativas descartadas em
+[ADR-0012](../decisions/adr-0012-combinacao-sem-template.md).
+
+- **É dado, como as restrições já são.** A tela desabilita o que vier aqui e mostra a `reason`,
+  casando `field` e `value` contra o que o próprio catálogo lhe entregou. Nenhum valor de opção é
+  codificado do outro lado — **RF-02 continua literal**.
+- **`value` carrega o tipo do campo:** texto no campo de escolha, booleano no interruptor. Nunca a
+  string `"true"`.
+- **A ordem é a do catálogo** — dos campos, e dentro de cada campo a dos valores. Mesma disciplina da
+  regra 1.
+- **`reason` é uma frase só, igual para todas.** Ela é derivada, não escrita por valor: um motivo
+  específico por opção teria de morar em algum lugar escrito à mão, que é a segunda fonte de verdade
+  que ADR-0012 existe para não criar. A especificidade vem da **posição** — a frase aparece colada ao
+  rótulo da opção, que o catálogo já manda.
+- **Lista vazia significa "está tudo implementado".** É o estado final do produto, e é por isso que
+  o membro lista só os indisponíveis em vez de um `available` por valor.
+- **Todo par pertence ao catálogo da mesma resposta.** Não existe `field`/`value` em `unavailable`
+  que a tela não consiga localizar em `fields`; um par órfão desabilitaria uma opção que não existe.
+- **A lista é derivada dos fragmentos do servidor, não escrita à mão** — quando o template que falta
+  for escrito, a opção acende sozinha e some daqui, sem edição de catálogo.
+
+**Duas coisas que este membro não toca**, e é deliberado: a ordem de `fields` continua sendo a ordem
+da tela (regra 1) e `type` continua admitindo exatamente `"choice"` e `"boolean"` (regra 3). É
+acréscimo, e a regra 8 já o autoriza — **um cliente que ignore `unavailable` se comporta exatamente
+como antes dele existir.**
+
+Dois valores nunca aparecem aqui, e as duas ausências são regra, não acaso: **a posição desligada de
+um interruptor** — `swagger = false` é a *ausência* do fragmento, não um fragmento vazio — e **todo
+valor de campo sem eixo de fragmento**, que é `dotnetVersion`. Onde a escolha não implica fragmento,
+não há ausência que se possa confundir com template incompleto.
 
 ## `POST /api/templates`
 
@@ -98,6 +126,41 @@ admitindo exatamente `"choice"` e `"boolean"` (regra 3).
   }
 }
 ```
+
+**Resposta 501** — quando a configuração é **válida** e o servidor não tem template para ela
+([ADR-0012](../decisions/adr-0012-combinacao-sem-template.md)):
+
+```json
+{
+  "type": "https://templategenerator.local/problems/generation-not-implemented",
+  "title": "Esta combinação ainda não gera projeto",
+  "status": 501,
+  "errors": {
+    "database": ["O template desta opção ainda não foi escrito."]
+  }
+}
+```
+
+- **`501` e não `400`:** a escolha da pessoa está certa — passou pela validação, pertence ao catálogo
+  e satisfaz as restrições. Quem está incompleto é o servidor, e não há nada que ela possa consertar.
+- **`errors` diz qual campo causou a recusa**, na mesma estrutura do `400`, para a tela posicionar a
+  mensagem *inline* no campo. Uma entrada por campo indisponível, na ordem dos campos no catálogo.
+  **Não há extensão paralela** carregando a mesma informação.
+- **A frase é a mesma que o catálogo publica em `unavailable`.** A pessoa lê as mesmas palavras
+  tendo aprendido pela tela ou pela recusa.
+- **Sem `detail`.** Com `errors` preenchido, um `detail` genérico repetiria em prosa o que já está
+  endereçado ao campo — e o cliente trata `detail` como o que se mostra *quando não há* erro de
+  campo.
+- **Nenhum cabeçalho de download:** a recusa sai sem `Content-Disposition` e sem
+  `application/zip`. Ela acontece antes de qualquer byte do pacote existir.
+
+**A ordem entre `400` e `501` é parte do contrato:** a validação inteira vem primeiro — nome do
+projeto, pertinência ao catálogo e a restrição `identity-requires-database` —, e só depois a
+disponibilidade. Então `clean` + `identity` + `database: none` responde **`400`** com a mensagem da
+restrição, endereçada a `authentication`, e nunca `501`. O motivo de a ordem não poder ser a inversa
+é concreto: um valor que **não existe** no catálogo também não tem fragmento, e responder "o template
+desta opção ainda não foi escrito" a um `architecture: "banana"` trocaria um erro claro de quem
+chamou por um defeito inventado do servidor.
 
 **Resposta 429** — quando o limite de requisições ou de gerações simultâneas é atingido, também
 em `ProblemDetails`, com `Retry-After`. Detalhe na seção "Limites de geração" adiante.
@@ -171,48 +234,42 @@ Pontos que o contrato crava:
   `retryAfterSeconds` do `ProblemDetails`. A janela fixa sabe dizer quanto falta; o limite de
   concorrência não — ele depende de outra requisição terminar, e aí vale `RetryAfterSeconds`.
 
-## Histórico: o `501` que existiu até T03
+## Quem alcança o `501`, e por que o cliente precisa tratá-lo
 
-**Não é mais emitido.** Desde T03 uma configuração válida responde `200 application/zip`, e
-`ProblemTypes.GenerationNotImplemented` foi removido do código. Um cliente **não** deve tratar
-`501` como estado esperado deste contrato.
+Há uma objeção óbvia a fazer, e ela já custou uma discussão: **se a tela desabilita todo valor
+indisponível, como é que a tela recebe um `501`?**
 
-O registro fica porque o próprio texto anterior previa a troca, e porque o raciocínio continua
-valendo caso a situação se repita em outro endpoint. Enquanto o motor não existia (T01 e T02), uma
-configuração válida respondia `501 Not Implemented` em `ProblemDetails`, com
-`type: .../problems/generation-not-implemented`. A alternativa — devolver `200 application/zip` com
-um pacote vazio — foi descartada: um `200` com `Content-Disposition` é uma **afirmação de que a
-geração aconteceu**. O cliente salvaria o arquivo e o defeito só apareceria ao abrir o pacote, longe
-da causa. O `501` dizia a verdade exata do estado: a configuração passou pela validação, o motor não
-existia.
+Recebe, e o caso é real: **o catálogo é buscado uma vez, no carregamento da página.** Uma aba aberta
+antes de uma mudança no conjunto de fragmentos segue com a disponibilidade de ontem e recebe do
+servidor a de hoje. É exatamente o mesmo motivo pelo qual o tratamento de `400` existe embora a tela
+valide localmente — a primeira regra da seção "Regras", adiante: *toda validação do frontend é
+conveniência; o backend revalida tudo e é quem decide*.
 
-**O `501` volta em T04, com outro escopo.** [ADR-0012](../decisions/adr-0012-combinacao-sem-template.md)
-decidiu que uma combinação **sem template** não pode responder `200` com um pacote incompleto, e que
-a recusa é `501` pelo mesmo raciocínio acima: a configuração é válida, quem está incompleto é o
-servidor. **Isso ainda não está implementado** — hoje as 16 combinações de `clean` respondem `200`
-com um ZIP de cinco arquivos, e isso é um defeito registrado, não o contrato.
+**Consequência prática, para quem escrever teste:** o `501` **não é alcançável clicando** numa tela
+com catálogo fresco. Demonstrá-lo pede um catálogo envelhecido ou um dublê de rede, e isso não é
+fraqueza do teste — é a forma do caso. Quem o tratar como inalcançável e apagar o ramo quebra o
+cliente na primeira implantação com aba aberta.
 
-O corpo exato do `501`, o `type` restaurado, o uso de `errors` para dizer **qual campo** causou a
-recusa e — o ponto em que quem implementar vai esbarrar — **onde a recusa entra na ordem em relação
-à validação de catálogo e à restrição `identity-requires-database`** estão especificados em ADR-0012,
-seção "Forma de implementação", itens 3 e 4. Em resumo, para quem só precisa da regra: a recusa vem
-**depois** de toda a validação, então `clean` + `identity` + `database: none` responde `400` com a
-mensagem da restrição, e não `501`.
+No frontend ele vive em `src/web/src/app/core/catalog/generation-failure.ts` (a marca
+`notImplemented`) e no `configurator.html`, que escolhe entre `notice--pending` e `notice--error` a
+partir dela — `notice--pending` porque não é erro de quem chamou.
 
-**Consequência para T09:** o tratamento de `501` no frontend **não** é código morto — ele vive em
-`src/web/src/app/core/catalog/generation-failure.ts` (a marca `notImplemented`), nos testes que a
-exercitam e no `configurator.html`, que escolhe entre `notice--pending` e `notice--error` a partir
-dela. Entre T03 e a implementação de ADR-0012 ele fica sem caso real, alcançável só por dublê de
-rede; depois dela volta a ter um, mais estreito. O que T09 precisa ajustar é a **mensagem**: ela diz
-hoje que o motor de geração ainda não existe, e o que passará a ser verdade é "esta combinação ainda
-não gera projeto". A marca também merece um nome que descreva a causa nova.
+### Histórico: o `501` de T01 e T02 era outro
 
-**Qual é esse caso real, já que a tela passa a desabilitar o indisponível.** O catálogo é buscado
-uma vez, no carregamento da página: uma aba aberta antes de uma mudança no conjunto de fragmentos
-segue com a disponibilidade de ontem e recebe do servidor a de hoje. É o mesmo motivo pelo qual o
-ramo de `400` existe embora a tela valide localmente — a validação do cliente é conveniência, o
-backend decide. Está registrado em ADR-0012, seção "Forma de implementação", item 6, para que
-`frontend` e `qa` não concluam que o ramo continua inalcançável.
+O `501` **saiu em T03 e voltou em T04 com escopo menor**, e o registro fica porque o `type` é o
+mesmo URI nos dois — um cliente antigo continua reconhecendo a classe do erro, que é o motivo de não
+o termos trocado.
+
+Enquanto o motor não existia (T01 e T02), **qualquer** configuração válida respondia `501`: a
+mensagem era "o motor de geração ainda não existe". Em T03 o motor nasceu, o `501` deixou de ser
+emitido e `ProblemTypes.GenerationNotImplemented` foi removido do código. Em T04 ele voltou
+dizendo outra coisa — **"esta combinação ainda não gera projeto"** —, endereçada ao campo.
+
+O raciocínio que sustentou as três fases é o mesmo, e vale registrar porque se aplica a qualquer
+endpoint que um dia esteja incompleto: a alternativa — devolver `200 application/zip` com um pacote
+vazio ou parcial — foi descartada, porque um `200` com `Content-Disposition` é uma **afirmação de que
+a geração aconteceu**. O cliente salvaria o arquivo e o defeito só apareceria ao abrir o pacote,
+longe da causa.
 
 ## Regras
 
