@@ -1,0 +1,45 @@
+# Exemplos de chamada para __ProjectName__.
+#
+# Execute direto do editor: Visual Studio abre este formato nativamente e o VS Code o executa
+# com a extensão REST Client. O endereço é o mesmo do `dotnet run`
+# (src/__ProjectName__/Properties/launchSettings.json).
+
+@host = http://localhost:5100
+
+### Saúde — público em qualquer combinação (RF-12)
+GET {{host}}/health
+
+### Listar todos os itens
+GET {{host}}/items
+
+### Criar um item
+POST {{host}}/items
+Content-Type: application/json
+
+{
+  "title": "Primeiro item"
+}
+
+### Obter um item por identificador
+GET {{host}}/items/1
+
+### Substituir um item
+PUT {{host}}/items/1
+Content-Type: application/json
+
+{
+  "title": "Item renomeado"
+}
+
+### Remover um item
+DELETE {{host}}/items/1
+
+### Corpo inválido — `title` é obrigatório e a resposta é 400 com ProblemDetails
+POST {{host}}/items
+Content-Type: application/json
+
+{
+  "title": ""
+}
+
+__RequestsAuth__

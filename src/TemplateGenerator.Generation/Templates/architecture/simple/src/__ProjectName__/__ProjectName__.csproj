@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>__TargetFramework__</TargetFramework>
+    <RootNamespace>__ProjectName__</RootNamespace>
+    <AssemblyName>__ProjectName__</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!--
+    As dependências deste projeto são exatamente as da combinação escolhida, com versão exata
+    (RNF-06). Uma opção que você não marcou não deixa dependência para trás: o que não está
+    escrito aqui não é restaurado (RF-20).
+  -->
+  <ItemGroup>
+__ApiPackageReferences__
+  </ItemGroup>
+
+</Project>

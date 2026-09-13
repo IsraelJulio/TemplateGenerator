@@ -1,0 +1,27 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+artifacts/
+TestResults/
+*.trx
+
+# Bancos locais
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+
+# Segredos — nunca versionar
+appsettings.*.local.json
+*.pfx
+*.key
+.env
+.env.*
+
+# Sistema operacional
+Thumbs.db
+.DS_Store
