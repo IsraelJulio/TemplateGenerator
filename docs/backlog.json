@@ -147,13 +147,16 @@
         "Dependencias respeitam o diagrama de docs/architecture/generated-projects.md.",
         "Teste arquitetural falha diante de qualquer aresta fora do diagrama.",
         "A API exposta e indistinguivel da versao Simples: mesmo /health e mesmo CRUD.",
-        "A arvore prevista pela tela para clean e conferida contra o ZIP real (ADR-0010). Inclui decidir o nome da pasta do projeto de API: T02 deixou em aberto, de proposito, o '.Api' dobrado que aparece como src/<Nome>.Api.Api quando o nome ja termina em .Api, por ser palpite de quem escreve os templates, nao de quem desenha a tela."
+        "A arvore prevista pela tela para clean e conferida contra o ZIP real (ADR-0010). O nome da pasta do projeto de API na arquitetura Clean continua em aberto: T03 decidiu apenas a Simples, onde o sufixo nao e acrescentado porque nao ha irmao a desambiguar, e registrou em generated-projects.md as duas saidas que T04 precisa escolher entre si. Se T04 deduplicar, a regra tem de dizer o que acontece com Acme.API e com Acme.Api.Api, e como o namespace raiz acompanha.",
+        "ADR-0012 implementada: combinacao sem template nao responde 200. A disponibilidade de cada valor de eixo e derivada dos fragmentos do repositorio, nunca escrita a mao; o catalogo a emite como dado; e POST /api/templates recusa combinacao indisponivel com 501, nunca 200. A camada 1 verifica os dois sentidos. Motivo, achado pelo qa em T03: as 16 combinacoes de clean respondem hoje 200 com Content-Disposition e um ZIP de cinco arquivos que nao e projeto nenhum, o que quebra a promessa de 'ZIP compilavel' pela porta da frente. T03 fecha com esse defeito de pe e registrado.",
+        "O ramo notImplemented do frontend deixa de ser codigo morto e passa a ter o caso real e mais estreito de ADR-0012. A mensagem precisa dizer 'esta combinacao ainda nao gera projeto', nao 'o motor de geracao ainda nao existe'."
       ],
       "verifications": [
         "Camada 1 nas combinacoes clean disponiveis.",
         "dotnet build e dotnet run do projeto extraido.",
         "Teste arquitetural de dependencias.",
-        "Comparar as respostas da API entre simple e clean."
+        "Comparar as respostas da API entre simple e clean.",
+        "Conferir que combinacao sem template e recusada com 501 e que a disponibilidade acende sozinha ao surgir o fragmento, sem edicao de catalogo."
       ],
       "blockers": [],
       "report": null
