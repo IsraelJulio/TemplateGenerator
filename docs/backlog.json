@@ -137,9 +137,11 @@
       "id": "T04",
       "order": 4,
       "title": "Template Clean com comportamento equivalente",
-      "state": "pending",
+      "state": "in_progress",
+      "startedAt": "2026-09-13",
       "dependsOn": ["T03"],
-      "roles": ["template-engineer", "architect", "qa"],
+      "roles": ["architect", "template-engineer", "backend", "frontend", "qa", "reviewer"],
+      "rolesNote": "Papeis ampliados pelo PO ao abrir a tarefa. O backlog previa architect, template-engineer e qa, mas os criterios acrescentados ao fim de T03 exigem backend (ADR-0012: derivacao de disponibilidade, campo no catalogo, recusa com 501) e frontend (mensagem do ramo notImplemented, reconhecedor de confinamento e projecao da arvore de clean). Ampliar os papeis nao altera criterio de aceite algum.",
       "skills": ["dotnet-templates", "verify-mvp"],
       "objective": "Entregar a arquitetura Clean com comportamento identico ao Simples do ponto de vista da API.",
       "acceptanceCriteria": [
@@ -164,7 +166,7 @@
         "Conferir que combinacao sem template e recusada com 501 e que a disponibilidade acende sozinha ao surgir o fragmento, sem edicao de catalogo."
       ],
       "blockers": [],
-      "report": null
+      "report": "docs/reports/T04.md"
     },
     {
       "id": "T05",
