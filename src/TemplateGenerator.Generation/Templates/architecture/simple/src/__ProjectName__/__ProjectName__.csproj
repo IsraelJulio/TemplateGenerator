@@ -9,12 +9,11 @@
   </PropertyGroup>
 
   <!--
-    As dependências deste projeto são exatamente as da combinação escolhida, com versão exata
-    (RNF-06). Uma opção que você não marcou não deixa dependência para trás: o que não está
-    escrito aqui não é restaurado (RF-20).
+    Este projeto declara exatamente as dependências da combinação escolhida, cada uma com versão
+    exata (RNF-06), em um grupo por assunto. Uma opção que você não marcou não deixa dependência
+    para trás — e uma combinação que não precisa de pacote algum não ganha nem um grupo vazio
+    (RF-20).
   -->
-  <ItemGroup>
 __ApiPackageReferences__
-  </ItemGroup>
 
 </Project>

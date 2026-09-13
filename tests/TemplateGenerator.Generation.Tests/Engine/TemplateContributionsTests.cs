@@ -58,15 +58,19 @@ public sealed class TemplateContributionsTests
                   <PropertyGroup>
                     <TargetFramework>__TargetFramework__</TargetFramework>
                   </PropertyGroup>
-                  <ItemGroup>
                 __ApiPackageReferences__
-                  </ItemGroup>
                 </Project>
                 """)
+            // Item 7b: o invólucro é da contribuição. Cada eixo traz o próprio `<ItemGroup>`, e é
+            // por isso que o `.csproj` gerado sai agrupado por eixo (item 5).
             .With("database/sqlite", Part("ApiPackageReferences.xml"),
-                "    <PackageReference Include=\"Microsoft.EntityFrameworkCore.Sqlite\" Version=\"10.0.12\" />")
+                "  <ItemGroup>\n"
+                + "    <PackageReference Include=\"Microsoft.EntityFrameworkCore.Sqlite\" Version=\"10.0.12\" />\n"
+                + "  </ItemGroup>")
             .With("swagger/enabled", Part("ApiPackageReferences.xml"),
-                "    <PackageReference Include=\"Swashbuckle.AspNetCore\" Version=\"10.2.3\" />");
+                "  <ItemGroup>\n"
+                + "    <PackageReference Include=\"Swashbuckle.AspNetCore\" Version=\"10.2.3\" />\n"
+                + "  </ItemGroup>");
 
         GenerationPlan plan = Resolve(source, Request(database: "sqlite", swagger: true));
 
@@ -78,6 +82,8 @@ public sealed class TemplateContributionsTests
               </PropertyGroup>
               <ItemGroup>
                 <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
+              </ItemGroup>
+              <ItemGroup>
                 <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
               </ItemGroup>
             </Project>
@@ -87,35 +93,43 @@ public sealed class TemplateContributionsTests
     }
 
     [Fact]
-    public void Com_swagger_desligado_o_csproj_sai_sem_a_dependencia_e_sem_linha_orfa()
+    public void Com_swagger_desligado_o_csproj_sai_sem_a_dependencia_e_sem_grupo_vazio()
     {
         FakeTemplateSource source = Csproj()
             .With("swagger/enabled", Part("ApiPackageReferences.xml"),
-                "    <PackageReference Include=\"Swashbuckle.AspNetCore\" Version=\"10.2.3\" />");
+                "  <ItemGroup>\n"
+                + "    <PackageReference Include=\"Swashbuckle.AspNetCore\" Version=\"10.2.3\" />\n"
+                + "  </ItemGroup>");
 
         GenerationPlan plan = Resolve(source, Request(swagger: false));
 
-        // RF-20: nem a dependência, nem um ItemGroup com uma linha em branco dentro.
+        // RF-20 e item 7b: nem a dependência, nem linha órfã, nem um `<ItemGroup>` vazio
+        // sobrevivendo ao marcador apagado. O invólucro saiu junto porque ele é da contribuição.
         Assert.Equal(
             """
             <Project>
-              <ItemGroup>
-              </ItemGroup>
             </Project>
 
             """.ReplaceLineEndings("\n"),
             TextOf(plan, "src/Acme.Billing/Acme.Billing.csproj"));
+
+        Assert.DoesNotContain(
+            "ItemGroup",
+            TextOf(plan, "src/Acme.Billing/Acme.Billing.csproj"),
+            StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Um <c>.csproj</c> de teste na forma que o item 7b exige: o marcador na coluna 0, sem
+    /// invólucro em volta dele no arquivo hospedeiro.
+    /// </summary>
     private static FakeTemplateSource Csproj() => new FakeTemplateSource()
         .With(
             "architecture/simple",
             "src/__ProjectName__/__ProjectName__.csproj",
             """
             <Project>
-              <ItemGroup>
             __ApiPackageReferences__
-              </ItemGroup>
             </Project>
             """);
 
@@ -230,8 +244,6 @@ public sealed class TemplateContributionsTests
         Assert.Equal(
             """
             <Project>
-              <ItemGroup>
-              </ItemGroup>
             </Project>
 
             """.ReplaceLineEndings("\n"),

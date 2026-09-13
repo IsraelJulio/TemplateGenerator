@@ -1,3 +1,6 @@
-    <!-- Swagger (ADR-0001): o documento é nativo do .NET 10; o Swashbuckle entra só pela UI. -->
+
+  <ItemGroup Label="Swagger">
+    <!-- ADR-0001: o documento OpenAPI é nativo do .NET 10; o Swashbuckle entra só pela UI. -->
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+  </ItemGroup>
