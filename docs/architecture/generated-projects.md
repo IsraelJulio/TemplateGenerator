@@ -205,13 +205,19 @@ Um projeto Web API, organizado em pastas: `Endpoints`, `Models`, `Services`, `Pe
 
 ## Clean Architecture
 
-Quatro projetos com dependências estritamente nesta direção:
+Quatro projetos com **referências de projeto declaradas** estritamente nesta direção:
 
 ```
 Api ──▶ Application ──▶ Domain
  │                        ▲
  └────▶ Infrastructure ───┘
 ```
+
+**Cada seta é um `<ProjectReference>` no `.csproj`, não "quem enxerga quem".** Referência de projeto
+é transitiva: o `Api` **usa** tipos do `Domain` — o `Program.cs` gerado faz
+`using <ProjectName>.Domain.Abstractions` — sem declarar a aresta, porque
+`Api → Application → Domain` já os entrega. Ler o diagrama como "o `Api` não conhece o `Domain`"
+seria ler errado, e é por isso que a legenda diz *declaradas*.
 
 - `Domain` — entidades, regras **e as portas que `Infrastructure` implementa**. **Sem referência de
   projeto e sem pacote de infraestrutura.**

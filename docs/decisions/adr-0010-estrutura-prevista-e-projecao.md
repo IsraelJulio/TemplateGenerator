@@ -299,8 +299,9 @@ que esta ADR registra ter cometido:
   inalcançável e verificado ao acender não é dívida; é trabalho ainda não feito, com a trava já
   montada.
 - **Esta ADR não fica obsoleta. Ela muda de estado**, de *parcialmente expirada* para **expirada
-  quanto ao risco de divergência, com a exceção a RF-02 de pé**. O cabeçalho é atualizado no mesmo
-  commit que entregar as três condições — não antes, porque até lá continua valendo o de T03.
+  quanto ao risco de divergência, com a exceção a RF-02 de pé**. O cabeçalho é atualizado **no mesmo
+  commit que entregar as três condições ou depois dele, nunca antes** — até as condições existirem,
+  continua valendo o estado de T03.
 
 **Enquanto as três condições não estiverem no lugar, o `reviewer` deve tratar esta ADR como dívida
 viva**, não como permissão — e em particular deve recusar a condição 1 implementada como lista
