@@ -1,0 +1,18 @@
+/* O fluxo ponta a ponta do Playwright. Fica fora de `tsconfig.app.json` e de
+   `tsconfig.spec.json` porque não é código da aplicação nem teste de unidade:
+   roda em Node, contra a tela servida e a API no ar. O Playwright transpila sem
+   conferir tipos, então sem este arquivo o e2e apodreceria em silêncio —
+   `npx tsc -p tsconfig.e2e.json --noEmit` é quem confere. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    /* `DOM` porque metade deste teste roda dentro do navegador, em
+       `page.evaluate`. `types: []` porque o pouco que se usa do Node está
+       declarado em `e2e/node-runtime.d.ts` — ver o porquê lá. */
+    "lib": ["ES2022", "DOM"],
+    "types": [],
+    "moduleResolution": "bundler",
+    "noEmit": true
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts"]
+}

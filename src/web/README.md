@@ -9,11 +9,14 @@ a partir do catálogo, leitura genérica das restrições e as chamadas aos dois
 
 ## Comandos
 
-| Comando         | O que faz                                                                           |
-| --------------- | ----------------------------------------------------------------------------------- |
-| `npm start`     | Sobe o servidor de desenvolvimento em <http://localhost:4200> com proxy para a API. |
-| `npm run build` | Compila para `dist/web`.                                                            |
-| `npm test`      | Roda os testes de unidade em modo headless (Vitest + jsdom).                        |
+| Comando               | O que faz                                                                           |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| `npm start`           | Sobe o servidor de desenvolvimento em <http://localhost:4200> com proxy para a API. |
+| `npm run build`       | Compila para `dist/web`.                                                            |
+| `npm test`            | Roda os testes de unidade em modo headless (Vitest + jsdom).                        |
+| `npm run e2e`         | Roda o fluxo ponta a ponta no Chromium, contra a API de verdade.                    |
+| `npm run e2e:install` | Baixa o navegador do Playwright. **Uma vez**, antes do primeiro `npm run e2e`.      |
+| `npm run e2e:typecheck` | Confere os tipos de `e2e/` — o Playwright transpila sem checar.                   |
 
 ## Proxy para a API em desenvolvimento
 
@@ -70,3 +73,29 @@ O backend revalida e é quem decide.
 depende da API estar no ar.
 
 A verificação em navegador, com teclado e captura de tela, fica no relatório da tarefa.
+
+### Fluxo ponta a ponta (`npm run e2e`)
+
+Playwright, em `e2e/download.e2e.ts`. É o oposto do parágrafo acima: **nada é dublado**. O
+`playwright.config.ts` sobe as duas pontas antes de abrir o navegador — `dotnet run` na API
+geradora no perfil `http` e o `ng serve` com o proxy apontado para ela — e o teste preenche a
+tela, clica em "Gerar projeto", **abre o ZIP que o Chromium salvou em disco** e confere o
+conteúdo contra a árvore que a tela tinha acabado de mostrar. O mesmo fluxo roda em dois
+tamanhos, `desktop` e `celular`.
+
+Ele existe porque o critério de aceite 11 de T03 pede exatamente isso: até T02 o contrato
+respondia `501` a uma configuração válida, então "download concluído" só podia ser demonstrado
+com dublê de rede. Com o `200 application/zip` real, um dublê deixou de bastar.
+
+**Duas dependências de rede, as duas previstas em
+[`docs/quality/test-strategy.md`](../../docs/quality/test-strategy.md):**
+
+1. `npm run e2e:install` baixa o Chromium do Playwright (~300 MB) na primeira execução, para fora
+   do repositório (`%LOCALAPPDATA%\ms-playwright`).
+2. Atrás de um proxy que reescreve TLS, esse download falha com
+   `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`, porque o Node não lê a loja de certificados do Windows por
+   padrão. A saída é `NODE_OPTIONS=--use-system-ca npm run e2e:install` — o certificado corporativo
+   já está na loja do sistema, e nada precisa ser desligado nem versionado.
+
+O `dotnet run` da primeira execução compila a API e pode levar mais de um minuto; o timeout de
+subida é de 180 s. Um servidor já no ar é reaproveitado em vez de duplicado.

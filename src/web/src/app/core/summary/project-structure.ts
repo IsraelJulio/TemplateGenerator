@@ -1,5 +1,5 @@
 /**
- * ⚠️ PROJEÇÃO, não a verdade.
+ * ⚠️ PROJEÇÃO, não a verdade — mas metade dela já está amarrada.
  *
  * Este é o **único** lugar do frontend que conhece valores de opção
  * (`clean`, `sqlite`, `identity`, …). Ele existe porque o catálogo do backend
@@ -7,15 +7,23 @@
  * RF-04 exige que o resumo mostre a "estrutura prevista do projeto".
  *
  * A fonte do que está escrito aqui é `docs/architecture/generated-projects.md`.
- * Enquanto o motor de geração não existir (T03) e os templates não existirem
- * (T04), **nada garante que esta árvore corresponda ao ZIP real**. Quando eles
- * existirem, esta projeção precisa ser amarrada ao pacote de verdade — de
- * preferência por um teste que abra um ZIP gerado e compare as duas árvores —
- * ou ser substituída por um campo do próprio catálogo.
+ * A projeção segue o documento, e não o contrário (ADR-0010).
+ *
+ * **O que está conferido contra o pacote real:** a arquitetura Simples. Desde
+ * T03 o motor existe, e `zip-structure.spec.ts` compara caminho a caminho a
+ * árvore devolvida por {@link projectStructure} com o conteúdo do ZIP de
+ * verdade, reconstruído a cada `dotnet test`. Foi essa amarração que acusou
+ * quatro classes de divergência herdadas de T02 — a pasta do projeto, o nome
+ * de três arquivos, três arquivos ausentes e o projeto de testes inteiro.
+ *
+ * **O que continua sendo palpite:** a arquitetura Clean, cujos templates são de
+ * T04. As entradas marcadas como tal abaixo são as de T02, deixadas
+ * deliberadamente intactas: enquanto não há ZIP de Clean, trocar um palpite por
+ * outro só esconderia o palpite atrás de uma aparência melhor.
  *
  * Regra de contenção: as strings de opção ficam confinadas em
- * {@link PROJECT_STRUCTURE_RULES}. Nenhum template HTML, componente ou CSS
- * deste projeto pode repetir uma delas.
+ * {@link PROJECT_STRUCTURE_RULES} e {@link API_PROJECT_NAME_RULES}. Nenhum
+ * template HTML, componente ou CSS deste projeto pode repetir uma delas.
  */
 
 import { Selection } from '../catalog/constraints';
@@ -23,6 +31,18 @@ import { OptionValue } from '../catalog/template-options.model';
 
 /** Marcador substituído pelo nome do projeto ao montar a árvore. */
 export const PROJECT_TOKEN = '{projeto}';
+
+/**
+ * Marcador do **projeto Web API** — a pasta e o `.csproj` dele.
+ *
+ * Não é o mesmo que {@link PROJECT_TOKEN} porque o nome desse projeto é a única
+ * coisa da árvore que muda por arquitetura sem que os arquivos mudem junto, e
+ * `generated-projects.md` decide os dois casos de formas opostas. Resolver isso
+ * num marcador próprio mantém uma entrada por arquivo em
+ * {@link PROJECT_STRUCTURE_RULES}; a alternativa seria duplicar nove regras
+ * idênticas só para trocar o prefixo.
+ */
+export const API_PROJECT_TOKEN = '{projeto-api}';
 
 /** Nome exibido enquanto a pessoa não digitou um nome válido. */
 export const PLACEHOLDER_PROJECT_NAME = 'SeuProjeto';
@@ -47,6 +67,16 @@ export interface StructureRule {
   readonly when?: readonly FieldMatch[];
 }
 
+/**
+ * Um nome que entra no caminho e depende da seleção. A primeira entrada cujo
+ * `when` casa vence; se nenhuma casar, o marcador fica sem valor e toda regra
+ * que o cite é descartada.
+ */
+export interface TokenRule {
+  readonly value: string;
+  readonly when?: readonly FieldMatch[];
+}
+
 export interface StructureNode {
   readonly name: string;
   readonly kind: 'directory' | 'file';
@@ -56,6 +86,29 @@ export interface StructureNode {
 }
 
 const P = PROJECT_TOKEN;
+const A = API_PROJECT_TOKEN;
+
+/**
+ * Como se chama o projeto Web API, por arquitetura. A decisão é de
+ * `generated-projects.md`, seção "Nomes de projeto e de pasta".
+ *
+ * - **Simples:** o projeto se chama exatamente `<ProjectName>`. **Nada é
+ *   concatenado** — não há projeto irmão a desambiguar, então o sufixo não tem
+ *   função. É por isso que `Acme.Billing.Api` produz `src/Acme.Billing.Api/`, e
+ *   não o `.Api` dobrado que a projeção de T02 mostrava: nada é concatenado,
+ *   logo não há o que deduplicar.
+ * - **Clean:** `<ProjectName>.Api`, porque ali o sufixo distingue um dos quatro
+ *   irmãos. O nome dobrado sobrevive de propósito; **T04 decide** entre aceitá-lo
+ *   e escrever uma regra de deduplicação sem ambiguidade.
+ *
+ * Sem `architecture` na seleção nenhuma entrada casa, e aí toda regra que cite
+ * {@link API_PROJECT_TOKEN} é descartada — a projeção prefere omitir o projeto
+ * a exibir um nome inventado.
+ */
+export const API_PROJECT_NAME_RULES: readonly TokenRule[] = [
+  { value: P, when: [{ field: 'architecture', is: ['simple'] }] },
+  { value: `${P}.Api`, when: [{ field: 'architecture', is: ['clean'] }] },
+];
 
 /** O mapa dados → árvore. Único ponto do frontend com valores de opção. */
 export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
@@ -67,40 +120,73 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
   { path: 'README.md', note: 'os comandos desta combinação' },
   { path: 'requests.http', note: 'exemplos de chamada' },
 
-  // ------------------------------------------------- projeto Api (as duas)
-  { path: `src/${P}.Api/${P}.Api.csproj` },
+  // ----------------------------------------- projeto Web API (as duas)
+  { path: `src/${A}/${A}.csproj` },
   {
-    path: `src/${P}.Api/${P}.Api.csproj`,
+    path: `src/${A}/${A}.csproj`,
     note: 'com Swashbuckle para a interface',
     when: [{ field: 'swagger', is: [true] }],
   },
-  { path: `src/${P}.Api/Program.cs`, note: 'composição e endpoints' },
-  { path: `src/${P}.Api/appsettings.json` },
+  { path: `src/${A}/Program.cs`, note: 'composição e endpoints' },
+  { path: `src/${A}/appsettings.json` },
   {
-    path: `src/${P}.Api/appsettings.json`,
+    path: `src/${A}/appsettings.json`,
     note: 'cadeia de conexão',
     when: [{ field: 'database', isNot: ['none'] }],
   },
   {
-    path: `src/${P}.Api/appsettings.json`,
+    path: `src/${A}/appsettings.json`,
     note: 'Authority e Audience do provedor',
     when: [{ field: 'authentication', is: ['jwt'] }],
   },
-  { path: `src/${P}.Api/appsettings.Development.json` },
-  { path: `src/${P}.Api/Endpoints/HealthEndpoints.cs`, note: 'GET /health, sempre público' },
-  { path: `src/${P}.Api/Endpoints/ItemsEndpoints.cs`, note: 'CRUD de Item' },
+  { path: `src/${A}/appsettings.Development.json` },
+  { path: `src/${A}/Endpoints/HealthEndpoints.cs`, note: 'GET /health, sempre público' },
 
   // --------------------------------------------------- arquitetura simples
+  //
+  // As entradas sem condição de banco e as de `database: none` são **conferidas
+  // contra o ZIP real** por `zip-structure.spec.ts`: renomear ou remover uma
+  // delas sem que o pacote mude derruba aquele teste, que é para isso que ele
+  // existe. As de `sqlite`, `postgresql` e `identity` continuam projeção — o
+  // fragmento correspondente ainda não foi escrito, então não há pacote contra o
+  // que conferir, e a amarração passa a valer assim que ele existir.
   {
-    path: `src/${P}.Api/Models/Item.cs`,
+    path: `src/${A}/Endpoints/ItemEndpoints.cs`,
+    note: 'CRUD de Item',
     when: [{ field: 'architecture', is: ['simple'] }],
   },
   {
-    path: `src/${P}.Api/Services/ItemService.cs`,
+    path: `src/${A}/Models/Item.cs`,
     when: [{ field: 'architecture', is: ['simple'] }],
   },
   {
-    path: `src/${P}.Api/Persistence/InMemoryItemStore.cs`,
+    path: `src/${A}/Models/ItemInput.cs`,
+    note: 'o corpo aceito no POST e no PUT',
+    when: [{ field: 'architecture', is: ['simple'] }],
+  },
+  {
+    path: `src/${A}/Models/HealthResponse.cs`,
+    when: [{ field: 'architecture', is: ['simple'] }],
+  },
+  {
+    path: `src/${A}/Services/ItemService.cs`,
+    when: [{ field: 'architecture', is: ['simple'] }],
+  },
+  {
+    path: `src/${A}/Properties/launchSettings.json`,
+    note: 'perfis de execução local',
+    when: [{ field: 'architecture', is: ['simple'] }],
+  },
+  {
+    path: `src/${A}/Persistence/IItemStore.cs`,
+    note: 'a porta que o serviço enxerga',
+    when: [
+      { field: 'architecture', is: ['simple'] },
+      { field: 'database', is: ['none'] },
+    ],
+  },
+  {
+    path: `src/${A}/Persistence/ItemStore.cs`,
     note: 'volátil, perdido no reinício',
     when: [
       { field: 'architecture', is: ['simple'] },
@@ -108,14 +194,14 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
     ],
   },
   {
-    path: `src/${P}.Api/Persistence/AppDbContext.cs`,
+    path: `src/${A}/Persistence/AppDbContext.cs`,
     when: [
       { field: 'architecture', is: ['simple'] },
       { field: 'database', isNot: ['none'] },
     ],
   },
   {
-    path: `src/${P}.Api/Persistence/Migrations/`,
+    path: `src/${A}/Persistence/Migrations/`,
     note: 'migração inicial do SQLite',
     when: [
       { field: 'architecture', is: ['simple'] },
@@ -123,7 +209,7 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
     ],
   },
   {
-    path: `src/${P}.Api/Persistence/Migrations/`,
+    path: `src/${A}/Persistence/Migrations/`,
     note: 'migração inicial do PostgreSQL',
     when: [
       { field: 'architecture', is: ['simple'] },
@@ -131,7 +217,7 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
     ],
   },
   {
-    path: `src/${P}.Api/Persistence/AppUser.cs`,
+    path: `src/${A}/Persistence/AppUser.cs`,
     note: 'usuários do Identity',
     when: [
       { field: 'architecture', is: ['simple'] },
@@ -140,6 +226,18 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
   },
 
   // ----------------------------------------------------- clean architecture
+  //
+  // Tudo daqui para baixo é a projeção de T02, **sem amarração e intocada**: o
+  // fragmento de Clean é de T04 e não existe pacote contra o que conferir.
+  // `ItemsEndpoints.cs` aparece aqui, e não junto do `HealthEndpoints.cs` logo
+  // acima, porque na Simples o arquivo real se chama `ItemEndpoints.cs` —
+  // renomeá-lo dos dois lados seria estender ao Clean um fato verificado só de
+  // um deles, que é exatamente o erro que T03 veio corrigir.
+  {
+    path: `src/${A}/Endpoints/ItemsEndpoints.cs`,
+    note: 'CRUD de Item',
+    when: [{ field: 'architecture', is: ['clean'] }],
+  },
   {
     path: `src/${P}.Application/${P}.Application.csproj`,
     note: 'depende só do domínio',
@@ -208,9 +306,29 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
   },
 
   // ---------------------------------------------------------------- testes
+  //
+  // `.Tests` é acrescentado **sempre**, nas duas arquiteturas: aqui o sufixo tem
+  // função, porque sem ele o projeto de teste teria o mesmo nome do de produção
+  // (`generated-projects.md`). O conteúdo é que se separa — o da Simples veio do
+  // pacote, o do Clean ainda é palpite.
   { path: `tests/${P}.Tests/${P}.Tests.csproj` },
-  { path: `tests/${P}.Tests/HealthEndpointTests.cs` },
-  { path: `tests/${P}.Tests/ItemsEndpointTests.cs` },
+  {
+    path: `tests/${P}.Tests/FakeItemStore.cs`,
+    note: 'dublê da porta de persistência',
+    when: [{ field: 'architecture', is: ['simple'] }],
+  },
+  {
+    path: `tests/${P}.Tests/ItemServiceTests.cs`,
+    when: [{ field: 'architecture', is: ['simple'] }],
+  },
+  {
+    path: `tests/${P}.Tests/HealthEndpointTests.cs`,
+    when: [{ field: 'architecture', is: ['clean'] }],
+  },
+  {
+    path: `tests/${P}.Tests/ItemsEndpointTests.cs`,
+    when: [{ field: 'architecture', is: ['clean'] }],
+  },
 
   // Por último de propósito: diretórios vêm antes de arquivos na árvore, e
   // abrir a listagem por um diretório oculto atrapalharia a leitura.
@@ -231,7 +349,8 @@ function matches(condition: FieldMatch, selection: Selection): boolean {
   return true;
 }
 
-function applies(rule: StructureRule, selection: Selection): boolean {
+/** Vale para os dois mapas: a condição é a mesma, só o que ela guarda muda. */
+function applies(rule: { readonly when?: readonly FieldMatch[] }, selection: Selection): boolean {
   return (rule.when ?? []).every((condition) => matches(condition, selection));
 }
 
@@ -278,13 +397,24 @@ export function projectStructure(
   const name = projectName.trim() === '' ? PLACEHOLDER_PROJECT_NAME : projectName.trim();
   const root: MutableNode = { name: '', kind: 'directory', notes: [], children: new Map() };
 
+  // `undefined` quando a seleção não diz a arquitetura: sem ela não há como
+  // saber o nome do projeto Web API, e a projeção omite o que não sabe.
+  const apiProject = API_PROJECT_NAME_RULES.find((rule) => applies(rule, selection))?.value;
+
   for (const rule of PROJECT_STRUCTURE_RULES) {
     if (!applies(rule, selection)) {
       continue;
     }
+    if (apiProject === undefined && rule.path.includes(API_PROJECT_TOKEN)) {
+      continue;
+    }
 
     const isDirectory = rule.path.endsWith('/');
-    const segments = rule.path.replaceAll(PROJECT_TOKEN, name).split('/').filter(Boolean);
+    const segments = rule.path
+      .replaceAll(API_PROJECT_TOKEN, apiProject ?? '')
+      .replaceAll(PROJECT_TOKEN, name)
+      .split('/')
+      .filter(Boolean);
 
     let cursor = root;
     segments.forEach((segment, index) => {

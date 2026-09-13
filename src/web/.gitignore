@@ -29,6 +29,12 @@ yarn-error.log
 !.vscode/mcp.json
 .history/*
 
+# Playwright: navegadores, ZIPs baixados pelo teste, trace e relatório
+/test-results
+/playwright-report
+/blob-report
+/.playwright
+
 # Miscellaneous
 /.angular/cache
 .sass-cache/

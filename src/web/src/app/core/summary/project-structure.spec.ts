@@ -1,5 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import {
+  API_PROJECT_NAME_RULES,
+  API_PROJECT_TOKEN,
   PLACEHOLDER_PROJECT_NAME,
   PROJECT_STRUCTURE_RULES,
   PROJECT_TOKEN,
@@ -40,8 +42,26 @@ describe('projeção da estrutura do projeto', () => {
     const all = paths(tree);
 
     expect(all).toContain('Acme.Billing.Api.sln');
-    expect(all).toContain('src/Acme.Billing.Api.Api/Acme.Billing.Api.Api.csproj');
+    expect(all).toContain('src/Acme.Billing.Api/Acme.Billing.Api.csproj');
     expect(all.join('\n')).not.toContain(PROJECT_TOKEN);
+    expect(all.join('\n')).not.toContain(API_PROJECT_TOKEN);
+  });
+
+  it('não acrescenta nada ao nome na Simples, e acrescenta `.Api` na Clean', () => {
+    // As duas metades da seção "Nomes de projeto e de pasta" de
+    // `generated-projects.md`, lado a lado, com o nome que expõe a diferença.
+    // Na Simples não há projeto irmão a desambiguar, então o sufixo não existe e
+    // o `.Api` dobrado não chega a ser possível — isso está amarrado ao pacote
+    // real em `zip-structure.spec.ts`. Na Clean o sufixo distingue um dos quatro
+    // irmãos, o nome dobrado sobrevive, e **T04 decide** o que fazer com ele:
+    // esta linha registra o comportamento de hoje para que a mudança seja
+    // deliberada quando vier, não silenciosa.
+    const simples = paths(projectStructure(SIMPLE, 'Acme.Billing.Api'));
+    expect(simples).toContain('src/Acme.Billing.Api/');
+    expect(simples.some((path) => path.includes('.Api.Api'))).toBe(false);
+
+    const clean = paths(projectStructure({ ...SIMPLE, architecture: 'clean' }, 'Acme.Billing.Api'));
+    expect(clean).toContain('src/Acme.Billing.Api.Api/');
   });
 
   it('cai num nome de exemplo enquanto a pessoa não digitou nenhum', () => {
@@ -85,16 +105,16 @@ describe('projeção da estrutura do projeto', () => {
     expect(semBanco.some((path) => path.includes('Migrations/'))).toBe(false);
 
     const sqlite = projectStructure({ ...SIMPLE, database: 'sqlite' }, 'X');
-    expect(noteOf(sqlite, 'src/X.Api/Persistence/Migrations/')).toContain('SQLite');
+    expect(noteOf(sqlite, 'src/X/Persistence/Migrations/')).toContain('SQLite');
 
     const postgres = projectStructure({ ...SIMPLE, database: 'postgresql' }, 'X');
-    expect(noteOf(postgres, 'src/X.Api/Persistence/Migrations/')).toContain('PostgreSQL');
+    expect(noteOf(postgres, 'src/X/Persistence/Migrations/')).toContain('PostgreSQL');
   });
 
   it('soma as notas quando mais de uma regra aponta para o mesmo arquivo', () => {
     const nota = noteOf(
       projectStructure({ ...SIMPLE, database: 'sqlite', authentication: 'jwt' }, 'X'),
-      'src/X.Api/appsettings.json',
+      'src/X/appsettings.json',
     );
 
     expect(nota).toContain('conexão');
@@ -102,28 +122,34 @@ describe('projeção da estrutura do projeto', () => {
   });
 
   it('registra o Swagger no csproj só quando ele está ligado', () => {
-    expect(noteOf(projectStructure(SIMPLE, 'X'), 'src/X.Api/X.Api.csproj')).toContain(
-      'Swashbuckle',
-    );
+    expect(noteOf(projectStructure(SIMPLE, 'X'), 'src/X/X.csproj')).toContain('Swashbuckle');
     expect(
-      noteOf(projectStructure({ ...SIMPLE, swagger: false }, 'X'), 'src/X.Api/X.Api.csproj'),
+      noteOf(projectStructure({ ...SIMPLE, swagger: false }, 'X'), 'src/X/X.csproj'),
     ).toBeNull();
   });
 
   it('troca o armazenamento volátil pelo contexto do EF conforme o banco', () => {
-    const volatil = paths(projectStructure(SIMPLE, 'X')).join('\n');
-    expect(volatil).toContain('InMemoryItemStore.cs');
-    expect(volatil).not.toContain('AppDbContext.cs');
+    // Caminho inteiro, não só o nome do arquivo: `ItemStore.cs` é sufixo de
+    // `IItemStore.cs`, e uma comparação por substring diria "presente" para o
+    // par errado.
+    const volatil = paths(projectStructure(SIMPLE, 'X'));
+    expect(volatil).toContain('src/X/Persistence/IItemStore.cs');
+    expect(volatil).toContain('src/X/Persistence/ItemStore.cs');
+    expect(volatil).not.toContain('src/X/Persistence/AppDbContext.cs');
 
-    const comBanco = paths(projectStructure({ ...SIMPLE, database: 'sqlite' }, 'X')).join('\n');
-    expect(comBanco).toContain('AppDbContext.cs');
-    expect(comBanco).not.toContain('InMemoryItemStore.cs');
+    const comBanco = paths(projectStructure({ ...SIMPLE, database: 'sqlite' }, 'X'));
+    expect(comBanco).toContain('src/X/Persistence/AppDbContext.cs');
+    expect(comBanco).not.toContain('src/X/Persistence/ItemStore.cs');
+    expect(comBanco).not.toContain('src/X/Persistence/IItemStore.cs');
   });
 
   it('ignora uma regra cujo campo a seleção nem carrega', () => {
-    // Sem `architecture`, nenhuma regra condicionada a ela entra.
+    // Sem `architecture`, nenhuma regra condicionada a ela entra — e o projeto
+    // Web API some junto, porque o nome dele também depende da arquitetura. A
+    // projeção omite o que não sabe em vez de exibir um nome inventado.
     const tree = paths(projectStructure({ database: 'none' }, 'X'));
     expect(tree).toContain('X.sln');
+    expect(tree.some((path) => path.startsWith('src/'))).toBe(false);
     expect(tree.some((path) => path.includes('.Application/'))).toBe(false);
     expect(tree.some((path) => path.includes('Models/'))).toBe(false);
   });
@@ -140,7 +166,7 @@ describe('projeção da estrutura do projeto', () => {
   it('achata a árvore preservando a profundidade de cada linha', () => {
     const linhas = flattenStructure(projectStructure(SIMPLE, 'X'));
     const src = linhas.find((linha) => linha.node.name === 'src');
-    const api = linhas.find((linha) => linha.node.name === 'X.Api');
+    const api = linhas.find((linha) => linha.node.name === 'X');
 
     expect(src?.depth).toBe(0);
     expect(api?.depth).toBe(1);
@@ -250,7 +276,11 @@ function leaksValue(source: string, value: string): boolean {
 describe('contenção dos valores de opção', () => {
   it('a lista de valores proibidos é a que as regras realmente usam', () => {
     const usados = new Set<string>();
-    for (const rule of PROJECT_STRUCTURE_RULES) {
+    // Os **dois** mapas do módulo, não só o da árvore: quando o nome do projeto
+    // Web API virou um marcador próprio, `simple` e `clean` passaram a aparecer
+    // também em `API_PROJECT_NAME_RULES`. Varrer só um dos dois deixaria a porta
+    // aberta para as regras migrarem para o mapa não varrido.
+    for (const rule of [...PROJECT_STRUCTURE_RULES, ...API_PROJECT_NAME_RULES]) {
       for (const condition of rule.when ?? []) {
         for (const value of [...(condition.is ?? []), ...(condition.isNot ?? [])]) {
           if (typeof value === 'string') {
@@ -325,13 +355,29 @@ describe('contenção dos valores de opção', () => {
   it('nenhuma regra aponta para um caminho vazio', () => {
     for (const rule of PROJECT_STRUCTURE_RULES) {
       expect(
-        rule.path.replaceAll(PROJECT_TOKEN, 'X').split('/').filter(Boolean).length,
+        rule.path
+          .replaceAll(API_PROJECT_TOKEN, 'X')
+          .replaceAll(PROJECT_TOKEN, 'X')
+          .split('/')
+          .filter(Boolean).length,
       ).toBeGreaterThan(0);
     }
   });
 
+  it('todo marcador citado nas regras tem quem o resolva', () => {
+    // Um marcador sem mapa faria a árvore exibir `{projeto-api}` na tela, e a
+    // amarração ao ZIP só acusaria isso na combinação que a usa.
+    const resolviveis = [PROJECT_TOKEN, API_PROJECT_TOKEN];
+    const citados = new Set(
+      PROJECT_STRUCTURE_RULES.flatMap((rule) => rule.path.match(/\{[^}]+\}/g) ?? []),
+    );
+
+    expect([...citados].sort()).toEqual([...resolviveis].sort());
+    expect(API_PROJECT_NAME_RULES.length).toBeGreaterThan(0);
+  });
+
   it('toda condição declara `is` ou `isNot`', () => {
-    for (const rule of PROJECT_STRUCTURE_RULES) {
+    for (const rule of [...PROJECT_STRUCTURE_RULES, ...API_PROJECT_NAME_RULES]) {
       for (const condition of rule.when ?? []) {
         expect(condition.is !== undefined || condition.isNot !== undefined).toBe(true);
         expect(condition.field.length).toBeGreaterThan(0);
