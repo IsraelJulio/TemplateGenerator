@@ -149,7 +149,11 @@
         "A API exposta e indistinguivel da versao Simples: mesmo /health e mesmo CRUD.",
         "A arvore prevista pela tela para clean e conferida contra o ZIP real (ADR-0010). O nome da pasta do projeto de API na arquitetura Clean continua em aberto: T03 decidiu apenas a Simples, onde o sufixo nao e acrescentado porque nao ha irmao a desambiguar, e registrou em generated-projects.md as duas saidas que T04 precisa escolher entre si. Se T04 deduplicar, a regra tem de dizer o que acontece com Acme.API e com Acme.Api.Api, e como o namespace raiz acompanha.",
         "ADR-0012 implementada: combinacao sem template nao responde 200. A disponibilidade de cada valor de eixo e derivada dos fragmentos do repositorio, nunca escrita a mao; o catalogo a emite como dado; e POST /api/templates recusa combinacao indisponivel com 501, nunca 200. A camada 1 verifica os dois sentidos. Motivo, achado pelo qa em T03: as 16 combinacoes de clean respondem hoje 200 com Content-Disposition e um ZIP de cinco arquivos que nao e projeto nenhum, o que quebra a promessa de 'ZIP compilavel' pela porta da frente. T03 fecha com esse defeito de pe e registrado.",
-        "O ramo notImplemented do frontend deixa de ser codigo morto e passa a ter o caso real e mais estreito de ADR-0012. A mensagem precisa dizer 'esta combinacao ainda nao gera projeto', nao 'o motor de geracao ainda nao existe'."
+        "O ramo notImplemented do frontend deixa de ser codigo morto e passa a ter o caso real e mais estreito de ADR-0012. A mensagem precisa dizer 'esta combinacao ainda nao gera projeto', nao 'o motor de geracao ainda nao existe'.",
+        "Camada 1 ganha verificacao de casca: para toda combinacao disponivel, nenhum arquivo gerado pode ser so preambulo - um .cs cujo conteudo inteiro seja using, namespace, comentario e espaco. Motivo: e o unico sintoma das 12 combinacoes de simple com banco que aparece sem restore e sem build. A verificacao de conteudo obrigatorio nao pega esse caso, porque todo arquivo obrigatorio esta presente e o que falta esta dentro deles - o architect retratou essa mitigacao ao corrigir ADR-0012.",
+        "Hospedeiro cujo conteudo inteiro depende de um unico marcador e revisto: ItemStore.cs pertence hoje a architecture/simple, mas sem contribuicao de database/* nao e nada. Um arquivo assim deveria pertencer ao fragmento que o preenche.",
+        "A guarda da regra 7b passa a reconhecer a cerca Markdown e o involucro separado do marcador por comentario. Registrado que nao ha violacao hoje - os marcadores do README estao entre cercas, nao dentro: falta a guarda, nao ha template a consertar.",
+        "O reconhecedor de confinamento de ADR-0010 passa a pegar o valor colado a prefixo ou sufixo, que e o furo idiomatico ([class.arch-simple], .option--clean, badge-identity), e a varrer .json com lista de autorizados, porque zip-structure.contract.json precisa conter valores por ser gerado do ZIP. Cinco formas legiveis escapam hoje, achadas pelo reviewer em T03."
       ],
       "verifications": [
         "Camada 1 nas combinacoes clean disponiveis.",
@@ -309,7 +313,8 @@
         "Nenhuma dependencia desmarcada e nenhuma referencia arquitetural indevida em nenhuma combinacao.",
         "Parecer de seguranca e de licencas do reviewer, escrito, sem pendencia aberta.",
         "Existe teste de guarda de RNF-06 para a plataforma: falha diante de intervalo ou curinga no Directory.Packages.props. Hoje 'versao exata' na plataforma e so convencao — o backlog ja cobre os .csproj gerados em T03, mas nao a plataforma.",
-        "A auditoria de licencas npm e um script que FALHA fora da lista permitida, nao uma tabela mantida a mao. Em T01 eram 502 dependencias transitivas; esse numero nao se mantem manualmente."
+        "A auditoria de licencas npm e um script que FALHA fora da lista permitida, nao uma tabela mantida a mao. Em T01 eram 502 dependencias transitivas e em T03 passaram a 506; esse numero nao se mantem manualmente, e a tabela ja ficou defasada uma vez.",
+        "A regra de versao npm de ADR-0009 ganha verificacao executavel: falha diante de intervalo em pacote fora da lista de excecao, que e a dos pacotes onde ng update atua. Hoje jsdom, prettier e vitest estao com intervalo e fora da regra, e a propria ADR admite que sem verificacao a secao e comentario, nao regra."
       ],
       "verifications": [
         "Executar as camadas 1, 2 e 3 completas.",
