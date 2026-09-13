@@ -17,10 +17,16 @@ export interface GenerationFailure {
   /** Mensagens endereçadas a campos, na forma do `errors` da RFC 9457. */
   readonly fieldErrors: Readonly<Record<string, readonly string[]>>;
   /**
-   * `true` no `501` — a configuração passou, o motor de geração ainda não
-   * existe. É um estado transitório do projeto, não um erro da pessoa, e a
-   * tela precisa dizer isso com essas palavras. Ver a seção "Estado
-   * transitório: 501" de `docs/architecture/http-contract.md`.
+   * `true` no `501` — a configuração passou pela validação, **esta combinação**
+   * é que ainda não gera projeto. É um estado transitório do projeto, não um
+   * erro da pessoa.
+   *
+   * **O escopo mudou em T04** (ADR-0012): não é mais "o motor de geração ainda
+   * não existe", é "algum valor desta combinação ainda não tem template". E o
+   * ramo deixou de ser código morto: a tela desabilita o indisponível, então o
+   * `501` não é alcançável clicando — o caso real é o catálogo envelhecido numa
+   * aba aberta antes de uma implantação, o mesmo motivo pelo qual o ramo do
+   * `400` existe embora a tela valide.
    */
   readonly notImplemented: boolean;
   /** Segundos do `Retry-After`, quando a API pediu para esperar. */
@@ -55,12 +61,14 @@ export function describeGenerationFailure(
   }
 
   if (status === 501) {
+    // Mesma forma do `400`, de propósito: o `501` endereça a recusa ao campo
+    // indisponível em `errors`, e a tela já sabe posicionar isso inline. Por
+    // isso `detail` some quando há erro de campo — e o `501` não manda `detail`
+    // nenhum, então repassá-lo é só não inventar um.
     return {
-      title: problem?.title ?? 'A geração ainda não foi implementada.',
-      detail:
-        detail ??
-        'A configuração passou na validação da API, mas o motor que monta o ZIP ainda não existe.',
-      fieldErrors: {},
+      title: problem?.title ?? 'Esta combinação ainda não gera projeto',
+      detail: Object.keys(fieldErrors).length > 0 ? null : detail,
+      fieldErrors,
       notImplemented: true,
       retryAfterSeconds: null,
     };

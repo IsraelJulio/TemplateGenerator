@@ -186,3 +186,89 @@ test('gera sem mouse: foco visível, escolha por setas e envio pelo teclado', as
 
   expect(download.suggestedFilename()).toBe(`${PROJECT_NAME}.zip`);
 });
+
+/**
+ * A **segunda** opção do primeiro grupo de rádio, escolhida pela seta do
+ * teclado. Nenhum valor é nomeado, pela mesma regra do cabeçalho deste arquivo:
+ * o que se afirma é "a outra arquitetura que o catálogo oferece", seja ela qual
+ * for.
+ */
+test('a outra arquitetura do catálogo também baixa o que a tela prometeu', async ({
+  page,
+}, testInfo) => {
+  await page.goto('/');
+  const form = await waitForCatalog(page);
+
+  await page.getByLabel('Nome do projeto').fill(PROJECT_NAME);
+
+  const primeiroGrupo = form.locator('fieldset').first();
+  await primeiroGrupo.locator('input[type="radio"]').first().focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(primeiroGrupo.locator('input[type="radio"]').nth(1)).toBeChecked();
+
+  const prometido = await treeOnScreen(page);
+  expect(prometido.length).toBeGreaterThan(20);
+
+  const baixando = page.waitForEvent('download', { timeout: 120_000 });
+  await form.getByRole('button', { name: 'Gerar projeto' }).click();
+  const download = await baixando;
+
+  const saved = testInfo.outputPath(download.suggestedFilename());
+  await download.saveAs(saved);
+
+  const { readFileSync } = await import('node:fs');
+  const real = zipEntries(openZip(new Uint8Array(readFileSync(saved))));
+
+  const sobrando = prometido.filter((path) => !real.includes(path));
+  const faltando = real.filter((path) => !prometido.includes(path));
+  expect(
+    { sobrando, faltando },
+    'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
+  ).toEqual({ sobrando: [], faltando: [] });
+});
+
+/**
+ * ADR-0012 pela tela: o valor que ainda não gera projeto chega **desabilitado**,
+ * com a razão que o catálogo mandou, e o que tem template continua clicável.
+ *
+ * Sem nomear nenhum dos dois: o teste conta o que a API de verdade marcou, e
+ * continua valendo no dia em que a lista encolher — quando ela esvaziar, é o
+ * `else` que passa a ser exercitado.
+ */
+test('desabilita na tela o que a API marcou como sem template', async ({ page }) => {
+  const form = await (async () => {
+    await page.goto('/');
+    return waitForCatalog(page);
+  })();
+
+  const radios = form.locator('input[type="radio"]');
+  const total = await radios.count();
+  expect(total).toBeGreaterThan(0);
+
+  let desabilitados = 0;
+
+  for (let i = 0; i < total; i += 1) {
+    const radio = radios.nth(i);
+    if (!(await radio.isDisabled())) {
+      continue;
+    }
+    desabilitados += 1;
+
+    // A razão é visível e está ligada ao controle por `aria-describedby`, que é
+    // o que um leitor de tela anuncia junto com "indisponível".
+    const id = await radio.getAttribute('aria-describedby');
+    expect(id, 'opção desabilitada sem razão associada').not.toBeNull();
+    await expect(page.locator(`[id="${id}"]`)).toBeVisible();
+  }
+
+  // Nenhum valor selecionado por padrão pode estar desabilitado: seria uma tela
+  // que nasce impossível de enviar.
+  for (let i = 0; i < total; i += 1) {
+    const radio = radios.nth(i);
+    if (await radio.isChecked()) {
+      expect(await radio.isDisabled()).toBe(false);
+    }
+  }
+
+  expect(desabilitados, 'nenhuma opção veio desabilitada — a API mudou?').toBeGreaterThan(0);
+});

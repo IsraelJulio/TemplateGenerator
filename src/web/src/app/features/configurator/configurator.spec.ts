@@ -1,7 +1,11 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { CATALOG_FIXTURE } from '../../testing/catalog.fixture';
+import {
+  CATALOG_FIXTURE,
+  IMPLEMENTED_CATALOG_FIXTURE,
+  UNAVAILABLE_REASON,
+} from '../../testing/catalog.fixture';
 import { Configurator } from './configurator';
 
 describe('Configurator', () => {
@@ -41,8 +45,15 @@ describe('Configurator', () => {
 
   afterEach(() => http.verify());
 
-  async function serveCatalog(): Promise<void> {
-    http.expectOne('/api/template-options').flush(CATALOG_FIXTURE);
+  /**
+   * Entrega o catálogo. O padrão é o que a API manda hoje, com `unavailable`
+   * cheio; `IMPLEMENTED_CATALOG_FIXTURE` é o mesmo catálogo com tudo
+   * implementado, e serve aos testes que precisam mexer numa opção que hoje não
+   * tem template — sem ele, o clique cairia num controle desabilitado e o teste
+   * passaria a afirmar outra coisa.
+   */
+  async function serveCatalog(catalog = CATALOG_FIXTURE): Promise<void> {
+    http.expectOne('/api/template-options').flush(catalog);
     await settle();
   }
 
@@ -84,7 +95,7 @@ describe('Configurator', () => {
   });
 
   it('desabilita a opção que a restrição do catálogo impede, com o motivo visível', async () => {
-    await serveCatalog();
+    await serveCatalog(IMPLEMENTED_CATALOG_FIXTURE);
 
     const identity = radio('authentication', 'identity');
     expect(identity.disabled).toBe(true);
@@ -94,7 +105,7 @@ describe('Configurator', () => {
   });
 
   it('liga o motivo ao controle desabilitado por aria-describedby', async () => {
-    await serveCatalog();
+    await serveCatalog(IMPLEMENTED_CATALOG_FIXTURE);
 
     const identity = radio('authentication', 'identity');
     const id = identity.getAttribute('aria-describedby');
@@ -106,7 +117,7 @@ describe('Configurator', () => {
   });
 
   it('libera a opção quando a seleção passa a satisfazer a restrição', async () => {
-    await serveCatalog();
+    await serveCatalog(IMPLEMENTED_CATALOG_FIXTURE);
 
     const sqlite = radio('database', 'sqlite');
     sqlite.click();
@@ -214,7 +225,11 @@ describe('Configurator', () => {
   });
 
   it('preserva todas as escolhas quando a geração falha (RF-06)', async () => {
-    await serveCatalog();
+    // Com o catálogo de hoje estas duas opções chegam desabilitadas, e o 400
+    // que o teste exercita não seria alcançável por elas. O que se afirma aqui é
+    // que nenhuma escolha se perde na falha — para isso as opções precisam ser
+    // clicáveis.
+    await serveCatalog(IMPLEMENTED_CATALOG_FIXTURE);
 
     radio('database', 'postgresql').click();
     await settle();
@@ -244,24 +259,67 @@ describe('Configurator', () => {
   });
 
   it('trata o 501 como estado transitório do projeto, não como erro da pessoa', async () => {
-    await serveCatalog();
+    // **Este caso não é alcançável clicando**, e é de propósito: a tela
+    // desabilita todo valor sem template. O caso real é o catálogo envelhecido
+    // numa aba aberta antes de uma implantação — o servidor responde a verdade
+    // de hoje a uma seleção montada com a de ontem. Por isso o catálogo aqui é o
+    // de "tudo implementado" e a recusa vem pelo dublê de rede: é a única forma
+    // honesta de encenar a aba velha.
+    await serveCatalog(IMPLEMENTED_CATALOG_FIXTURE);
+    radio('database', 'sqlite').click();
+    await settle();
+
     const request = await submitWith();
 
     request.flush(
       new Blob([
         JSON.stringify({
-          title: 'Geração ainda não implementada',
+          title: 'Esta combinação ainda não gera projeto',
           status: 501,
-          detail: 'A configuração é válida, mas o motor de geração do ZIP ainda não existe.',
+          errors: { database: [UNAVAILABLE_REASON] },
         }),
       ]),
       { status: 501, statusText: 'Not Implemented' },
     );
     await settle();
 
-    expect(element().textContent).toContain('Geração ainda não implementada');
+    expect(element().textContent).toContain('Esta combinação ainda não gera projeto');
     expect(element().querySelector('.notice--pending')).not.toBeNull();
     expect(element().querySelector('.notice--error')).toBeNull();
+
+    // O `errors` do 501 é endereçado ao campo, como o do 400: a mensagem sai
+    // inline, no bloco do campo recusado, e não só no aviso geral.
+    const campo = element()
+      .querySelector('input[data-field="database"]')
+      ?.closest('fieldset')?.textContent;
+    expect(campo).toContain(UNAVAILABLE_REASON);
+
+    // E a escolha continua onde estava (RF-06).
+    expect(radio('database', 'sqlite').checked).toBe(true);
+  });
+
+  it('desabilita a opção sem template e diz por quê', async () => {
+    await serveCatalog();
+
+    const sqlite = radio('database', 'sqlite');
+    expect(sqlite.disabled).toBe(true);
+    expect(element().textContent).toContain(UNAVAILABLE_REASON);
+
+    const id = sqlite.getAttribute('aria-describedby');
+    expect(element().querySelector(`[id="${id}"]`)?.textContent).toContain(UNAVAILABLE_REASON);
+  });
+
+  it('deixa clicável o que tem template, nas duas arquiteturas', async () => {
+    // O outro lado do teste acima: desabilitar demais esconderia metade do
+    // produto. A Clean entrou no motor em T04 e precisa continuar alcançável.
+    await serveCatalog();
+
+    expect(radio('architecture', 'clean').disabled).toBe(false);
+    expect(radio('database', 'none').disabled).toBe(false);
+    expect(radio('authentication', 'none').disabled).toBe(false);
+    expect(element().querySelector<HTMLInputElement>('input[type="checkbox"]')?.disabled).toBe(
+      false,
+    );
   });
 
   it('descarta a mensagem do servidor assim que a pessoa muda a escolha', async () => {

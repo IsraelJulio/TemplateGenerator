@@ -31,10 +31,18 @@ import { StructureNode, projectStructure } from './project-structure';
  * tem contraparte no pacote; a ordem é assunto da tela e já tem teste próprio em
  * `project-structure.spec.ts`.
  *
- * **O que continua fora da amarração:** a arquitetura Clean, cujo fragmento é de
- * T04. Enquanto ela não existir, a projeção mostra `<Projeto>.Api` para Clean, e
- * isso **é** o comportamento documentado em `generated-projects.md` — não uma
- * divergência a corrigir aqui.
+ * **O que entrou em T04:** a arquitetura Clean. O contrato passou de quatro para
+ * oito combinações, e a comparação acusou de uma vez a projeção inteira da
+ * Clean, herdada de T02 — `ItemsEndpoints.cs` por `ItemEndpoints.cs`, um projeto
+ * de testes inventado e a porta de persistência na camada errada. Nenhuma delas
+ * tinha derrubado um teste antes.
+ *
+ * **O que continua fora, e não é omissão:** as combinações com banco ou com
+ * autenticação, cujos fragmentos ainda não existem. A amarração cobre
+ * combinação, não eixo — e a lista de combinações amarradas é derivada da
+ * disponibilidade, então cada fragmento novo entra aqui sozinho. Como a tela
+ * desabilita todo valor sem template (ADR-0012), tudo que a pessoa consegue
+ * selecionar está nesta lista.
  */
 
 interface ContractEntry {

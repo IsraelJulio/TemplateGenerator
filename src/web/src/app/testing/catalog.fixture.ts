@@ -8,6 +8,13 @@ import { TemplateOptionsCatalog } from '../core/catalog/template-options.model';
  * It exists to stand in for the real response, so it must keep tracking it. A
  * test that passes against a fixture the API no longer sends is worth nothing.
  */
+/**
+ * The one sentence the API repeats for every value without a template. It is
+ * derived over there — same phrase in `unavailable` and in the `errors` of the
+ * `501` — so it is written once here too.
+ */
+export const UNAVAILABLE_REASON = 'O template desta opção ainda não foi escrito.';
+
 export const CATALOG_FIXTURE: TemplateOptionsCatalog = {
   templateVersion: '1.0.0',
   fields: {
@@ -60,6 +67,7 @@ export const CATALOG_FIXTURE: TemplateOptionsCatalog = {
       label: 'Swagger',
       type: 'boolean',
       default: true,
+      description: 'Interface de exploração da API no projeto gerado.',
     },
     dotnetVersion: {
       label: 'Versão .NET',
@@ -76,6 +84,27 @@ export const CATALOG_FIXTURE: TemplateOptionsCatalog = {
       message: 'O Identity nativo precisa de um banco para persistir os usuários.',
     },
   ],
+  unavailable: [
+    { field: 'database', value: 'sqlite', reason: UNAVAILABLE_REASON },
+    { field: 'database', value: 'postgresql', reason: UNAVAILABLE_REASON },
+    { field: 'authentication', value: 'identity', reason: UNAVAILABLE_REASON },
+    { field: 'authentication', value: 'jwt', reason: UNAVAILABLE_REASON },
+  ],
+};
+
+/**
+ * The same catalog with everything implemented — `"unavailable": []`, which is
+ * the shape the API will emit once the last fragment is written (T08).
+ *
+ * It exists because the two mechanisms overlap today: every value a constraint
+ * rules out is also a value without a template, so with the real fixture there
+ * is no way left to show a *constraint* being released by the rest of the
+ * selection. This variant keeps that behaviour under test without pretending
+ * the API sends something it does not.
+ */
+export const IMPLEMENTED_CATALOG_FIXTURE: TemplateOptionsCatalog = {
+  ...CATALOG_FIXTURE,
+  unavailable: [],
 };
 
 /**

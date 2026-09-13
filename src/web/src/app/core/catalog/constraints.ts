@@ -93,9 +93,31 @@ function candidatesOf(catalog: TemplateOptionsCatalog, field: string): readonly 
 }
 
 /**
+ * Why the catalog says this value cannot be generated at all, or `undefined`.
+ *
+ * Matching is by the pair the catalog itself sent — field key and value, in the
+ * field's own type — so nothing here knows which values exist (RF-02).
+ */
+function unavailableReason(
+  catalog: TemplateOptionsCatalog,
+  field: string,
+  value: OptionValue,
+): string | undefined {
+  return (catalog.unavailable ?? []).find((entry) => entry.field === field && entry.value === value)
+    ?.reason;
+}
+
+/**
  * Resolves, for every field, which values stay available given the rest of the
  * selection — by trying each value and asking the catalog rules, never by
  * knowing anything about a particular field or value.
+ *
+ * **Two sources rule a value out**, and they answer different questions. A
+ * constraint says "not with the rest of what you picked"; an entry of
+ * `unavailable` says "not at all, yet" (ADR-0012). When both land on the same
+ * value the unavailability wins: it holds whatever else the person does, while
+ * the constraint message would suggest a fix — pick a database — that would not
+ * make the option generate anything.
  */
 export function evaluateAvailability(
   catalog: TemplateOptionsCatalog,
@@ -105,11 +127,12 @@ export function evaluateAvailability(
 
   for (const field of Object.keys(catalog.fields)) {
     availability[field] = candidatesOf(catalog, field).map((value) => {
+      const missing = unavailableReason(catalog, field, value);
       const [violation] = findViolations(catalog, { ...selection, [field]: value });
       return {
         value,
-        disabled: violation !== undefined,
-        reason: violation?.constraint.message ?? null,
+        disabled: missing !== undefined || violation !== undefined,
+        reason: missing ?? violation?.constraint.message ?? null,
       };
     });
   }

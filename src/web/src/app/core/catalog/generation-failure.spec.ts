@@ -15,16 +15,32 @@ describe('falha na geração', () => {
     expect(failure.notImplemented).toBe(false);
   });
 
-  it('marca o 501 como estado transitório do projeto, não erro da pessoa', () => {
+  it('endereça o 501 ao campo indisponível, como faz com o 400', () => {
+    // ADR-0012: o `501` passou a carregar `errors`, e sem `detail`. A tela já
+    // sabe posicionar `errors` inline — é o mesmo caminho de código do `400`.
     const failure = describeGenerationFailure(501, {
-      title: 'Geração ainda não implementada',
+      title: 'Esta combinação ainda não gera projeto',
       status: 501,
-      detail: 'A configuração é válida, mas o motor de geração ainda não existe.',
+      errors: { database: ['O template desta opção ainda não foi escrito.'] },
     });
 
     expect(failure.notImplemented).toBe(true);
-    expect(failure.detail).toContain('motor de geração');
-    expect(failure.fieldErrors).toEqual({});
+    expect(failure.title).toBe('Esta combinação ainda não gera projeto');
+    expect(failure.fieldErrors['database']).toEqual([
+      'O template desta opção ainda não foi escrito.',
+    ]);
+    expect(failure.detail).toBeNull();
+  });
+
+  it('não inventa prosa no 501 quando a API não mandou nenhuma', () => {
+    // O escopo do título mudou em T04: não é mais "o motor de geração ainda não
+    // existe", é esta combinação. O texto de reserva precisa dizer a segunda
+    // coisa, porque é ela que continua verdadeira.
+    const failure = describeGenerationFailure(501, null);
+
+    expect(failure.notImplemented).toBe(true);
+    expect(failure.title).toBe('Esta combinação ainda não gera projeto');
+    expect(failure.detail).toBeNull();
   });
 
   it('lê o Retry-After do 429 e o transforma em instrução', () => {

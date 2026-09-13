@@ -57,11 +57,39 @@ export interface TemplateConstraint {
   readonly message: string;
 }
 
-/** Body of `GET /api/template-options`. */
+/**
+ * A value the generator cannot build yet, and why (ADR-0012).
+ *
+ * It is data, exactly as a constraint is: the screen disables whatever arrives
+ * here and shows the reason, matching `field` and `value` against what the
+ * catalog itself handed it. Nothing is hardcoded on this side (RF-02).
+ *
+ * `value` carries the field's own type — text on a choice, boolean on a toggle
+ * — which is why it lives at the top level rather than inside `values`: a
+ * boolean field has no `values` to put it in.
+ */
+export interface UnavailableOption {
+  /** The field key, exactly as `fields` keys it. */
+  readonly field: string;
+  /** The value, in the field's type. */
+  readonly value: OptionValue;
+  /** Why it cannot be generated, in the catalog's own words. */
+  readonly reason: string;
+}
+
+/**
+ * Body of `GET /api/template-options`.
+ *
+ * `unavailable` is required here because the API always emits it — empty when
+ * everything has a template. Making it optional would let a test catalog omit
+ * it and silently exercise a payload the API never sends, which is the exact
+ * divergence T01 paid for.
+ */
 export interface TemplateOptionsCatalog {
   readonly templateVersion: string;
   readonly fields: Readonly<Record<string, TemplateField>>;
   readonly constraints: readonly TemplateConstraint[];
+  readonly unavailable: readonly UnavailableOption[];
 }
 
 /**
