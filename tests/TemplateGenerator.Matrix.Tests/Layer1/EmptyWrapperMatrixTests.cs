@@ -31,18 +31,50 @@ namespace TemplateGenerator.Matrix.Tests.Layer1;
 ///   </description></item>
 ///   <item><description>
 ///   <see cref="Nenhum_marcador_de_contribuicao_esta_envolvido_no_template"/> — no
-///   <strong>template</strong>, que é onde a regra 7b de fato mora. Esta é a que alcança os quatro
-///   formatos hospedeiros de uma vez, e a que responde ao ponto levantado pelo papel
-///   <c>template-engineer</c>: sem ela, um invólucro novo em <c>Program.cs</c> ou em
-///   <c>appsettings.json</c> não derrubaria nada até alguém abrir o ZIP.
+///   <strong>template</strong>, que é onde a regra 7b de fato mora, e a que responde ao ponto
+///   levantado pelo papel <c>template-engineer</c>: sem ela, um invólucro novo em
+///   <c>Program.cs</c> ou em <c>appsettings.json</c> não derrubaria nada até alguém abrir o ZIP.
+///   O alcance dela é <strong>exatamente</strong> o que <see cref="Opens"/> e <see cref="Closes"/>
+///   reconhecem — ver a lista de limites abaixo, que não é curta.
 ///   </description></item>
 /// </list>
 /// <para>
-/// <strong>O que estas guardas não fazem, dito com todas as letras:</strong> não interpretam C#,
-/// JSON ou Markdown. A guarda 3 é um reconhecedor de <em>linha</em>, não um parser — ela pergunta
-/// se a linha não-vazia anterior abre e a seguinte fecha, que é exatamente a forma do defeito, e
-/// nada além disso. Escrever um analisador de blocos por formato seria trazer para o verificador a
-/// linguagem de template que ADR-0011 recusa no motor.
+/// <strong>O QUE A GUARDA 3 NÃO ALCANÇA.</strong> Ela reconhece um par abre-fecha em uma forma só:
+/// linha que termina em <c>{</c>, <c>[</c> ou <c>(</c>, ou é tag XML de abertura; seguida de linha
+/// que começa em <c>}</c>, <c>]</c>, <c>)</c> ou <c>&lt;/</c>. Isso cobre XML (o <c>.csproj</c>) e
+/// as chaves de C# e JSON. <strong>Não cobre:</strong>
+/// </para>
+/// <list type="bullet">
+///   <item><description>
+///   <strong>Os invólucros próprios do Markdown</strong> — a cerca <c>```</c>, a citação
+///   <c>&gt;</c>, o item de lista, a tabela. <c>Opens("```bash")</c> é <c>false</c> e
+///   <c>Closes("```")</c> é <c>false</c>, e os dois estão afirmados assim em
+///   <see cref="O_reconhecedor_sabe_distinguir_involucro_de_linha_inocente"/>. Um marcador posto
+///   <em>dentro</em> de uma cerca não seria acusado, e sem contribuição sobraria uma cerca vazia no
+///   <c>README.md</c> — o defeito literal da regra 7b, no formato que hoje mais hospeda marcador.
+///   <strong>Hoje não há violação:</strong> em <c>architecture/simple/README.md</c> os dois
+///   marcadores estão <em>entre</em> cercas, nunca dentro (as 16 linhas de <c>```</c> formam 8
+///   pares balanceados). O que falta é a guarda, não o conserto.
+///   </description></item>
+///   <item><description>
+///   <strong>Invólucro separado do marcador por um comentário.</strong> A guarda olha a linha
+///   não-vazia imediatamente anterior e a seguinte. Com
+///   <c>&lt;ItemGroup&gt;</c> / <c>&lt;!-- … --&gt;</c> / marcador / <c>&lt;/ItemGroup&gt;</c>, o
+///   "anterior" é o comentário, <c>Opens</c> devolve <c>false</c> e o grupo vazio passa.
+///   </description></item>
+///   <item><description>
+///   <strong>Invólucro de mais de uma linha</strong> — uma tag XML de abertura quebrada em várias
+///   linhas de atributos, por exemplo.
+///   </description></item>
+/// </list>
+/// <para>
+/// Nada disso é acidente: a guarda 3 é um reconhecedor de <em>linha</em>, não um parser. Escrever
+/// um analisador de blocos por formato seria trazer para o verificador a linguagem de template que
+/// ADR-0011, item 9, recusa no motor. Mas <strong>o limite precisa estar escrito</strong>: ADR-0008
+/// e ADR-0010 registram que herdar uma permissão que a pessoa <em>acha</em> vigiada é pior que
+/// herdar uma que ela sabe que precisa conferir. As guardas 1 e 2 continuam olhando o pacote e
+/// pegam o sintoma de saída onde ele deixa rastro — mas uma cerca Markdown vazia não deixa linha em
+/// branco nem elemento XML vazio, então ela escapa das três.
 /// </para>
 /// </remarks>
 public sealed partial class EmptyWrapperMatrixTests
@@ -155,10 +187,15 @@ public sealed partial class EmptyWrapperMatrixTests
     [Fact]
     public void Nenhum_marcador_de_contribuicao_esta_envolvido_no_template()
     {
-        // A regra 7b onde ela mora: no template. Alcança `.csproj`, `.cs`, `.http` e `.md` de uma
-        // vez, e alcançará `appsettings.json` no dia em que T04 escrever o primeiro fragmento com
-        // banco — que é exatamente o caso em que um `{}` vazio não deixaria linha em branco e as
-        // duas guardas de saída ficariam cegas.
+        // A regra 7b onde ela mora: no template. Varre todo arquivo hospedeiro, qualquer que seja a
+        // extensão — mas só acusa os invólucros que `Opens`/`Closes` reconhecem, que são os de XML
+        // e os de chave/colchete/parêntese. Ver a lista de limites no `<remarks>` da classe: os
+        // invólucros próprios do Markdown ficam de fora, e é justamente `.md` que mais hospeda
+        // marcador hoje.
+        //
+        // O ganho real está em `appsettings.json`, no dia em que T04 escrever o primeiro fragmento
+        // com banco: um `{}` vazio não deixa linha em branco nem elemento XML, então as duas
+        // guardas de saída ficariam cegas e só esta acusaria.
         TemplateInventory inventory = TemplateInventory.Read();
 
         List<string> violations = [];

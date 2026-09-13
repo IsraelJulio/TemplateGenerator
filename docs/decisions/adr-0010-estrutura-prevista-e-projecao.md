@@ -99,6 +99,20 @@ verificação de confinamento.
   ramificar uma opção específica sem pensar — isso basta. É uma cerca, não um muro, e a ADR precisa
   dizer cerca: a próxima pessoa herdando permissão que ela **acha** vigiada é pior que herdar uma
   permissão que ela sabe que precisa conferir.
+- **Atualização de T03: já são quatro falhas, e as duas novas são piores que as antigas.** O
+  `reviewer` de T03 atacou o reconhecedor de novo e passou por **cinco** formas, entre elas o valor
+  **colado a um prefixo ou sufixo, sem aspas próprias**: `.option--clean`, `#opt-postgresql`,
+  `class="badge badge-identity"` e `[class.arch-simple]="…"`. A última é **a forma idiomática de
+  estilizar por opção num template Angular** — ou seja, a cerca não cobria o caso exato que esta ADR
+  diz existir para conter. Passa também o valor dentro de string maior (`'simple/sqlite/identity'`)
+  e, por um caminho diferente, **todo arquivo de extensão não varrida**: o reconhecedor lê
+  `.ts|.html|.css` e ignora `.json`, `.scss` e `.svg` sob `src/` — e já existe um `.json` ali,
+  `zip-structure.contract.json`, que **precisa** conter valores porque é gerado do ZIP, de modo que
+  ampliar a varredura exige lista de autorizados, não só mais uma extensão. A lista completa e a
+  garantia reescrita sem folga estão no docstring de `leaksValue`, em
+  [`../../src/web/src/app/core/summary/project-structure.spec.ts`](../../src/web/src/app/core/summary/project-structure.spec.ts).
+  **O conserto é de T04; o registro honesto é de agora** — a frase que dizia "nenhuma forma legível
+  de citar um valor de opção passa" foi removida, porque cinco formas legíveis passam.
 - **Esta garantia já falhou duas vezes, e as duas apareceram por reataque, não por leitura.**
   Primeira: o teste original só conferia que os valores *estavam* no módulo autorizado, nunca que
   estavam *ausentes* nos demais — um `export const REVIEWER_LEAK_TEST = ['identity', 'sqlite',

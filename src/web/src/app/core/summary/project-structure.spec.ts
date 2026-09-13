@@ -254,19 +254,47 @@ function attributeSelector(value: string): RegExp {
  * três existem hoje neste repositório). Um teste que acusa `list-style: none` é
  * desligado pela próxima pessoa, e aí não protege mais nada.
  *
- * **O que fica fora do alcance de um reconhecedor textual**, dito aqui para que
- * ninguém leia este teste como prova:
+ * **O QUE ESCAPA.** Esta lista é o contrário de uma formalidade: o `reviewer`
+ * de T03 atacou o reconhecedor com formas que ninguém tinha tentado e **todas
+ * as cinco abaixo passaram**. Leia antes de confiar nesta cerca.
  *
+ * - **Valor colado a um prefixo ou sufixo, sem aspas próprias** — e este é o
+ *   furo que mais importa:
+ *
+ *   ```
+ *   .option--clean { … }              classe CSS por valor
+ *   #opt-postgresql { … }             id CSS por valor
+ *   class="badge badge-identity"      classe estática no HTML
+ *   [class.arch-simple]="…"           binding de classe do Angular
+ *   ```
+ *
+ *   `[class.arch-simple]` é **a forma idiomática de estilizar por opção num
+ *   template Angular**. Ou seja: a cerca não cobre o caso que ADR-0010 diz
+ *   existir para conter — *"alguém estilizar ou ramificar uma opção específica
+ *   sem pensar"*. Quem for estilizar por opção não será impedido aqui.
+ * - **Valor dentro de uma string maior** — `'simple/sqlite/identity'`,
+ *   `` `arch-${…}` ``. A forma 1 exige a aspa colada dos dois lados.
  * - **Valor montado em tempo de execução** — `'cle' + 'an'`, `` `${p}ql` ``,
  *   `atob(…)`, escape CSS (`\63 lean`). Nenhuma varredura de texto alcança.
  * - **Identificador solto** — `const ICON = { identity: '…' }`. Deixado de fora
  *   *de propósito*: `identity: (x) => x` é código inocente com exatamente a
  *   mesma forma, e a ambiguidade está na linguagem, não na técnica — um
  *   analisador de sintaxe erraria igual.
+ * - **Arquivo de extensão não varrida.** `productionFiles()` filtra
+ *   `.ts|.html|.css`. Um `.json`, `.scss` ou `.svg` sob `src/` não é lido —
+ *   e já existe um: `zip-structure.contract.json`, que **precisa** conter
+ *   valores de opção porque é gerado a partir do ZIP. Estender a varredura
+ *   exige uma lista de autorizados, não só mais uma extensão no filtro.
  *
- * A garantia, então, é estreita e honesta: **nenhuma forma legível de citar um
- * valor de opção passa**. Não é "é impossível vazar". ADR-0010 registra o mesmo
- * limite do lado da arquitetura.
+ * **A garantia, dita sem folga:** dentro de `.ts`, `.html` e `.css`, um valor de
+ * opção **escrito como literal inteiro entre aspas ou como seletor de atributo**
+ * não passa. Só isso. **Não** é "nenhuma forma legível passa" — a lista acima
+ * são cinco formas legíveis que passam, uma delas idiomática. É uma cerca
+ * contra o descuido, não um muro contra a intenção, e ADR-0010 registra o mesmo
+ * limite do lado da arquitetura. Quem acrescentar uma forma nova de escrever
+ * valor no frontend precisa **reatacar este reconhecedor antes de confiar
+ * nele** — foi assim que os quatro furos conhecidos apareceram, nenhum deles
+ * por leitura.
  */
 function leaksValue(source: string, value: string): boolean {
   const quoted = ["'", '"', '`'].some((quote) => source.includes(`${quote}${value}${quote}`));
