@@ -20,10 +20,19 @@
   </dl>
 
   <h3 class="summary__subtitle" id="estrutura-titulo">Estrutura prevista</h3>
+  <!--
+    Texto fixado por ADR-0010, parcialmente expirada em T03. A frase é uma só de
+    propósito: a fronteira entre "conferida" e "prevista" não é um dos eixos de
+    escolha, é a conjunção deles — há combinações da mesma arquitetura que ainda
+    não têm template. Fazer a frase variar exigiria, aqui, uma segunda fonte de
+    verdade sobre quais combinações já estão amarradas, e é justamente essa
+    deriva que a ADR registra. Assim ela é exata hoje e continua exata depois de
+    T04, sem edição — e nenhum valor de opção precisa aparecer neste arquivo.
+  -->
   <p class="summary__caveat">
-    O que o ZIP deve conter para esta combinação, segundo a documentação dos projetos gerados. O
-    motor de geração entra em outra etapa, então confira a árvore contra o pacote quando ele
-    existir.
+    O que o ZIP deve conter para esta combinação. Onde o template já existe, a suíte do gerador
+    compara esta árvore com o pacote real e falha se divergirem; nas demais combinações, ela ainda é
+    uma previsão derivada da documentação.
   </p>
 
   <ul class="tree" aria-labelledby="estrutura-titulo">
