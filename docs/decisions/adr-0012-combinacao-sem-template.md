@@ -101,16 +101,8 @@ Em [`../architecture/http-contract.md`](../architecture/http-contract.md):
 > e o defeito só apareceria ao abrir o pacote, longe da causa.*
 
 Foi escrito sobre o estado anterior ao motor. Aplica-se, palavra por palavra, ao estado atual — e as
-três classes acima estão em ordem crescente de distância entre a causa e o sintoma.
-
-O raciocínio já está escrito, em [`../architecture/http-contract.md`](../architecture/http-contract.md):
-
-> *A alternativa — devolver `200 application/zip` com um pacote vazio — foi descartada: um `200` com
-> `Content-Disposition` é uma **afirmação de que a geração aconteceu**. O cliente salvaria o arquivo
-> e o defeito só apareceria ao abrir o pacote, longe da causa.*
-
-Foi escrito sobre o estado anterior ao motor. Aplica-se, palavra por palavra, ao estado atual — com
-o agravante de que um pacote com cinco arquivos plausíveis é **mais** enganoso que um vazio.
+três classes acima estão em ordem crescente de distância entre a causa e o sintoma, com o agravante
+de que um pacote com cinco arquivos plausíveis é **mais** enganoso que um vazio.
 
 ## Decisão
 
@@ -150,6 +142,226 @@ existe.*
 
 O `problem+json` carrega quais campos causaram a recusa, para a mensagem poder ser específica
 ("A Clean Architecture entra em uma etapa seguinte") em vez de genérica.
+
+## Forma de implementação — especificação de T04
+
+**Acrescentada pelo `architect` em T04.** A decisão acima não mudou; o que faltava era a **forma**,
+e ela atravessa `backend`, `frontend` e `qa`. Sem isto escrito, cada papel inventa a sua e as três
+divergem no ponto em que se encontram.
+
+Esta seção **não** é descrição de comportamento corrente. Ela vira descrição — e migra para
+[`../architecture/http-contract.md`](../architecture/http-contract.md) — quando o código a tiver,
+pela mesma regra que a primeira consequência desta ADR já fixa.
+
+### 1. Onde a derivação mora
+
+Em `TemplateGenerator.Generation`, ao lado de `TemplateAxes` e sobre a mesma `ITemplateSource` que
+`EmbeddedTemplateSource` já implementa. **Nada de HTTP entra aqui**; a fronteira de
+[`../architecture/platform.md`](../architecture/platform.md) continua valendo.
+
+Um tipo novo — `Engine/TemplateAvailability.cs` — com uma única entrada: catálogo + origem de
+fragmentos ⇒ o conjunto dos pares `(campo, valor)` **indisponíveis**. Ele não recebe lista nenhuma,
+não tem constante de valor e não conhece `simple`, `clean`, `sqlite` ou qualquer outro: as duas
+únicas fontes são o catálogo (quais valores existem) e a origem (quais fragmentos têm conteúdo).
+
+**As quatro regras da derivação**, e cada uma existe porque a sua ausência quebra alguma coisa hoje:
+
+- **R1 — contribuir arquivo.** Um valor `v` do campo `f` está **disponível** se, e somente se, o
+  fragmento `<diretório de f>/<v>` tiver pelo menos um arquivo que seja **(a)** entrada de ZIP — um
+  caminho fora de `__parts__/` — **ou (b)** uma contribuição `__parts__/` de conteúdo **não vazio**.
+  A alínea (b) não é enfeite: `database/none`, `auth/none` e `swagger/enabled` **só** têm
+  `__parts__/`, e sem ela a derivação declararia indisponível tudo que hoje funciona.
+- **R1.1 — "não vazio" é o mesmo "não vazio" do motor.** `TemplateContributions` já descarta a
+  contribuição cujo conteúdo, normalizado e sem quebras finais, tem comprimento zero. A derivação
+  **usa esse mesmo teste**, exposto de um lugar só. Duas noções de vazio seriam duas respostas para
+  "este fragmento contribui?".
+- **R1.2 — `.gitkeep` não conta**, e isso já é verdade sem código novo: o `.csproj` de
+  `TemplateGenerator.Generation` o exclui do `EmbeddedResource`, então um fragmento que só tenha
+  `.gitkeep` chega à derivação com **zero** arquivos. Não escreva uma segunda exclusão.
+- **R2 — valor sem fragmento está sempre disponível.** Quando a seleção de um valor não implica
+  fragmento nenhum, não há ausência que se possa confundir com template incompleto, e o valor é
+  disponível por definição. São dois casos hoje: a posição `false` de um eixo booleano — `swagger`
+  ligado é `swagger/enabled`, desligado é a **ausência** do fragmento
+  ([`../architecture/generation-engine.md`](../architecture/generation-engine.md)) — e todo valor de
+  um campo sem diretório de eixo, que é `dotnetVersion`. **Sem R2 a derivação marcaria
+  `swagger: false` indisponível e recusaria metade da matriz, inclusive as duas combinações que hoje
+  funcionam de ponta a ponta.** É o erro mais fácil de cometer nesta tarefa.
+- **R3 — combinação.** Uma combinação está disponível quando **todos** os valores que ela seleciona
+  estão disponíveis. `common` não é valor de campo e não entra nesta conta; um `common` vazio quebra
+  tudo e é assunto do assert de sanidade de R4.
+- **R4 — nada de lista.** Nenhuma constante, nenhum `switch`, nenhuma entrada de catálogo escrita à
+  mão diz o que está implementado. É a decisão 2 desta ADR e é o que a torna diferente de um
+  comentário.
+
+**Uma instância, calculada uma vez** — templates são recursos embutidos e imutáveis, e o gerador é
+*stateless*. Ela é registrada como singleton e injetada onde for preciso; o construtor que aceita
+uma origem arbitrária existe para o teste compor um repositório mínimo, como `GenerationEngine` já
+faz.
+
+### 2. O campo novo no catálogo
+
+`GET /api/template-options` ganha **um membro de topo**, irmão de `constraints`, chamado
+`unavailable`:
+
+```jsonc
+{
+  "templateVersion": "1.0.0",
+  "fields":      { /* … inalterado … */ },
+  "constraints": [ /* … inalterado … */ ],
+  "unavailable": [
+    { "field": "database",       "value": "sqlite",     "reason": "O template desta opção ainda não foi escrito." },
+    { "field": "database",       "value": "postgresql", "reason": "O template desta opção ainda não foi escrito." },
+    { "field": "authentication", "value": "identity",   "reason": "O template desta opção ainda não foi escrito." },
+    { "field": "authentication", "value": "jwt",        "reason": "O template desta opção ainda não foi escrito." }
+  ]
+}
+```
+
+**O que isto responde, ponto a ponto:**
+
+- **`fields` não muda, em nada.** A ordem continua sendo a ordem da tela (regra de serialização 1) e
+  `type` continua admitindo só `"choice"` e `"boolean"` (regra 3). Nenhuma das duas regras do
+  contrato é tocada, e um cliente que ignore o membro novo se comporta exatamente como hoje: é
+  acréscimo, e a regra 8 já autoriza extensão.
+- **Por que fora de `values`, que seria o lugar óbvio.** Porque o eixo booleano **não tem** `values`.
+  Se a disponibilidade morasse dentro de cada valor, `swagger` ficaria sem onde dizê-la, e no dia em
+  que `swagger/enabled` esvaziasse a tela não teria como desabilitar o interruptor. Um formato que
+  não consegue exprimir um dos cinco campos está errado no desenho, não no caso raro.
+- **Por que uma lista só de indisponíveis, e não um `available` por valor.** Porque o estado final do
+  produto é `"unavailable": []` — uma linha que se lê como "está tudo implementado" — em vez de um
+  `"available": true` repetido em nove lugares para sempre. O risco de uma lista vazia significar
+  "derivação quebrada" em vez de "tudo pronto" é real e é coberto pelo assert de sanidade do item 5.
+- **A ordem é estável e declarada:** ordem dos campos no catálogo, e dentro de cada campo a ordem dos
+  valores no catálogo. Mesma disciplina da regra 1.
+- **`value` carrega o tipo do campo** — texto no campo de escolha, booleano no interruptor.
+- **`reason` é uma frase só, igual para todos, derivada e não escrita por valor.** Um motivo
+  específico por opção ("A Clean Architecture entra em uma etapa seguinte") teria de ser escrito à
+  mão em algum lugar — exatamente a segunda fonte de verdade que a decisão 2 existe para não criar —
+  e ficaria órfão no dia em que o valor acendesse. A especificidade já está na tela **pela posição**:
+  a frase aparece colada ao rótulo da opção, que o catálogo já manda.
+- **O frontend não codifica valor nenhum** para consumir isto: ele casa `field`/`value` contra o que
+  o próprio catálogo lhe entregou. RF-02 continua literal.
+
+**O que o `frontend` faz com o membro:** `evaluateAvailability` passa a ter **duas** origens de
+"desabilitado" — a restrição de catálogo, que já existe, e a indisponibilidade, que é nova — e a
+forma de saída (`{ value, disabled, reason }`) **não muda**, então a marcação da tela não muda.
+Quando as duas incidirem sobre o mesmo valor, **a indisponibilidade vence**: ela não depende do
+resto da seleção, logo é verdadeira faça a pessoa o que fizer, enquanto a mensagem de restrição
+sugeriria um conserto que não resolveria nada.
+
+### 3. A forma do `501`
+
+```json
+{
+  "type": "https://templategenerator.local/problems/generation-not-implemented",
+  "title": "Esta combinação ainda não gera projeto",
+  "status": 501,
+  "errors": {
+    "architecture": ["O template desta opção ainda não foi escrito."]
+  }
+}
+```
+
+- **`type`** é o mesmo URI que existiu até T02. Restaurar `ProblemTypes.GenerationNotImplemented`
+  com o mesmo valor é deliberado: o significado — "a configuração é válida, quem está incompleto é o
+  servidor" — é o mesmo, com escopo menor. Um URI novo faria um cliente antigo tratar como
+  desconhecido um caso que ele já sabia tratar.
+- **`errors`, e não uma extensão nova**, é quem diz **qual campo** causou a recusa. É o que a ADR
+  pede ("carrega quais campos causaram") e é o que a tela já sabe posicionar *inline*: a mesma
+  estrutura do `400`, o mesmo caminho de código, a mesma marcação. Uma extensão paralela seria um
+  segundo formato para a mesma informação.
+- **Uma entrada por campo indisponível**, na ordem dos campos no catálogo. Quando dois campos
+  estiverem indisponíveis, as duas entradas aparecem, cada uma com a mesma frase.
+- **A frase de `errors` é a mesma `reason` do catálogo**, saída da mesma derivação. A pessoa lê as
+  mesmas palavras tendo aprendido pela tela ou pela recusa.
+- **Sem `detail`.** Com `errors` preenchido, um `detail` genérico só repetiria em prosa o que já está
+  endereçado ao campo — e o ramo de `400` do frontend já trata `detail` como o que se mostra
+  *quando não há* erro de campo. O ramo de `501` passa a fazer o mesmo.
+- **`Content-Type: application/problem+json`**, como manda a regra 6 do contrato: é por ele que o
+  cliente, que pediu o corpo como binário para receber o ZIP, distingue erro de arquivo.
+- **Nenhum cabeçalho de download.** `Content-Disposition` e `Content-Type: application/zip` **não**
+  podem aparecer numa resposta de recusa. Ver o item 4, que é onde isso se garante.
+
+### 4. Onde a recusa entra na ordem — e por quê
+
+**Depois da validação inteira**: depois da checagem do `projectName`, depois da pertinência ao
+catálogo e **depois** da restrição `identity-requires-database`. Nunca antes.
+
+Três razões, e a terceira sozinha decide:
+
+1. **É o que a própria decisão afirma.** O `501` se justifica dizendo que "a configuração está
+   correta: passou pela validação, pertence ao catálogo e satisfaz as restrições". Responder `501` a
+   uma configuração que *não* passou tornaria essa frase falsa no exato caso em que ela é a
+   justificativa.
+2. **O `400` é acionável e o `501` não é.** Antecipar o `501` esconderia da pessoa o único problema
+   que ela consegue consertar, em troca de mostrar primeiro o que ela não pode.
+3. **Antes da validação, a derivação mente.** Um `architecture: "banana"` não tem fragmento — logo a
+   derivação o chamaria de indisponível e a API responderia `501 "o template desta opção ainda não
+   foi escrito"` para um valor que **não existe no catálogo**. A resposta verdadeira é `400, o valor
+   não pertence ao catálogo`. Inverter a ordem transforma um erro claro de quem chamou num defeito
+   inventado do servidor.
+
+**O caso que o PO levantou, respondido:** `clean` + `identity` + `database: none` responde **`400`**,
+com a mensagem `O Identity nativo precisa de um banco para persistir os usuários.` endereçada a
+`authentication` — a regra 5 do contrato manda endereçar ao campo de `when`. Só depois de a pessoa
+escolher um banco é que ela vê o `501` em `architecture`. Pela tela isso nem chega ao servidor: a
+checagem local de restrição já bloqueia o envio, e é o mesmo texto.
+
+**Em que dois lugares a recusa é imposta**, e por que não são duas fontes de verdade:
+
+- **No endpoint**, antes de `GeneratedArchiveResult` existir. É obrigatório que seja **antes**:
+  aquele resultado escreve `Content-Type: application/zip` e `Content-Disposition: attachment` como
+  primeira coisa que faz, e uma recusa depois disso ou sai com cabeçalho de download em cima, ou
+  depende de o corpo ainda não ter começado — exatamente a fragilidade que RNF-03 existe para não
+  ter.
+- **No motor**, dentro de `GenerationPlan.Resolve`, logo depois da validação e antes da composição,
+  lançando uma exceção própria ao lado de `GenerationRequestRejectedException`. Sem este lado,
+  **quem chama o motor direto continua recebendo o pacote defeituoso** — e quem chama o motor direto
+  é a camada 1 inteira, que é justamente quem precisa provar a recusa sem subir HTTP.
+
+Os dois perguntam ao **mesmo** `TemplateAvailability`. O que se duplica é a imposição, não a
+verdade — e é a duplicação que faz "nunca `200`" valer também para um endpoint que alguém acrescente
+amanhã.
+
+### 5. O que a camada 1 verifica, nos dois sentidos
+
+Esta ADR já exige os dois sentidos; aqui está o que cada um afirma, para o `qa` não ter de adivinhar
+os casos de borda.
+
+| # | Afirmação | Falha quando |
+|---|---|---|
+| 1 | Para **toda** combinação disponível, o pacote traz o conteúdo obrigatório de [`../architecture/generated-projects.md`](../architecture/generated-projects.md) | um fragmento acendeu sem estar completo |
+| 2 | Para **toda** combinação disponível, nenhum arquivo gerado é só preâmbulo (a verificação de casca) | um marcador resolveu vazio onde vazio não é estado legítimo |
+| 3 | Para **toda** combinação indisponível, o motor recusa — exceção do item 4, não pacote | alguém devolve pacote incompleto por um caminho que não é o endpoint |
+| 4 | Para **toda** combinação indisponível, `POST /api/templates` responde `501`, com `problem+json`, com o campo em `errors`, **sem** `Content-Disposition` e **sem** `application/zip` | a recusa entrou tarde demais no pipeline |
+| 5 | A soma "disponíveis + indisponíveis" é a matriz válida inteira, e o conjunto de disponíveis calculado pela derivação coincide com o calculado combinação a combinação por R3 | a derivação e a recusa discordam |
+| 6 | **Assert de sanidade:** existe pelo menos uma combinação disponível **e**, enquanto houver fragmento vazio no repositório, pelo menos uma indisponível | a derivação passou a responder sempre a mesma coisa — o caso em que 1 a 4 passam por vacuidade |
+
+O item 6 não é zelo: sem ele, uma derivação que devolvesse "tudo indisponível" faria os itens 1 e 2
+passarem sem olhar pacote nenhum, e uma que devolvesse "tudo disponível" faria os itens 3 e 4
+passarem sem recusar nada. Um verificador que silenciosamente para de verificar é pior que nenhum —
+é a lição de [ADR-0008](adr-0008-fronteira-por-grafo-de-restore.md) e de
+[ADR-0010](adr-0010-estrutura-prevista-e-projecao.md), pela quarta vez.
+
+**O item 6 tem data de validade, e isso é bom:** quando o último fragmento for escrito (T08), não
+haverá mais combinação indisponível e a segunda metade dele precisa cair junto. Ela é condicionada
+à existência de fragmento vazio justamente para cair sozinha, sem ninguém precisar lembrar.
+
+### 6. O ramo `notImplemented` do frontend: qual é o caso real
+
+Há uma objeção óbvia a fazer aqui, e é melhor respondê-la do que deixar `frontend` e `qa` tropeçarem
+nela: **se a tela desabilita o que está indisponível, como é que a tela recebe um `501`?**
+
+Recebe, e o caso é real: **o catálogo é buscado uma vez, no carregamento da página.** Uma aba aberta
+antes de uma implantação — ou antes de qualquer mudança no conjunto de fragmentos — segue com a
+disponibilidade de ontem, e o servidor responde a verdade de hoje. É o mesmo motivo pelo qual o ramo
+de `400` existe embora a tela já valide localmente: *"toda validação do frontend é conveniência; o
+backend revalida tudo e é quem decide"*. O que mudou é o escopo — de "o motor de geração ainda não
+existe" para "esta combinação ainda não gera projeto" —, não a existência do caso.
+
+A mensagem precisa dizer a segunda coisa, e as escolhas da pessoa continuam intactas (RF-06). O
+`errors` do item 3 é o que permite à tela marcar **o campo** que causou a recusa, em vez de só
+mostrar um aviso geral.
 
 ## Alternativas descartadas
 

@@ -161,6 +161,29 @@ A mesma regra vale para tudo cujo **caminho** dependa da arquitetura: `Program.c
 conteúdo das pastas de projeto. Os nomes exatos das pastas estão em
 [`generated-projects.md`](generated-projects.md).
 
+### A regra do hospedeiro mínimo
+
+**Decisão de T04.** Um arquivo hospedeiro cujo conteúdo, com **zero contribuições**, deixa de ser um
+arquivo válido daquele formato **pertence ao fragmento que o preenche**, não ao de arquitetura.
+
+É a regra 7b de [ADR-0011](../decisions/adr-0011-contribuicao-por-marcador.md) generalizada do
+invólucro para o arquivo inteiro, e ela nasce de um caso real:
+`Persistence/ItemStore.cs` mora hoje em `architecture/simple` e existe só para hospedar
+`__ItemStoreImplementation__`. Sem contribuição de `database/*`, o que sai no pacote é um `.cs` com
+`using` e `namespace` e mais nada — um arquivo que **compila** e que só falha ao executar
+([ADR-0012](../decisions/adr-0012-combinacao-sem-template.md), "`simple` + banco").
+
+A pergunta a fazer diante de cada arquivo novo de template é curta: **com nenhuma contribuição, isto
+ainda é um arquivo?** Se a resposta é não, o arquivo é do outro eixo.
+
+- `Program.cs` e o `.csproj` **passam**: sem contribuição nenhuma continuam sendo um programa e um
+  projeto válidos, só que menores. Permanecem em `architecture/*`.
+- `ItemStore.cs` **não passa**: sem contribuição ele não é nada. Pertence a `database/*`, que é quem
+  sabe como um item é guardado — e aí cada banco traz o seu, inteiro, sem marcador.
+
+A regra não substitui a verificação de casca da camada 1; ela evita o caso em vez de detectá-lo. As
+duas ficam, porque a segunda alcança também o arquivo que alguém escrever amanhã sem ler esta.
+
 ### O manifesto
 
 O manifesto (RF-22) fica em `.templategenerator/manifest.json` dentro do ZIP e contém
@@ -182,6 +205,14 @@ Antes de escrever qualquer byte:
 
 Falha nos itens 1 a 3 ⇒ `ProblemDetails` 400 e **nenhuma escrita**. Falha nos itens 4 e 5 é defeito
 de *template*, não de requisição: a configuração está certa e quem está errado é o repositório.
+
+**Entra um passo entre o 3 e o 4, em T04** (ainda não implementado): a recusa por combinação
+**indisponível**, decidida em [ADR-0012](../decisions/adr-0012-combinacao-sem-template.md). A posição
+é a decisão, não um detalhe — **depois** da validação inteira, porque um valor fora do catálogo
+também não tem fragmento e responder "o template não existe" a um valor inexistente inverteria a
+culpa; e **antes** de qualquer composição, porque nada pode ter sido escrito. A especificação está em
+ADR-0012, seção "Forma de implementação", item 4. Enquanto o código não a tiver, a lista acima
+continua descrevendo o comportamento corrente.
 
 A verificação de caminho é **léxica**, sem tocar o sistema de arquivos. Um caminho de ZIP não é um
 caminho de máquina, e resolver contra o disco local traria a cultura, o drive corrente e o limite de

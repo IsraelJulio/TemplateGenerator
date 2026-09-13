@@ -58,8 +58,15 @@ hoje projeção do cliente — ver [ADR-0010](../decisions/adr-0010-estrutura-pr
 
 O catálogo também **ainda não** diz quais valores têm template. Que ele passe a dizer, como dado e
 derivado dos fragmentos, está decidido em
-[ADR-0012](../decisions/adr-0012-combinacao-sem-template.md) e cabe a T04. Nada neste documento
-descreve esse campo como existente enquanto o código não o emitir.
+[ADR-0012](../decisions/adr-0012-combinacao-sem-template.md) e cabe a T04. **A forma exata — o membro
+de topo `unavailable`, irmão de `constraints`, e por que ele não mora dentro de `values`** — está
+especificada em ADR-0012, seção "Forma de implementação". Nada neste documento descreve esse membro
+como existente enquanto o código não o emitir; quando emitir, a especificação migra para cá e a
+seção da ADR vira histórico.
+
+Duas coisas deste documento o membro novo **não** toca, e a especificação existe em parte para
+garantir isso: a ordem de `fields` continua sendo a ordem da tela (regra 1) e `type` continua
+admitindo exatamente `"choice"` e `"boolean"` (regra 3).
 
 ## `POST /api/templates`
 
@@ -185,6 +192,13 @@ a recusa é `501` pelo mesmo raciocínio acima: a configuração é válida, que
 servidor. **Isso ainda não está implementado** — hoje as 16 combinações de `clean` respondem `200`
 com um ZIP de cinco arquivos, e isso é um defeito registrado, não o contrato.
 
+O corpo exato do `501`, o `type` restaurado, o uso de `errors` para dizer **qual campo** causou a
+recusa e — o ponto em que quem implementar vai esbarrar — **onde a recusa entra na ordem em relação
+à validação de catálogo e à restrição `identity-requires-database`** estão especificados em ADR-0012,
+seção "Forma de implementação", itens 3 e 4. Em resumo, para quem só precisa da regra: a recusa vem
+**depois** de toda a validação, então `clean` + `identity` + `database: none` responde `400` com a
+mensagem da restrição, e não `501`.
+
 **Consequência para T09:** o tratamento de `501` no frontend **não** é código morto — ele vive em
 `src/web/src/app/core/catalog/generation-failure.ts` (a marca `notImplemented`), nos testes que a
 exercitam e no `configurator.html`, que escolhe entre `notice--pending` e `notice--error` a partir
@@ -192,6 +206,13 @@ dela. Entre T03 e a implementação de ADR-0012 ele fica sem caso real, alcanç�
 rede; depois dela volta a ter um, mais estreito. O que T09 precisa ajustar é a **mensagem**: ela diz
 hoje que o motor de geração ainda não existe, e o que passará a ser verdade é "esta combinação ainda
 não gera projeto". A marca também merece um nome que descreva a causa nova.
+
+**Qual é esse caso real, já que a tela passa a desabilitar o indisponível.** O catálogo é buscado
+uma vez, no carregamento da página: uma aba aberta antes de uma mudança no conjunto de fragmentos
+segue com a disponibilidade de ontem e recebe do servidor a de hoje. É o mesmo motivo pelo qual o
+ramo de `400` existe embora a tela valide localmente — a validação do cliente é conveniência, o
+backend decide. Está registrado em ADR-0012, seção "Forma de implementação", item 6, para que
+`frontend` e `qa` não concluam que o ramo continua inalcançável.
 
 ## Regras
 

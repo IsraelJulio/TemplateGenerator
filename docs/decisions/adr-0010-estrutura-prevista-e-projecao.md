@@ -129,10 +129,13 @@ verificação de confinamento.
 
 ### Ambiguidade deixada em aberto de propósito
 
-> **Resolvida para a Simples em T03**, e a resolução não foi uma regra de deduplicação: o sufixo
-> deixou de ser acrescentado, porque na Simples não há projeto irmão para desambiguar. Ver
+> **Resolvida.** Para a **Simples**, em T03: o sufixo deixou de ser acrescentado, porque ali não há
+> projeto irmão para desambiguar — e isso não é uma regra de deduplicação. Para a **Clean**, em T04:
+> o sufixo é concatenado **sempre**, sem comparação e sem remoção, e `Acme.Billing.Api` produz
+> `src/Acme.Billing.Api.Api/` de propósito. O aviso desta ADR — "inventar deduplicação é trocar um
+> palpite por outro" — foi seguido nos dois casos, e nos dois a pergunta que decidiu foi a mesma:
+> *o sufixo desambigua alguma coisa aqui?* As duas decisões, com os casos de borda respondidos, em
 > ["Nomes de projeto e de pasta"](../architecture/generated-projects.md#nomes-de-projeto-e-de-pasta).
-> **Continua em aberto para a Clean**, onde os sufixos têm função e não podem ser abandonados.
 
 Com `projectName = Acme.Billing.Api`, a árvore mostra `src/Acme.Billing.Api.Api/` — o `.Api`
 dobrado. É consequência de aplicar `<Nome>.Api` às duas arquiteturas: para Clean isso vem de
@@ -205,15 +208,59 @@ real sem que nada quebre" — deixou de valer nessa faixa: agora quebra.
 
 ### O que T04 precisa fazer para expirar o resto
 
-Estender `ZipStructureContractTests` às combinações que T04 passar a gerar, **sem escrever o
-contrato à mão** — o teste continua reconstruindo-o do pacote. Quando `clean` gerar projeto de
-verdade e entrar no contrato, esta ADR fica **obsoleta por inteiro** e o aviso da tela perde a
-metade "ainda é uma previsão".
+**Revisto pelo `architect` em T04**, porque a resposta escrita em T03 — "quando `clean` entrar no
+contrato, esta ADR fica obsoleta por inteiro" — **estava errada por dois lados**, e os dois importam.
 
-A alternativa 2 — o catálogo passar a carregar a árvore — continua descartada pelo mesmo motivo de
-T02, e agora com um argumento a mais: com a amarração de pé, o custo que ela evitaria (projeção
-divergir em silêncio) já está pago por teste, e publicar a árvore no contrato HTTP continua sendo
-caro de corrigir.
+**Errada para menos: `clean` sozinho não bastaria.** Mesmo com o template de Clean escrito, `simple`
+e `clean` **com banco ou com autenticação** continuam sem fragmento, logo continuam projeção. A
+amarração cobre combinação, não eixo. Contar `clean` como quitação repetiria a conta que esta ADR
+errou três vezes.
 
-**Enquanto a Clean não estiver amarrada, o `reviewer` deve tratar esta ADR como dívida viva**, não
-como permissão. O que T03 comprou foi metade do prazo, não a quitação.
+**Errada para mais: com [ADR-0012](adr-0012-combinacao-sem-template.md) implementada, o resto expira
+mesmo assim** — e não por causa do template de Clean, mas por causa da disponibilidade. A tela passa
+a **desabilitar todo valor sem fragmento**, então a seleção que o resumo enxerga é sempre uma
+combinação **disponível**; e se a lista de combinações amarradas for **derivada da mesma
+disponibilidade**, toda combinação que a tela consegue mostrar está amarrada, por construção. O
+risco que esta ADR nomeou — *"a projeção pode divergir do ZIP real sem que nada quebre"* — deixa de
+existir para tudo que é alcançável.
+
+**As três condições, e nenhuma delas é opcional:**
+
+1. **`ZipStructureContractTests.Tied()` deriva a lista de `TemplateAvailability`**, não a enumera.
+   Uma lista escrita à mão voltaria a envelhecer exatamente como envelheceria o catálogo que
+   ADR-0012 se recusou a escrever à mão — e envelheceria em silêncio, porque um teste que olha menos
+   combinações continua verde. **Derivada, ela cresce sozinha:** o dia em que T05 escrever
+   `database/sqlite`, o valor acende, as combinações novas entram na lista, o contrato deixa de bater
+   e a suíte cai até alguém regenerá-lo e ajustar a projeção. É o que faz a dívida restante se fechar
+   sem ninguém precisar lembrar dela.
+   **Os dois nomes de projeto que o teste já percorre continuam**, e por um motivo que T04 tornou
+   maior: `Acme.Billing.Api` em `clean` é o que fixa o `.Api` dobrado
+   ([`../architecture/generated-projects.md`](../architecture/generated-projects.md)), agora que ele
+   é decisão e não pendência. Sem esse par, a regra de nomes da Clean voltaria a valer só do lado do
+   documento.
+2. **Um teste afirma que os dois conjuntos coincidem**: toda combinação disponível está amarrada e
+   toda combinação amarrada está disponível. Sem ele, "derivada" é só uma intenção no código.
+3. **A tela desabilita o indisponível** (ADR-0012, decisão 1). Sem isso, a pessoa alcança uma
+   combinação sem template, vê uma árvore que nada confere, e a condição 1 não protege nada.
+
+**O que sobrevive a T04, dito com todas as letras**, porque declarar quitado o que não está é o erro
+que esta ADR registra ter cometido:
+
+- **A exceção a RF-02 e o confinamento continuam inteiros.** `PROJECT_STRUCTURE_RULES` segue sendo o
+  único arquivo de produção do frontend autorizado a citar valor de opção. Isso **não** é o que
+  expira: o que expira é o risco de divergência silenciosa. Só a alternativa 2 — o catálogo carregar
+  a árvore — encerra a exceção, e ela continua descartada, agora com um argumento a mais: com a
+  amarração de pé, o custo que ela evitaria já está pago por teste, e publicar a árvore no contrato
+  HTTP continua sendo caro de corrigir.
+- **As regras de valores sem fragmento continuam palpite** — `sqlite`, `postgresql`, `identity`,
+  `jwt` — e permanecem no módulo. A diferença é que passam a ser palpite **inalcançável**: a tela não
+  os mostra, e no instante em que passarem a ser alcançáveis a condição 1 os amarra. Palpite
+  inalcançável e verificado ao acender não é dívida; é trabalho ainda não feito, com a trava já
+  montada.
+- **Esta ADR não fica obsoleta. Ela muda de estado**, de *parcialmente expirada* para **expirada
+  quanto ao risco de divergência, com a exceção a RF-02 de pé**. O cabeçalho é atualizado no mesmo
+  commit que entregar as três condições — não antes, porque até lá continua valendo o de T03.
+
+**Enquanto as três condições não estiverem no lugar, o `reviewer` deve tratar esta ADR como dívida
+viva**, não como permissão — e em particular deve recusar a condição 1 implementada como lista
+escrita à mão, que é a forma mais fácil de parecer entregue.
