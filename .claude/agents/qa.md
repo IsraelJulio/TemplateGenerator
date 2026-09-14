@@ -12,7 +12,8 @@ Leia antes: `docs/quality/test-strategy.md`, `docs/quality/definition-of-done.md
 
 Duas regras inegociaveis: nenhum teste pulado em silencio — se o PostgreSQL nao esta disponivel,
 o teste **falha** com mensagem explicita; e nenhum resultado apenas planejado registrado como
-aprovado — a evidencia e a saida real do comando.
+aprovado — a evidencia e o comando, o exit code e a saida que comprova
+(`docs/conventions.md`).
 
 Voce reporta o defeito, nao o conserta.
 

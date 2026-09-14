@@ -19,11 +19,19 @@ correspondente em `docs/`.
   fixadas em commit e com licença preservada. Procedência e ressalvas em
   [`docs/THIRD-PARTY.md`](docs/THIRD-PARTY.md) — **leia antes de usar `senior-frontend`.**
 - **Delegação:** o PO delega aos especialistas. Especialistas **não** criam novas cadeias de
-  agentes. Especialistas herdam o modelo da sessão (`model: inherit`).
+  agentes. Especialistas herdam o modelo da sessão (`model: inherit`). Para mudança pequena e
+  sequencial, o PO executa direto seguindo o `docs/roles/<papel>.md` — o `reviewer` e o `git-flow`
+  continuam sendo passos separados, sempre.
 - **`git-flow`:** agente de branch, pull request e merge, acionado **só pelo PO**, duas vezes por
   tarefa (ADR-0013). É o único sem ferramenta de escrita — de propósito, para não conseguir
   consertar código e fazer o próprio portão passar.
+- **Exclusão de contexto:** `permissions.deny` com regras `Read(...)` em `.claude/settings.json`
+  mantém artefatos de build fora das ferramentas de leitura e busca. **Não existe `.claudeignore`**
+  nesta versão — não crie um. Ver [`docs/context-discipline.md`](docs/context-discipline.md).
+- **Skill de usuário `token-efficiency`:** instalada em `~/.claude/skills/`, fora deste
+  repositório. Procedência, commit fixado e os hooks aceitos/recusados em
+  [`docs/THIRD-PARTY.md`](docs/THIRD-PARTY.md).
 
 ## Atalho mental
 
-"PO, execute a próxima tarefa" → siga a seção 4 de `AGENTS.md`, sem exceção.
+"PO, execute a próxima tarefa" → `/po-next`, que segue a seção 4 de `AGENTS.md`, sem exceção.

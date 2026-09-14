@@ -28,5 +28,7 @@ Testes automatizados, execução real dos ZIPs gerados e **evidências**.
 
 - **Nada de teste pulado em silêncio.** Se o PostgreSQL não está disponível, o teste **falha**
   com mensagem dizendo o que fazer. Um teste pulado desaparece da cobertura e ninguém percebe.
-- **Nada de resultado apenas planejado.** A evidência é a saída real colada no relatório.
+- **Nada de resultado apenas planejado.** A evidência é o comando, o exit code e a saída que
+  comprova — ver [`../conventions.md`](../conventions.md#evidência-em-relatório). "Os testes
+  passaram" não é evidência; `Passed! - Failed: 0, Passed: 147` com exit code 0 é.
 - Teste que valida o mock em vez do comportamento real não conta como cobertura.

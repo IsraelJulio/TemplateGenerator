@@ -1,5 +1,11 @@
 {
   "$comment": "Fonte unica de status do projeto. Somente o papel PO edita este arquivo (ADR-0004). Estados: pending | in_progress | blocked | done. No maximo uma tarefa in_progress. Desde ADR-0013, cada tarefa nasce numa branch feat/<ID>-<slug> e fecha por pull request; o campo pullRequest guarda a URL. Tarefas sem esse campo (T00 a T04) sao anteriores a decisao.",
+  "$schemaNotes": {
+    "context": "OPCIONAL. Lista de caminhos, relativos a raiz, dos documentos que a tarefa precisa para ser executada — e so eles. Quem executa carrega este conjunto e os docs/roles/<papel>.md dos papeis em roles, e nada alem (ADR-0014). Vazio significa que a tarefa nao depende de documento de dominio, nao que ninguem preencheu. Ausente e tratado como vazio, para que tarefa antiga continue valida. Se durante a execucao um documento se revelar necessario, acrescente-o aqui: o campo e corrigido por quem sentiu a falta, nao adivinhado na abertura. Principio: contexto minimo suficiente, nunca contexto maximo possivel. Validado por scripts/backlog-validate.ps1, que reprova caminho inexistente.",
+    "roles": "Papeis a executar, na ordem. Cada um precisa ter docs/roles/<papel>.md.",
+    "verifications": "Prosa, nao comando: descreve o que precisa ser verificado. Os comandos padrao do repositorio estao em scripts/task-verify.ps1; o resto e trabalho do agente.",
+    "pullRequest": "URL do PR mesclado que fechou a tarefa (ADR-0013)."
+  },
   "project": "TemplateGenerator",
   "templateVersion": "1.0.0",
   "updatedAt": "2026-09-12",
@@ -15,6 +21,7 @@
       "dependsOn": [],
       "roles": ["po", "architect", "reviewer"],
       "skills": [],
+      "context": ["docs/interop.md"],
       "objective": "Preparar o projeto para ser conduzido por agentes em Claude Code e em Codex: documentacao neutra de ferramenta, papeis, playbooks, backlog e configuracao verificada das duas ferramentas.",
       "acceptanceCriteria": [
         "AGENTS.md existe e contem o procedimento de continuidade executavel por uma sessao sem subagentes.",
@@ -50,6 +57,11 @@
       "dependsOn": ["T00"],
       "roles": ["architect", "backend", "frontend"],
       "skills": [],
+      "context": [
+        "docs/architecture/platform.md",
+        "docs/architecture/http-contract.md",
+        "docs/product/option-matrix.md"
+      ],
       "objective": "Criar o monorepositorio conforme docs/architecture/platform.md, com versoes fixadas e os dois endpoints respondendo com o contrato definido, ainda sem geracao real.",
       "acceptanceCriteria": [
         "Estrutura de src/ e tests/ conforme platform.md, com a solucao compilando.",
@@ -79,6 +91,10 @@
       "dependsOn": ["T01"],
       "roles": ["frontend", "reviewer"],
       "skills": ["frontend-design"],
+      "context": [
+        "docs/design/visual-spec.md",
+        "docs/architecture/http-contract.md"
+      ],
       "objective": "Fixar os valores da direcao visual e implementar a tela com os oito estados de docs/design/visual-spec.md.",
       "acceptanceCriteria": [
         "Tokens de cor e tipografia fixados, com contraste AA para texto e indicador de foco.",
@@ -108,6 +124,12 @@
       "dependsOn": ["T01"],
       "roles": ["backend", "template-engineer", "qa"],
       "skills": ["dotnet-templates", "verify-mvp"],
+      "context": [
+        "docs/architecture/generation-engine.md",
+        "docs/architecture/generated-projects.md",
+        "docs/product/option-matrix.md",
+        "docs/decisions/adr-0003-zip-deterministico.md"
+      ],
       "objective": "Implementar o motor de geracao deterministico e o primeiro template: arquitetura Simples, sem banco, sem autenticacao.",
       "acceptanceCriteria": [
         "POST /api/templates devolve um ZIP valido para a combinacao simple/none/none.",
@@ -144,6 +166,11 @@
       "roles": ["architect", "template-engineer", "backend", "frontend", "qa", "reviewer"],
       "rolesNote": "Papeis ampliados pelo PO ao abrir a tarefa. O backlog previa architect, template-engineer e qa, mas os criterios acrescentados ao fim de T03 exigem backend (ADR-0012: derivacao de disponibilidade, campo no catalogo, recusa com 501) e frontend (mensagem do ramo notImplemented, reconhecedor de confinamento e projecao da arvore de clean). Ampliar os papeis nao altera criterio de aceite algum.",
       "skills": ["dotnet-templates", "verify-mvp"],
+      "context": [
+        "docs/architecture/generated-projects.md",
+        "docs/decisions/adr-0012-combinacao-sem-template.md",
+        "docs/decisions/adr-0010-estrutura-prevista-e-projecao.md"
+      ],
       "objective": "Entregar a arquitetura Clean com comportamento identico ao Simples do ponto de vista da API.",
       "acceptanceCriteria": [
         "Quatro projetos: Api, Application, Domain e Infrastructure.",
@@ -173,12 +200,21 @@
     },
     {
       "id": "T05",
+      "pullRequest": null,
       "order": 5,
       "title": "SQLite, PostgreSQL e migracoes",
       "state": "pending",
       "dependsOn": ["T04"],
       "roles": ["template-engineer", "qa"],
       "skills": ["dotnet-templates", "verify-mvp"],
+      "context": [
+        "docs/architecture/generated-projects.md",
+        "docs/product/option-matrix.md",
+        "docs/quality/test-strategy.md",
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md",
+        "docs/decisions/adr-0005-sem-containers.md",
+        "docs/environment.md"
+      ],
       "objective": "Adicionar persistencia com EF Core 10 nos dois providers, com migracao inicial propria de cada um.",
       "acceptanceCriteria": [
         "sqlite: migracao inicial de SQLite, connection string local pronta, dados sobrevivem ao reinicio.",
@@ -199,12 +235,19 @@
     },
     {
       "id": "T06",
+      "pullRequest": null,
       "order": 6,
       "title": "Autenticacao Identity nativa",
       "state": "pending",
       "dependsOn": ["T05"],
       "roles": ["template-engineer", "reviewer", "qa"],
       "skills": ["dotnet-templates", "verify-mvp"],
+      "context": [
+        "docs/architecture/generated-projects.md",
+        "docs/product/option-matrix.md",
+        "docs/product/requirements.md",
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md"
+      ],
       "objective": "Entregar ASP.NET Core Identity nativo sobre banco, com cadastro, login bearer e renovacao funcionando.",
       "acceptanceCriteria": [
         "Endpoints nativos do Identity disponiveis; cadastro, login e renovacao funcionam.",
@@ -227,12 +270,19 @@
     },
     {
       "id": "T07",
+      "pullRequest": null,
       "order": 7,
       "title": "Autenticacao JWT externa",
       "state": "pending",
       "dependsOn": ["T06"],
       "roles": ["template-engineer", "reviewer", "qa"],
       "skills": ["dotnet-templates", "verify-mvp"],
+      "context": [
+        "docs/architecture/generated-projects.md",
+        "docs/product/requirements.md",
+        "docs/decisions/adr-0006-oidc-in-process.md",
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md"
+      ],
       "objective": "Entregar validacao de JWT de provedor externo via Authority e Audience, com emissor OIDC de teste in-process.",
       "acceptanceCriteria": [
         "Authority e Audience configurados em appsettings.json, sem provedor embutido.",
@@ -254,12 +304,19 @@
     },
     {
       "id": "T08",
+      "pullRequest": null,
       "order": 8,
       "title": "Swagger opcional e documentacao final dos ZIPs",
       "state": "pending",
       "dependsOn": ["T07"],
       "roles": ["template-engineer", "qa"],
       "skills": ["dotnet-templates", "verify-mvp"],
+      "context": [
+        "docs/decisions/adr-0001-swagger.md",
+        "docs/architecture/generated-projects.md",
+        "docs/product/requirements.md",
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md"
+      ],
       "objective": "Fechar o eixo Swagger conforme ADR-0001 e finalizar o README de cada combinacao.",
       "acceptanceCriteria": [
         "swagger = true: Microsoft.AspNetCore.OpenApi gera o documento e Swashbuckle fornece apenas a UI, ambos habilitados por padrao so em Development.",
@@ -277,12 +334,18 @@
     },
     {
       "id": "T09",
+      "pullRequest": null,
       "order": 9,
       "title": "Tela integrada ao catalogo e download",
       "state": "pending",
       "dependsOn": ["T02", "T08"],
       "roles": ["frontend", "backend", "qa"],
       "skills": ["verify-mvp"],
+      "context": [
+        "docs/design/visual-spec.md",
+        "docs/architecture/http-contract.md",
+        "docs/product/requirements.md"
+      ],
       "objective": "Ligar a tela ao catalogo real e ao download, com todos os estados funcionando ponta a ponta.",
       "acceptanceCriteria": [
         "A tela monta os campos e as restricoes a partir do catalogo do backend, sem valor codificado (RF-02).",
@@ -304,12 +367,14 @@
     },
     {
       "id": "T09b",
+      "pullRequest": null,
       "order": 9.5,
       "title": "Corrigir a corrida entre a troca de opcao e a leitura da arvore no e2e",
       "state": "pending",
       "dependsOn": ["T09"],
       "roles": ["frontend", "qa"],
       "skills": ["verify-mvp"],
+      "context": ["docs/quality/test-strategy.md"],
       "objective": "Tornar assertiva a leitura da arvore no fluxo de ponta a ponta, para que nenhum teste que mude o estado antes de le-la herde a corrida.",
       "acceptanceCriteria": [
         "OBSERVADO, NAO SUSPEITADO: na primeira execucao da suite e2e de T04, a perna celular de 'a outra arquitetura do catalogo tambem baixa o que a tela prometeu' falhou na comparacao arvore x ZIP. Uma falha em quatro execucoes. As tres seguintes passaram 8/8 - e nao reproduzir nao e evidencia de correcao.",
@@ -330,12 +395,20 @@
     },
     {
       "id": "T10",
+      "pullRequest": null,
       "order": 10,
       "title": "Matriz completa e revisao funcional, visual e de seguranca",
       "state": "pending",
       "dependsOn": ["T09"],
       "roles": ["qa", "reviewer"],
       "skills": ["verify-mvp"],
+      "context": [
+        "docs/quality/test-strategy.md",
+        "docs/quality/definition-of-done.md",
+        "docs/product/option-matrix.md",
+        "docs/decisions/adr-0009-fixacao-de-versoes-npm.md",
+        "docs/THIRD-PARTY.md"
+      ],
       "objective": "Executar as camadas 1 a 3 inteiras e a revisao independente de qualidade, seguranca e licencas.",
       "acceptanceCriteria": [
         "Camada 1 passa nas 32 combinacoes, incluindo determinismo por SHA-256.",
@@ -358,12 +431,19 @@
     },
     {
       "id": "T11",
+      "pullRequest": null,
       "order": 11,
       "title": "Validacao em ambiente limpo e entrega local documentada",
       "state": "pending",
       "dependsOn": ["T10"],
       "roles": ["po", "qa", "reviewer"],
       "skills": ["verify-mvp"],
+      "context": [
+        "docs/product/vision.md",
+        "docs/quality/definition-of-done.md",
+        "docs/environment.md",
+        "docs/decisions/adr-0005-sem-containers.md"
+      ],
       "objective": "Provar o criterio de sucesso do MVP num checkout novo, sem conhecimento previo do repositorio.",
       "acceptanceCriteria": [
         "Checkout novo, em diretorio diferente do de trabalho, sobe a plataforma seguindo apenas o README da raiz.",

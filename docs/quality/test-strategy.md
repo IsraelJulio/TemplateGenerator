@@ -81,4 +81,5 @@ estar no README.
 ## Regra que vale para tudo
 
 **Nenhum resultado apenas planejado é registrado como aprovado.** O relatório da tarefa carrega a
-saída real do comando. Ver `AGENTS.md`, seção 5.
+evidência de execução: o comando, o exit code e a saída que comprova o critério.
+Ver [`../conventions.md`](../conventions.md#evidência-em-relatório).

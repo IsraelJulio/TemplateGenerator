@@ -4,7 +4,7 @@
 
 ## Contexto
 
-Até T04 o projeto trabalhou direto em `main`, e `AGENTS.md` §8 autorizava explicitamente:
+Até T04 o projeto trabalhou direto em `main`, e `AGENTS.md` §8 autorizava explicitamente (a regra vive hoje em `docs/conventions.md`):
 *"Trabalho direto em main é aceitável neste projeto de uma pessoa"*.
 
 O custo apareceu quando o histórico cresceu. Os 13 commits de T01 a T04 formam uma linha única;
@@ -77,7 +77,7 @@ Cinco escolhas concretas:
 
 - **`gh` vira dependência do processo, não do produto.** Não entra em `.csproj`, `package.json`,
   `Directory.Packages.props` nem em ZIP gerado algum. É ferramenta de desenvolvimento, como `git`
-  e `dotnet-ef`, e está registrada como tal em `AGENTS.md` §7. Nada em RNF-06, ADR-0005 ou na
+  e `dotnet-ef`, e está registrada como tal em `docs/environment.md` (à época, `AGENTS.md` §7). Nada em RNF-06, ADR-0005 ou na
   auditoria de licenças é afetado.
 - **Um único passo humano, uma vez por máquina:** `gh auth login`. Depois dele, nenhum PR pede
   ação humana.

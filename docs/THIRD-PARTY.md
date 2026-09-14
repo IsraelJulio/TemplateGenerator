@@ -42,6 +42,96 @@ e licença**. Dependência nova sem linha aqui é reprovada pelo `reviewer`.
 > A skill fica no repositório porque foi pedida no plano do projeto. A recomendação registrada é
 > **removê-la**; `frontend-design` + `docs/design/visual-spec.md` cobrem o papel `frontend`.
 
+### `token-efficiency` — denfry
+
+- **Origem:** `denfry/claude-skills`, caminho `skills/token-efficiency`
+- **Commit fixado:** `cc73299f5d9e5c1a800cf65015093bd527faf0e5` (2026-07-22)
+- **Local:** `~/.claude/skills/token-efficiency/` — **nível de usuário, fora deste repositório**
+- **Licença:** MIT, preservada em `LICENSE` junto aos arquivos
+- **Registro da versão:** `~/.claude/skills/token-efficiency/PINNED.md`
+- **Copiado:** `SKILL.md`, `CORE.md`, `CORE_SHORT.md`, `references/examples.md`, `hooks/README.md`,
+  `hooks/_state.py` (estado compartilhado, de onde vêm os caminhos de escrita auditados) e
+  **três** dos quatro hooks
+- **Uso:** disciplina de contexto transversal; complementa
+  [`context-discipline.md`](context-discipline.md), que é a regra deste projeto
+
+Mora no nível de usuário de propósito: a otimização é útil em qualquer projeto, e não há razão
+para trazer código de terceiro para dentro deste repositório. **Não é dependência do projeto** —
+o fluxo de `AGENTS.md` funciona igual sem ela, e o Codex não a vê.
+
+#### Hooks: três aceitos, um recusado
+
+O instalador oficial (`hooks/install.py`) liga **quatro** hooks. O `hooks/README.md` do projeto
+documenta apenas três. O quarto foi auditado à parte e **recusado**.
+
+| Hook | Evento | Decisão |
+|---|---|---|
+| `efficiency_core.py` | `UserPromptSubmit` | **aceito** — reinjeta ~35–130 tokens de contrato por turno |
+| `trajectory_guard.py` | `PostToolUse` | **aceito, e depois contestado** — ver a ressalva abaixo |
+| `session_report.py` | `Stop` | **aceito** — relatório de uso via `systemMessage`, custo zero de tokens de modelo |
+| `context_budget.py` | `SessionStart` | **RECUSADO** — ver abaixo |
+
+Auditoria dos três aceitos, feita sobre o código no commit fixado: nenhum import de rede
+(`urllib`, `requests`, `socket`), nenhum `subprocess`, nenhum `exec`/`eval`. Escrevem apenas em
+`~/.claude/state/token-efficiency/`. Toda entrada engole exceção e sai com código 0 — payload
+malformado produz silêncio, não turno quebrado, o que foi confirmado por execução direta com
+payload inválido. As métricas gravadas são contagens (turnos, buscas, arquivos lidos, tokens),
+**não** conteúdo de prompt.
+
+> ⚠️ **Por que `context_budget.py` foi recusado.**
+>
+> 1. **Lê muito além deste projeto.** Varre `~/.claude/projects/*/*.jsonl` — as transcrições de
+>    **todos os projetos da máquina** nos últimos 30 dias — e lê `~/.claude.json`. Esta é uma
+>    máquina corporativa com outros repositórios; leitura local ou não, o alcance excede em muito
+>    o que uma skill de eficiência de tokens precisa.
+> 2. **Pode desabilitar coisas sozinho.** Com `--fix`, ou com `TOKEN_EFFICIENCY_AUTOFIX=1` em modo
+>    hook, ele move skills e agentes para `~/.claude/skills-disabled/`, marca plugins como
+>    `false` em `enabledPlugins` e remove servidores MCP de `~/.claude.json`. É reversível
+>    (`--restore`), mas é ação automática sobre a configuração da ferramenta.
+> 3. **Mesmo em modo relatório, ele fala.** Injeta contexto em `SessionStart` pedindo ao modelo
+>    que mencione a poda ao usuário — custo e ruído em toda sessão nova, sobre um assunto que não
+>    é o da tarefa.
+> 4. **Não está documentado** no `hooks/README.md` do próprio projeto, que descreve três hooks.
+>
+> Nenhum desses pontos é malicioso, e o código é honesto sobre o que faz. Mas segurança e
+> previsibilidade têm prioridade sobre economia de tokens: o arquivo **não foi copiado**, e por
+> isso não há como ligá-lo por engano. `install.py` também não foi copiado, justamente porque
+> ligaria os quatro — os três aceitos foram escritos à mão em `~/.claude/settings.json`, com
+> backup do arquivo anterior em `settings.json.bak-pre-token-efficiency`.
+>
+> ⚠️ **Ressalva contra `trajectory_guard.py`, levantada pelo `reviewer` e confirmada.**
+>
+> Em sessão com subagente, o subagente **herda `session_id` e `prompt_id` do pai**. O hook compara
+> `state["edited"][path] == prompt_id` e conclui *"você editou este arquivo neste mesmo turno"* —
+> para arquivos que o **pai** editou. Resultado medido: quatro avisos falsos ao `reviewer`, ao ler
+> arquivos pela primeira vez, desencorajando-o de ler o diff.
+>
+> Isso pressiona contra a independência do reviewer, que é propriedade arquitetural (ADR-0013,
+> ADR-0014). **A remoção está recomendada e pendente de decisão do dono do ambiente** — reverter
+> uma instalação exige aprovação explícita. Registrado em
+> [`reports/context-optimization.md`](reports/context-optimization.md).
+>
+> Os outros dois não têm o problema: `efficiency_core.py` injeta texto fixo, sem estado; e
+> `session_report.py` fala por `systemMessage`, fora do contexto do modelo.
+
+> **Para remover os hooks:** apague o bloco `"hooks"` de `~/.claude/settings.json`, ou restaure o
+> backup. Para remover a skill: apague `~/.claude/skills/token-efficiency/`.
+
+#### A segunda candidata, não instalada
+
+`valorisa/Claude-Skills`, skill `token-optimization` (MIT, 12 estrelas, 400 linhas), foi avaliada
+para comparação e **não instalada**. Razões:
+
+- **Sobreposição alta** no que importa aqui: disciplina de contexto, escolha de ferramenta,
+  filtragem de saída verbosa. O que ela tem de próprio — hierarquia de invalidação de cache de
+  prompt, escolha de modelo e *effort*, auditoria de MCP — é majoritariamente **configuração de
+  uma vez**, não hábito por turno, e não justifica contexto permanente.
+- **Gatilhos largos** ("tokens", "cost", "context", "cache", "slow", "optimize") fariam a skill
+  disparar com frequência sobre trabalho que não é dela.
+- **Vem de uma coleção de 38 skills**, e instalar coleções é exatamente o que se quis evitar.
+
+Limite adotado: **no máximo duas skills de otimização de contexto**, e hoje uma basta.
+
 ## Fontes
 
 Fixadas em T02. Hospedadas localmente, **sem CDN**, em `src/web/public/fonts/`, com o texto da
