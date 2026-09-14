@@ -25,9 +25,15 @@ namespace TemplateGenerator.Generation.Engine;
 /// <para>
 /// Há dois conjuntos disjuntos de marcadores: os de <strong>valor</strong>, declarados aqui, que
 /// vêm da requisição; e os de <strong>contribuição</strong>, declarados pelos arquivos de
-/// <c>__parts__/</c> (<see cref="TemplateContributions"/>, ADR-0011). A diferença de tratamento é
-/// uma só, e está na regra da linha: contribuição sozinha na linha consome a linha inteira, valor
-/// não.
+/// <c>__parts__/</c> (<see cref="TemplateContributions"/>, ADR-0011). A diferença de tratamento
+/// está na regra da linha: no arquivo hospedeiro, contribuição sozinha na linha consome a linha
+/// inteira, e valor não.
+/// </para>
+/// <para>
+/// Dentro de uma contribuição a diferença some para quem escreve template: um marcador de
+/// contribuição de eixo estritamente anterior já está fechado e se comporta como marcador de valor
+/// (ADR-0015, decisão 1). A regra da linha não vale ali — é <see cref="ApplyValues"/>, e não
+/// <see cref="ApplyToContent"/>, quem resolve aquele texto.
 /// </para>
 /// </remarks>
 public static partial class TemplateTokens
@@ -67,25 +73,31 @@ public static partial class TemplateTokens
         !string.IsNullOrEmpty(name) && NamePattern().IsMatch(name);
 
     /// <summary>
-    /// Substitui apenas marcadores de <strong>valor</strong>, recusando qualquer outro.
+    /// Substitui, dentro de uma <strong>contribuição</strong>, os marcadores de valor e os
+    /// marcadores de contribuição que ela pode ler para trás — recusando qualquer outro.
     /// </summary>
     /// <param name="text">Conteúdo de um arquivo de contribuição.</param>
     /// <param name="values">Marcadores de valor.</param>
-    /// <param name="contributionMarkers">
-    /// Marcadores de contribuição conhecidos. Não são substituídos — servem para que um marcador
-    /// de contribuição dentro de uma contribuição seja recusado com a mensagem certa em vez de um
-    /// genérico "marcador desconhecido" (ADR-0011, item 6).
+    /// <param name="scope">
+    /// O que este eixo pode ler: os marcadores já fechados, com o valor acumulado, e o que é
+    /// preciso para recusar os demais nomeando os dois eixos (ADR-0015, decisão 1).
     /// </param>
     /// <param name="origin">Onde o texto foi lido, para a mensagem de erro.</param>
+    /// <remarks>
+    /// Uma passada só, como <see cref="ApplyToContent"/>: o que é inserido não volta a ser
+    /// examinado. Aqui isso é mais do que economia — é o que faz a leitura para trás parar sem
+    /// nenhuma regra de recursão. A ordem total dos eixos já garantiu que o valor inserido está
+    /// fechado.
+    /// </remarks>
     public static string ApplyValues(
         string text,
         IReadOnlyDictionary<string, string> values,
-        IReadOnlySet<string> contributionMarkers,
+        TemplateContributions.Scope scope,
         string origin)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(values);
-        ArgumentNullException.ThrowIfNull(contributionMarkers);
+        ArgumentNullException.ThrowIfNull(scope);
 
         return MarkerPattern().Replace(text, match =>
         {
@@ -94,16 +106,20 @@ public static partial class TemplateTokens
                 return replacement;
             }
 
-            if (contributionMarkers.Contains(match.Value))
+            // Marcador de contribuição de eixo estritamente anterior: já fechado, e portanto
+            // indistinguível de um marcador de valor para quem está aqui.
+            if (scope.TryRead(match.Value, out string? contributed))
             {
-                throw new TemplateDefectException(
-                    $"A contribuição '{origin}' usa o marcador de contribuição '{match.Value}'. " +
-                    "Contribuição dentro de contribuição não existe: não há aninhamento e, " +
-                    "portanto, não há recursão (ADR-0011, item 6). Só marcadores de valor " +
-                    "valem aqui dentro.");
+                return contributed;
             }
 
-            throw Unknown(match.Value, origin, values, contributionMarkers);
+            // Conhecido, mas não para trás: o próprio eixo ou um posterior.
+            if (scope.Declares(match.Value))
+            {
+                throw scope.NotBackwards(match.Value, origin);
+            }
+
+            throw Unknown(match.Value, origin, values, scope.Markers);
         });
     }
 

@@ -318,7 +318,7 @@ public sealed class TemplateContributionsTests
             TextOf(plan, "lista.txt"));
     }
 
-    // ---------------------------------------------------------------- item 6: aninhamento
+    // ------------------------------------------ item 6: leitura para trás (ADR-0015, decisão 1)
 
     [Fact]
     public void Item6_marcador_de_valor_dentro_da_contribuicao_e_substituido()
@@ -336,7 +336,98 @@ public sealed class TemplateContributionsTests
     }
 
     [Fact]
-    public void Item6_marcador_de_contribuicao_dentro_da_contribuicao_e_erro()
+    public void Item6_a_contribuicao_le_marcador_alimentado_por_eixo_estritamente_anterior()
+    {
+        // O caso concreto que ADR-0015 existe para resolver: o `README.md` pertence a
+        // `architecture/*` (regra 1 de ADR-0011), o passo de migração é contribuição de
+        // `database/*`, e o comando dentro dele precisa citar um caminho de projeto que só a
+        // arquitetura conhece.
+        FakeTemplateSource source = new FakeTemplateSource()
+            .With("architecture/clean", "README.md", "# Passos\n__ReadmeSetup__\n")
+            .With(
+                "architecture/clean",
+                Part("PersistenceProjectDir.txt"),
+                "src/__ProjectName__.Infrastructure")
+            .With(
+                "database/sqlite",
+                Part("ReadmeSetup.md"),
+                "Aplique a migração:\n\n    dotnet ef database update --project __PersistenceProjectDir__");
+
+        GenerationPlan plan = Resolve(source, Request(architecture: "clean", database: "sqlite"));
+
+        Assert.Equal(
+            "# Passos\n"
+            + "Aplique a migração:\n"
+            + "\n"
+            + "    dotnet ef database update --project src/Acme.Billing.Infrastructure\n",
+            TextOf(plan, "README.md"));
+    }
+
+    [Fact]
+    public void Item6_uma_passada_por_eixo_fecha_a_cadeia_inteira()
+    {
+        // `common` alimenta o que `architecture/*` lê, que alimenta o que `database/*` lê. Não há
+        // ponto fixo nem detecção de ciclo: quando o eixo `n` é resolvido, os anteriores já estão
+        // fechados, e é a ordem total que entrega isso de graça (especificação, item 4).
+        FakeTemplateSource source = new FakeTemplateSource()
+            .With("architecture/simple", "x.txt", "__Fim__\n")
+            .With("common", Part("Raiz.txt"), "raiz")
+            .With("architecture/simple", Part("Meio.txt"), "[__Raiz__]")
+            .With("database/sqlite", Part("Fim.txt"), "<__Meio__>");
+
+        GenerationPlan plan = Resolve(source, Request(database: "sqlite"));
+
+        Assert.Equal("<[raiz]>\n", TextOf(plan, "x.txt"));
+    }
+
+    [Fact]
+    public void Item6_dentro_da_contribuicao_vale_a_regra_8_e_nao_a_regra_da_linha()
+    {
+        // Especificação, item 6: um marcador sozinho na coluna 0 DENTRO de uma contribuição não
+        // consome a linha. A regra 7 vale apenas no arquivo hospedeiro — aqui o texto já foi
+        // normalizado e aparado, e uma segunda regra de linha só produziria surpresa.
+        FakeTemplateSource source = new FakeTemplateSource()
+            .With("architecture/simple", "x.txt", "__Setup__\n")
+            .With("architecture/simple", Part("ApiProjectDir.txt"), "src/__ProjectName__")
+            .With("database/sqlite", Part("Setup.md"), "antes\n__ApiProjectDir__\ndepois");
+
+        GenerationPlan plan = Resolve(source, Request(database: "sqlite"));
+
+        Assert.Equal("antes\nsrc/Acme.Billing\ndepois\n", TextOf(plan, "x.txt"));
+    }
+
+    [Fact]
+    public void Item6_marcador_anterior_com_duas_contribuicoes_entra_com_quebra_entre_elas()
+    {
+        // Regra 8, a mesma do arquivo hospedeiro: literal, com `\n` entre contribuições.
+        FakeTemplateSource source = new FakeTemplateSource()
+            .With("architecture/simple", "x.txt", "__Fim__\n")
+            .With("common", Part("Lista.txt"), "um")
+            .With("architecture/simple", Part("Lista.txt"), "dois")
+            .With("database/sqlite", Part("Fim.txt"), "[__Lista__]");
+
+        GenerationPlan plan = Resolve(source, Request(database: "sqlite"));
+
+        Assert.Equal("[um\ndois]\n", TextOf(plan, "x.txt"));
+    }
+
+    [Fact]
+    public void Item6_marcador_anterior_sem_fragmento_selecionado_resolve_vazio()
+    {
+        // A regra 3 de ADR-0011 vale igual aqui dentro: o marcador é conhecido, ninguém
+        // selecionado o alimenta, o valor é a string vazia — e não um erro.
+        FakeTemplateSource source = new FakeTemplateSource()
+            .With("architecture/simple", "x.txt", "__Fim__\n")
+            .With("architecture/clean", Part("SoNaClean.txt"), "clean")
+            .With("database/sqlite", Part("Fim.txt"), "[__SoNaClean__]");
+
+        GenerationPlan plan = Resolve(source, Request(architecture: "simple", database: "sqlite"));
+
+        Assert.Equal("[]\n", TextOf(plan, "x.txt"));
+    }
+
+    [Fact]
+    public void Item6_contribuicao_citando_marcador_do_proprio_eixo_e_defeito()
     {
         FakeTemplateSource source = new FakeTemplateSource()
             .With("architecture/simple", "x.csproj", "__Externo__\n")
@@ -347,12 +438,75 @@ public sealed class TemplateContributionsTests
             Assert.Throws<TemplateDefectException>(() => Resolve(source));
 
         Assert.Contains("__Interno__", defect.Message, StringComparison.Ordinal);
-        Assert.Contains("aninhamento", defect.Message, StringComparison.Ordinal);
-        Assert.Contains("recursão", defect.Message, StringComparison.Ordinal);
+        Assert.Contains("'common'", defect.Message, StringComparison.Ordinal);
+        Assert.Contains("próprio eixo", defect.Message, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Item6_marcador_desconhecido_dentro_da_contribuicao_tambem_e_erro()
+    public void Item6_o_proprio_eixo_e_defeito_mesmo_entre_fragmentos_que_nunca_saem_juntos()
+    {
+        // Especificação, item 3: `architecture/simple` citando marcador de `architecture/clean`.
+        // A regra é "eixo estritamente anterior", sem exceção — dois fragmentos do mesmo eixo não
+        // têm ordem entre si, e admitir o caso obrigaria a distinguir "mesmo eixo, fragmento
+        // diferente", um segundo conceito para um caso que nenhum template quer.
+        FakeTemplateSource source = new FakeTemplateSource()
+            .With("architecture/simple", "x.txt", "__Alvo__\n")
+            .With("architecture/clean", Part("SoNaClean.txt"), "clean")
+            .With("architecture/simple", Part("Alvo.txt"), "[__SoNaClean__]");
+
+        TemplateDefectException defect = Assert.Throws<TemplateDefectException>(
+            () => Resolve(source, Request(architecture: "simple")));
+
+        Assert.Contains("__SoNaClean__", defect.Message, StringComparison.Ordinal);
+        Assert.Contains("'architecture'", defect.Message, StringComparison.Ordinal);
+        Assert.Contains("nunca são selecionados juntos", defect.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Item6_contribuicao_citando_marcador_de_eixo_posterior_e_defeito()
+    {
+        FakeTemplateSource source = new FakeTemplateSource()
+            .With("architecture/simple", "x.txt", "__Setup__\n")
+            .With("auth/jwt", Part("Authority.txt"), "https://exemplo")
+            .With("database/sqlite", Part("Setup.md"), "aponte para __Authority__");
+
+        TemplateDefectException defect = Assert.Throws<TemplateDefectException>(
+            () => Resolve(source, Request(database: "sqlite", authentication: "jwt")));
+        // A mensagem nomeia os dois eixos e diz qual dos dois vem antes.
+        Assert.Contains("__Authority__", defect.Message, StringComparison.Ordinal);
+        Assert.Contains("do eixo 'database'", defect.Message, StringComparison.Ordinal);
+        Assert.Contains("alimentado pelo eixo 'auth'", defect.Message, StringComparison.Ordinal);
+        Assert.Contains(
+            "'auth' não vem antes de 'database': é 'database' que vem antes de 'auth'",
+            defect.Message,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "common < architecture < database < auth < swagger",
+            defect.Message,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Item1_a_legalidade_nao_depende_da_combinacao_pedida()
+    {
+        // Quem alimenta o marcador é apurado sobre o repositório INTEIRO. O mesmo template é
+        // defeito em toda combinação, e não só nas que selecionam o fragmento citado.
+        FakeTemplateSource source = new FakeTemplateSource()
+            .With("architecture/simple", "x.txt", "__Setup__\n")
+            .With("swagger/enabled", Part("Endereco.txt"), "/swagger")
+            .With("database/sqlite", Part("Setup.md"), "veja __Endereco__");
+
+        foreach (bool swagger in (bool[])[true, false])
+        {
+            TemplateDefectException defect = Assert.Throws<TemplateDefectException>(
+                () => Resolve(source, Request(database: "sqlite", swagger: swagger)));
+
+            Assert.Contains("alimentado pelo eixo 'swagger'", defect.Message, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void Item2_marcador_que_ninguem_alimenta_continua_sendo_erro_dentro_da_contribuicao()
     {
         FakeTemplateSource source = new FakeTemplateSource()
             .With("architecture/simple", "x.csproj", "__Externo__\n")
