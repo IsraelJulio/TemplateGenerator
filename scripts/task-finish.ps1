@@ -9,7 +9,9 @@
       - o relatorio existe e tem as secoes obrigatorias do template;
       - ha pelo menos um bloco de comando com exit code no relatorio;
       - a tabela de criterios tem uma linha por acceptanceCriteria da tarefa;
-      - nenhum criterio ficou marcado com X vermelho (U+274C) ou vazio;
+      - nenhum criterio ficou marcado com X vermelho (U+274C) nem com veredito em branco;
+      - a secao do portao do git-flow existe e nao registra MUDANCAS SOLICITADAS (tarefa
+        posterior a ADR-0013, identificada pelo campo pullRequest);
       - ha parecer do reviewer, e ele nao e so "esta bom";
       - o backlog fica consistente depois da escrita.
 
@@ -65,8 +67,9 @@ $required = @(
     @{ Pattern = '(?m)^##\s+Verifica';              Name = 'secao Verificacoes' }
     @{ Pattern = '(?m)^##\s+Crit';                  Name = 'secao Criterios de aceite' }
     @{ Pattern = '(?m)^##\s+Parecer do reviewer';   Name = 'secao Parecer do reviewer' }
-    @{ Pattern = '(?m)^##\s+Port';                  Name = 'secao Portao do git-flow' }
 )
+# A secao "Portao do git-flow" NAO entra aqui: ela so e exigida de tarefa posterior a
+# ADR-0013, e essa decisao e tomada mais abaixo, junto com a checagem do veredito.
 foreach ($r in $required) {
     if ($report -notmatch $r.Pattern) { $problems += "relatorio sem $($r.Name)" }
 }
@@ -89,32 +92,70 @@ if (-not $hasExitCode) {
 
 # --- criterios ----------------------------------------------------------------
 $criteria = @(Get-TaskProp $task 'acceptanceCriteria' @())
-$rows = @([regex]::Matches($report, '(?m)^\|\s*\d+\s*\|'))
-if ($criteria.Count -gt 0) {
-    if ($rows.Count -lt $criteria.Count) {
-        $problems += "tabela de criterios tem $($rows.Count) linha(s) numerada(s) para $($criteria.Count) criterio(s) da tarefa"
-    }
+
+# Conta SO dentro da secao de criterios. Contar o relatorio inteiro somaria linhas de outras
+# tabelas numeradas e poderia esconder uma tabela de criterios incompleta.
+$critSection = ''
+$mc = [regex]::Match($report, '(?ms)^##\s+Crit[^\r\n]*\r?\n(.*?)(?=^##\s|\z)')
+if ($mc.Success) { $critSection = $mc.Groups[1].Value }
+
+$rows = @([regex]::Matches($critSection, '(?m)^\|\s*\d+\s*\|'))
+if ($criteria.Count -gt 0 -and $rows.Count -lt $criteria.Count) {
+    $problems += "tabela de criterios tem $($rows.Count) linha(s) numerada(s) para $($criteria.Count) criterio(s) da tarefa"
 }
 # O "X vermelho" do template e U+274C. Referenciado por codigo porque este arquivo e ASCII puro:
 # o PowerShell 5.1 le script sem BOM na codepage do console e quebra em qualquer byte nao-ASCII.
 $crossMark = [string][char]0x274C
-$unmet = @([regex]::Matches($report, '(?m)^\|\s*\d+\s*\|[^\r\n]*' + [regex]::Escape($crossMark)))
+$unmet = @([regex]::Matches($critSection, '(?m)^\|\s*\d+\s*\|[^\r\n]*' + [regex]::Escape($crossMark)))
 if ($unmet.Count -gt 0) {
     $problems += "$($unmet.Count) criterio(s) marcado(s) com X vermelho - tarefa nao esta done, o estado e blocked"
 }
 
+# Ultima celula em branco: criterio sem veredito nenhum passaria pela checagem acima.
+$blankVerdict = @([regex]::Matches($critSection, '(?m)^\|\s*\d+\s*\|[^\r\n]*\|\s*\|\s*$'))
+if ($blankVerdict.Count -gt 0) {
+    $problems += "$($blankVerdict.Count) criterio(s) com a coluna de veredito em branco"
+}
+
 # --- reviewer -----------------------------------------------------------------
+# O template PEDE que rodadas reprovadas fiquem registradas ("se reprovou alguma vez, o que
+# faltava e o que corrigiu"). Por isso a presenca da palavra "reprovado" NAO pode reprovar: ela
+# e o historico esperado. O que decide e a existencia de uma aprovacao no texto.
 $reviewerSection = ''
 $m = [regex]::Match($report, '(?ms)^##\s+Parecer do reviewer\s*(.*?)(?=^##\s|\z)')
 if ($m.Success) { $reviewerSection = $m.Groups[1].Value.Trim() }
+
+$cedilla = [string][char]0x00E7
+$changesRequested = '(?i)mudan[c' + $cedilla + ']as solicitadas'
+
 if ($reviewerSection.Length -lt 40) {
     $problems += 'parecer do reviewer vazio ou curto demais para ser parecer'
 }
-elseif ($reviewerSection -match '(?i)reprovado|mudan[c]as solicitadas') {
-    $problems += 'parecer do reviewer diz reprovado - corrija com o papel dono antes de fechar'
-}
 elseif ($reviewerSection -notmatch '(?i)aprovad') {
-    $notes += 'parecer do reviewer nao diz "aprovado" explicitamente'
+    $problems += 'parecer do reviewer nao registra aprovacao - sem "aprovado" no texto, nao fecha'
+}
+elseif ($reviewerSection -match '(?i)aprovado com ressalvas') {
+    $notes += 'parecer diz "aprovado com ressalvas" - confirme que nenhuma ressalva segue aberta'
+}
+
+# --- portao do git-flow -------------------------------------------------------
+# So exigido de tarefa posterior a ADR-0013, identificada por ter campo pullRequest.
+# T00 a T04 sao anteriores a decisao e nao tem essa secao.
+$gateSection = ''
+$mg = [regex]::Match($report, '(?ms)^##\s+Port[^\r\n]*git-flow\s*(.*?)(?=^##\s|\z)')
+if ($mg.Success) { $gateSection = $mg.Groups[1].Value.Trim() }
+
+$isPostAdr0013 = ($task.PSObject.Properties.Name -contains 'pullRequest') -or $PullRequest
+if ($isPostAdr0013) {
+    if ($gateSection.Length -lt 20) {
+        $problems += 'secao "Portao do git-flow" ausente ou vazia, e esta tarefa e posterior a ADR-0013'
+    }
+    elseif ($gateSection -match $changesRequested) {
+        $problems += 'portao do git-flow registra MUDANCAS SOLICITADAS - o PR nao foi mesclado, a tarefa nao esta fechada'
+    }
+}
+elseif ($gateSection.Length -eq 0) {
+    $notes += 'sem secao "Portao do git-flow" - aceito por ser tarefa anterior a ADR-0013'
 }
 
 # --- relatorio -----------------------------------------------------------------
@@ -161,5 +202,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host ''
-Write-Host "Agora: commit na branch da tarefa, e acione o git-flow com \"fechamento da tarefa $Id\"." -ForegroundColor Cyan
+Write-Host "Agora: commit na branch da tarefa, e acione o git-flow com `"fechamento da tarefa $Id`"." -ForegroundColor Cyan
 Write-Host 'Portao reprovado significa tarefa NAO fechada.' -ForegroundColor Cyan

@@ -33,11 +33,11 @@ Antes de a sessão saber **qual** era a tarefa:
 
 | Arquivo | Linhas | Bytes |
 |---|---:|---:|
-| `.claude/agents/po.md` | 20 | 1.148 |
+| `.claude/agents/po.md` | 20 | 958 |
 | `AGENTS.md` | 150 | 9.117 |
-| `docs/playbooks/po-next.md` | 98 | 4.021 |
-| `docs/backlog.json` | 384 | 20.147 |
-| `docs/roles/po.md` | 72 | 3.089 |
+| `docs/playbooks/po-next.md` | 98 | 4.234 |
+| `docs/backlog.json` | 384 | 27.276 |
+| `docs/roles/po.md` | 72 | 3.174 |
 | **Total** | **724** | **44.759** |
 
 Comando: `wc -lc .claude/agents/po.md AGENTS.md docs/playbooks/po-next.md docs/backlog.json docs/roles/po.md`
@@ -104,12 +104,12 @@ código               busca antes de leitura, por região
 
 | Arquivo | Linhas | Bytes |
 |---|---:|---:|
-| `.claude/agents/po.md` | 23 | 1.394 |
+| `.claude/agents/po.md` | 24 | 1.394 |
 | `AGENTS.md` | 76 | 5.340 |
-| saída de `scripts/task-status.ps1` | 41 | 1.308 |
-| **Total** | **140** | **8.042** |
+| saída de `scripts/task-status.ps1` | 43 | 1.393 |
+| **Total** | **143** | **8.127** |
 
-**44.759 → 8.042 bytes de material carregado antes de a sessão saber o que fazer: −82%.**
+**44.759 → 8.127 bytes de material carregado antes de a sessão saber o que fazer: −82%.**
 
 O resto (`context[]`, roles, relatório) é carregado depois, e é *específico da tarefa* — que é
 exatamente o material que se quer na janela.
@@ -120,7 +120,7 @@ exatamente o material que se quer na janela.
 |---|---:|---:|---|
 | `CLAUDE.md` | 29 linhas | 37 linhas | +8 |
 | `AGENTS.md` | 150 linhas / 9.117 B | 76 linhas / 5.340 B | **−49% linhas** |
-| Preâmbulo obrigatório | 724 linhas / 44.759 B | 140 linhas / 8.042 B | **−82% bytes** |
+| Preâmbulo obrigatório | 724 linhas / 44.759 B | 143 linhas / 8.127 B | **-82% bytes** |
 | Agentes | 8 | 8 | — |
 | Skills locais | 4 | 4 | — |
 | Skills de usuário | 0 | 1 (`token-efficiency`) | +1 |
@@ -149,21 +149,32 @@ Todos em PowerShell 5.1, **ASCII puro** (ver *Riscos*), e todos fazendo só trab
 aceite foi cumprido, revisa código ou decide arquitetura. `task-finish.ps1` recusa o obviamente
 incompleto; **ele não aprova nada.**
 
-Prova de que o portão morde — executado contra um relatório recém-criado pelo template:
+**Prova de que o portão morde**, contra um relatório recém-criado pelo template:
 
 ```
 $ powershell -File scripts/task-finish.ps1 -Id T05 -Check
 task-finish - T05
-  relatorio: docs/reports/T05.md
   criterios: 6 na tarefa, 1 na tabela do relatorio
   ERRO   relatorio ainda tem 4 marcador(es) do template por preencher (ex.: <ISO 8601>)
   ERRO   tabela de criterios tem 1 linha(s) numerada(s) para 6 criterio(s) da tarefa
-  ERRO   1 criterio(s) marcado(s) com X vermelho - tarefa nao esta done, o estado e blocked
-  ERRO   parecer do reviewer diz reprovado - corrija com o papel dono antes de fechar
-
-4 problema(s) estrutural(is). Tarefa NAO fechada.
+  ERRO   parecer do reviewer nao registra aprovacao - sem "aprovado" no texto, nao fecha
+3 problema(s) estrutural(is). Tarefa NAO fechada.
 exit code: 1
 ```
+
+**E prova de que ele não morde quem está certo**, contra os relatórios reais já fechados:
+
+```
+$ powershell -File scripts/task-finish.ps1 -Id T01 -Check
+task-finish - T01
+  criterios: 7 na tarefa, 7 na tabela do relatorio
+  AVISO  sem secao "Portao do git-flow" - aceito por ser tarefa anterior a ADR-0013
+  OK     estrutura do relatorio completa, sem criterio em falta, parecer presente.
+exit code: 0
+```
+
+T00, T01, T02 e T03 passam, com a contagem de critérios batendo exatamente (12/12, 7/7, 8/8,
+12/12). **T04 reprova, e corretamente** — ver *Defeito encontrado em T04*, abaixo.
 
 ### Campo `context[]`
 
@@ -288,6 +299,83 @@ Claude Code. `context[]` é JSON, os scripts são PowerShell, a disciplina de co
 
 ---
 
+## Parecer do reviewer
+
+**Primeira rodada: REPROVADO**, com 10 itens. A revisão independente encontrou defeitos reais que
+esta sessão não teria achado sozinha. Os principais, todos corrigidos:
+
+| # | Achado | Correção |
+|---|---|---|
+| 1 | Quatro documentos citavam `AGENTS.md` §7 e §8, seções que deixaram de existir — inclusive o **item 6 do portão de sete itens** | Apontados para `conventions.md#commits` e `environment.md`. `test-strategy.md` citava "seção 5", que passou a apontar para a coisa errada |
+| 2 | A regra antiga de evidência ("saída real, completa") sobreviveu em 5 documentos, incluindo a **definição de pronto** | Unificados em `conventions.md#evidência-em-relatório` |
+| 3 | A tabela "Antes" deste relatório trazia bytes que **não eram** a saída do comando que ela citava | Remedido contra o conteúdo de `main`; 4 das 5 linhas estavam erradas e não somavam o total |
+| 4a | `task-finish.ps1` reprovava relatório **correto**: bastava a palavra "reprovado" aparecer, e o template **exige** registrar rodadas reprovadas | Passou a decidir pela presença de aprovação, não pela ausência da palavra |
+| 4b | A guarda do veredito do git-flow não casava **"MUDANÇAS SOLICITADAS"** (cedilha), e a seção nem era conferida quanto ao veredito | Cedilha por `[char]0x00E7`; veredito conferido, e a seção passou a ser exigida só de tarefa posterior a ADR-0013 |
+| 5 | O caminho de sucesso do script nunca tinha sido exercitado, e **os 5 relatórios fechados reprovavam** | Corrigido e exercitado: T00–T03 passam |
+| 6 | O bug de `[regex]::Replace` estático ("corrigido") **continuava em `_common.ps1`**, na função que escreve o backlog | Corrigido nos dois pontos, com a forma de instância |
+| 7 | `po-next/SKILL.md` foi de 18 para 93 linhas e virou procedimento — invólucro com regra própria, exatamente o que o projeto proíbe | Reduzido a 34 linhas de ponteiro |
+| 8 | Um hook injetou **afirmação falsa** no contexto do reviewer | Ver abaixo — **não resolvido** |
+| 9 | Lacunas em `context[]`: ADR-0011 faltando em T05–T08, `vision.md` em T11, `environment.md` em T05 | Acrescentados, depois de conferir que as afirmações procediam |
+| 10 | Menores: escape inválido de aspas, concatenação com `+` que o PowerShell descarta, `Select-Object` sobre `Write-Host` (no-op), contagem de critérios fora da seção | Corrigidos |
+
+O parecer também julgou a mudança da regra de evidência: **"em princípio, não [enfraquece]; como
+entregue, sim"** — porque a regra antiga seguia viva em cinco documentos e a ambiguidade sempre se
+resolve pela versão mais frouxa. Com o achado 2 corrigido, a ressalva cai.
+
+### Defeito encontrado em T04, que não é desta mudança
+
+Ao exercitar o portão contra os relatórios reais, `task-finish.ps1` reprovou **T04**:
+
+```
+$ powershell -File scripts/task-finish.ps1 -Id T04 -Check
+  ERRO   parecer do reviewer vazio ou curto demais para ser parecer
+exit code: 1
+```
+
+A seção `## Parecer do reviewer` de `docs/reports/T04.md` contém literalmente `<pendente>`. O
+parecer verdadeiro existe, dentro de `### Papel: reviewer`, e o commit `e9f157c` se chama *"fechar
+tarefa com parecer aprovado do reviewer"* — mas **a seção obrigatória nunca foi preenchida**, e a
+tarefa está `done`.
+
+**Não foi remendado aqui, de propósito.** Preencher aquela seção exigiria eu afirmar um parecer que
+não presenciei, e reescrever o relatório de uma tarefa fechada não é decisão de uma mudança de
+processo. Fica registrado como achado, para o dono decidir. É, em si, evidência de que o portão
+novo pega o que a conferência manual deixou passar.
+
+### Achado 8 — o hook que mentiu para o reviewer, ainda aberto
+
+O `trajectory_guard.py` avisou **quatro vezes** ao reviewer que ele "editou este arquivo neste
+mesmo turno e está lendo de volta", ao ler arquivos **pela primeira vez**.
+
+Causa, confirmada no estado do próprio hook
+(`~/.claude/state/token-efficiency/<session>.json`): o subagente **herda `session_id` e
+`prompt_id` do pai**, e `trajectory_guard.py` compara `state["edited"][path] == prompt_id`. Todo
+arquivo que o PO editou no turno é anunciado ao subagente como editado por ele:
+
+```
+turn: 0 | warnings_emitted: 4 | waste: {'reread': 0, 'blind_read': 0, 'recheck': 4}
+edited:  /docs/roles/reviewer.md -> 166cd924-...   (editado pelo PO, não pelo reviewer)
+```
+
+O efeito é específico e grave: **um hook pressiona o revisor a não ler o diff** — a única coisa que
+ele existe para fazer. E atinge justamente o reviewer, que por desenho nasce no mesmo turno do
+trabalho que revisa.
+
+A auditoria de instalação não tinha como pegar isto: não é o que o hook *faz* (rede, escrita,
+subprocess — tudo limpo), é o que ele *afirma*.
+
+> **Estado: aberto.** A remoção do hook foi tentada e **bloqueada**, corretamente, por exigir
+> aprovação explícita para reverter uma instalação já feita. A decisão é do dono do ambiente. Até
+> lá, os três hooks seguem ligados, e este relatório é o registro de que `trajectory_guard.py`
+> emite afirmação falsa em sessão com subagente.
+>
+> Remoção, quando autorizada: apagar a entrada `PostToolUse` de `~/.claude/settings.json` (backup
+> em `settings.json.bak-pre-token-efficiency`) e o arquivo
+> `~/.claude/skills/token-efficiency/hooks/trajectory_guard.py`. Os outros dois não têm este
+> problema: `efficiency_core.py` injeta texto fixo e `session_report.py` fala por `systemMessage`.
+
+---
+
 ## Validação executada
 
 ```
@@ -330,7 +418,7 @@ Os testes dos scripts também acharam **três defeitos reais**, todos corrigidos
 | Roles acessíveis | ✅ 8 papéis, todos com documento; validado pelo script |
 | Skills acessíveis | ✅ 4 locais + 2 de terceiros + 1 de usuário |
 | Reports válidos | ✅ template atualizado; relatórios existentes intactos |
-| `git-flow` funcionando | ✅ comprovado: PR #1 aberto, julgado e mesclado nesta mesma sessão |
+| `git-flow` funcionando | ✅ exercitado nesta sessão no PR #1 (outra mudança, `chore/adr-0013`), aberto, julgado e mesclado. O PR **desta** branch é o próximo passo |
 | Nenhuma dependência de produto | ✅ `src/` e `tests/` intocados |
 | Nenhum segredo | ✅ ao contrário: novas regras `deny` sobre `.env`, `*.key`, `*.pfx` |
 | Nenhuma dependência de container | ✅ ADR-0005 preservada |

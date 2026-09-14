@@ -210,7 +210,9 @@
         "docs/architecture/generated-projects.md",
         "docs/product/option-matrix.md",
         "docs/quality/test-strategy.md",
-        "docs/decisions/adr-0005-sem-containers.md"
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md",
+        "docs/decisions/adr-0005-sem-containers.md",
+        "docs/environment.md"
       ],
       "objective": "Adicionar persistencia com EF Core 10 nos dois providers, com migracao inicial propria de cada um.",
       "acceptanceCriteria": [
@@ -241,7 +243,8 @@
       "context": [
         "docs/architecture/generated-projects.md",
         "docs/product/option-matrix.md",
-        "docs/product/requirements.md"
+        "docs/product/requirements.md",
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md"
       ],
       "objective": "Entregar ASP.NET Core Identity nativo sobre banco, com cadastro, login bearer e renovacao funcionando.",
       "acceptanceCriteria": [
@@ -274,7 +277,8 @@
       "context": [
         "docs/architecture/generated-projects.md",
         "docs/product/requirements.md",
-        "docs/decisions/adr-0006-oidc-in-process.md"
+        "docs/decisions/adr-0006-oidc-in-process.md",
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md"
       ],
       "objective": "Entregar validacao de JWT de provedor externo via Authority e Audience, com emissor OIDC de teste in-process.",
       "acceptanceCriteria": [
@@ -306,7 +310,8 @@
       "context": [
         "docs/decisions/adr-0001-swagger.md",
         "docs/architecture/generated-projects.md",
-        "docs/product/requirements.md"
+        "docs/product/requirements.md",
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md"
       ],
       "objective": "Fechar o eixo Swagger conforme ADR-0001 e finalizar o README de cada combinacao.",
       "acceptanceCriteria": [
@@ -426,6 +431,7 @@
       "roles": ["po", "qa", "reviewer"],
       "skills": ["verify-mvp"],
       "context": [
+        "docs/product/vision.md",
         "docs/quality/definition-of-done.md",
         "docs/environment.md",
         "docs/decisions/adr-0005-sem-containers.md"

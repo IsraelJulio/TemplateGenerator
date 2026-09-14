@@ -5,8 +5,9 @@
 Uma tarefa só vira `done` quando **todos** os itens abaixo são verdadeiros:
 
 1. Todos os `acceptanceCriteria` da tarefa em `docs/backlog.json` estão cumpridos.
-2. Cada critério tem, no relatório, **a saída real do comando** que o comprova — não uma
-   afirmação de que funciona.
+2. Cada critério tem, no relatório, **o comando, o exit code e a saída que o comprova** — não
+   uma afirmação de que funciona, nem uma paráfrase. Regra e limites em
+   [`../conventions.md`](../conventions.md#evidência-em-relatório).
 3. Todas as `verifications` da tarefa foram executadas e passaram.
 4. O papel `reviewer` deu parecer, registrado no relatório, como passo separado da execução.
 5. O relatório `docs/reports/<ID>.md` está completo conforme `_template.md`.

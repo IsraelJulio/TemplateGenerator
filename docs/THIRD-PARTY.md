@@ -49,8 +49,9 @@ e licença**. Dependência nova sem linha aqui é reprovada pelo `reviewer`.
 - **Local:** `~/.claude/skills/token-efficiency/` — **nível de usuário, fora deste repositório**
 - **Licença:** MIT, preservada em `LICENSE` junto aos arquivos
 - **Registro da versão:** `~/.claude/skills/token-efficiency/PINNED.md`
-- **Copiado:** `SKILL.md`, `CORE.md`, `CORE_SHORT.md`, `references/examples.md`, `hooks/README.md`
-  e **três** dos quatro hooks
+- **Copiado:** `SKILL.md`, `CORE.md`, `CORE_SHORT.md`, `references/examples.md`, `hooks/README.md`,
+  `hooks/_state.py` (estado compartilhado, de onde vêm os caminhos de escrita auditados) e
+  **três** dos quatro hooks
 - **Uso:** disciplina de contexto transversal; complementa
   [`context-discipline.md`](context-discipline.md), que é a regra deste projeto
 
@@ -66,7 +67,7 @@ documenta apenas três. O quarto foi auditado à parte e **recusado**.
 | Hook | Evento | Decisão |
 |---|---|---|
 | `efficiency_core.py` | `UserPromptSubmit` | **aceito** — reinjeta ~35–130 tokens de contrato por turno |
-| `trajectory_guard.py` | `PostToolUse` | **aceito** — avisa sobre releitura, re-execução e leitura cega |
+| `trajectory_guard.py` | `PostToolUse` | **aceito, e depois contestado** — ver a ressalva abaixo |
 | `session_report.py` | `Stop` | **aceito** — relatório de uso via `systemMessage`, custo zero de tokens de modelo |
 | `context_budget.py` | `SessionStart` | **RECUSADO** — ver abaixo |
 
@@ -98,6 +99,21 @@ payload inválido. As métricas gravadas são contagens (turnos, buscas, arquivo
 > ligaria os quatro — os três aceitos foram escritos à mão em `~/.claude/settings.json`, com
 > backup do arquivo anterior em `settings.json.bak-pre-token-efficiency`.
 >
+> ⚠️ **Ressalva contra `trajectory_guard.py`, levantada pelo `reviewer` e confirmada.**
+>
+> Em sessão com subagente, o subagente **herda `session_id` e `prompt_id` do pai**. O hook compara
+> `state["edited"][path] == prompt_id` e conclui *"você editou este arquivo neste mesmo turno"* —
+> para arquivos que o **pai** editou. Resultado medido: quatro avisos falsos ao `reviewer`, ao ler
+> arquivos pela primeira vez, desencorajando-o de ler o diff.
+>
+> Isso pressiona contra a independência do reviewer, que é propriedade arquitetural (ADR-0013,
+> ADR-0014). **A remoção está recomendada e pendente de decisão do dono do ambiente** — reverter
+> uma instalação exige aprovação explícita. Registrado em
+> [`reports/context-optimization.md`](reports/context-optimization.md).
+>
+> Os outros dois não têm o problema: `efficiency_core.py` injeta texto fixo, sem estado; e
+> `session_report.py` fala por `systemMessage`, fora do contexto do modelo.
+
 > **Para remover os hooks:** apague o bloco `"hooks"` de `~/.claude/settings.json`, ou restaure o
 > backup. Para remover a skill: apague `~/.claude/skills/token-efficiency/`.
 

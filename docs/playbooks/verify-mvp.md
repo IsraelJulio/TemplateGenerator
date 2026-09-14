@@ -75,7 +75,9 @@ Playwright baixa navegadores na primeira execução.
 
 No relatório da tarefa:
 
-- A **saída real** de cada comando, completa.
+- De cada comando: o comando literal, o **exit code** e a saída que comprova o critério. Log
+  completo em arquivo quando for grande — ver
+  [`../conventions.md`](../conventions.md#evidência-em-relatório).
 - Os hashes comparados na camada 1.
 - Captura de tela para o que é visual.
 - A lista do que **não** foi executado e por quê.

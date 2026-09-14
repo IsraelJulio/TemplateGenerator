@@ -82,7 +82,10 @@ function Set-TaskField([string]$Text, [string]$Id, [string]$Field, [string]$Valu
     $pattern = '"' + [regex]::Escape($Field) + '"\s*:\s*(?:"(?:[^"\\]|\\.)*"|null|true|false|-?\d+(?:\.\d+)?)'
 
     if ([regex]::IsMatch($body, $pattern)) {
-        $newBody = [regex]::Replace($body, $pattern, '"' + $Field + '": ' + $encoded.Replace('$', '$$'), 1)
+        # Forma de INSTANCIA, nao estatica: o 4o argumento de [regex]::Replace estatico e
+        # RegexOptions, nao contagem - passar 1 ali liga IgnoreCase e substitui TUDO.
+        $rx = [regex]$pattern
+        $newBody = $rx.Replace($body, '"' + $Field + '": ' + $encoded.Replace('$', '$$'), 1)
     }
     else {
         # Insere logo apos o "id", herdando a indentacao da linha seguinte.
@@ -97,7 +100,11 @@ function Set-TaskField([string]$Text, [string]$Id, [string]$Field, [string]$Valu
 }
 
 function Set-BacklogUpdatedAt([string]$Text, [string]$Date) {
-    [regex]::Replace($Text, '("updatedAt"\s*:\s*)"[^"]*"', ('${1}"' + $Date + '"'), 1)
+    # Instancia, pelo mesmo motivo de Set-TaskField: o 4o argumento da forma estatica e
+    # RegexOptions. Aqui importa de verdade - ha um "updatedAt" no topo e os das tarefas
+    # nao devem ser tocados.
+    $rx = [regex]'("updatedAt"\s*:\s*)"[^"]*"'
+    $rx.Replace($Text, ('${1}"' + $Date + '"'), 1)
 }
 
 function Today { (Get-Date).ToString('yyyy-MM-dd') }

@@ -133,6 +133,13 @@ powershell -File scripts/backlog-validate.ps1  # backlog, context[], roles, depe
 - [ ] Todo `.claude/agents/*.md` aponta para um `docs/roles/*.md` existente?
 - [ ] Todo `.claude/skills/*/SKILL.md` local aponta para um `docs/playbooks/*.md` existente?
 - [ ] `scripts/docs-links.ps1` passa — todo link relativo e toda âncora resolvem?
+- [ ] **Nenhuma referência em prosa a seção numerada** (`AGENTS.md` §N) aponta para seção que
+      mudou de assunto ou deixou de existir? `docs-links.ps1` **não vê** essas referências, porque
+      não são links Markdown. Confira com
+      `grep -rn "AGENTS\.md.*§" --include='*.md' docs/ .claude/`, ignorando `docs/reports/`, que é
+      registro histórico.
+- [ ] Ao mudar uma regra, você fez `grep` da redação **antiga** em `docs/` antes de dá-la por
+      realocada? Regra que sobrevive em dois lugares se resolve sempre pela versão mais frouxa.
 - [ ] `scripts/backlog-validate.ps1` passa — inclusive todo caminho de `context[]`?
 - [ ] Todo `context[]` continua **mínimo suficiente**, e não uma lista defensiva de tudo que
       poderia ser útil ([ADR-0014](decisions/adr-0014-divulgacao-progressiva-de-contexto.md))?

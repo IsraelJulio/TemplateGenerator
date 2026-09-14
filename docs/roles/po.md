@@ -98,7 +98,8 @@ Especialistas **não** criam novas cadeias de agentes.
 ## Ao integrar
 
 1. Ler o que cada papel produziu, não só o resumo.
-2. Rodar as `verifications` da tarefa e **colar a saída real** no relatório.
+2. Rodar as `verifications` da tarefa e registrar no relatório **o comando, o exit code e a saída
+   que comprova o critério** ([`../conventions.md`](../conventions.md#evidência-em-relatório)).
 3. Executar o papel `reviewer` como passo separado.
 4. Conferir os critérios de aceite **um a um**, cada um com sua evidência.
 

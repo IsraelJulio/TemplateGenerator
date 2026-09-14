@@ -35,7 +35,8 @@ if ($task.state -eq 'done') {
 }
 if ($task.state -eq 'in_progress') {
     Write-Host "$Id ja esta in_progress desde $(Get-TaskProp $task 'startedAt' '?'). Nada a fazer." -ForegroundColor Yellow
-    Write-Host "Retome por $(Get-TaskProp $task 'report' 'docs/reports/' + $Id + '.md')."
+    $r = Get-TaskProp $task 'report' "docs/reports/$Id.md"
+    Write-Host "Retome por $r."
     exit 0
 }
 

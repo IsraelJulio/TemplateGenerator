@@ -150,7 +150,9 @@ finally { Pop-Location }
 
 # --- validacao ----------------------------------------------------------------
 Write-Section 'Validacao do backlog'
-& (Join-Path $PSScriptRoot 'backlog-validate.ps1') | Select-Object -Last 4 | ForEach-Object { Write-Host $_ }
+# backlog-validate usa Write-Host, que nao vai para o pipeline: filtrar aqui seria no-op.
+# A saida dele e curta de proposito, entao sai inteira.
+& (Join-Path $PSScriptRoot 'backlog-validate.ps1')
 
 Write-Host ''
 if ($selected.state -eq 'in_progress') {

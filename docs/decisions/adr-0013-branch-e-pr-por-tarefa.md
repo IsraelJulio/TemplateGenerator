@@ -77,7 +77,7 @@ Cinco escolhas concretas:
 
 - **`gh` vira dependência do processo, não do produto.** Não entra em `.csproj`, `package.json`,
   `Directory.Packages.props` nem em ZIP gerado algum. É ferramenta de desenvolvimento, como `git`
-  e `dotnet-ef`, e está registrada como tal em `AGENTS.md` §7. Nada em RNF-06, ADR-0005 ou na
+  e `dotnet-ef`, e está registrada como tal em `docs/environment.md` (à época, `AGENTS.md` §7). Nada em RNF-06, ADR-0005 ou na
   auditoria de licenças é afetado.
 - **Um único passo humano, uma vez por máquina:** `gh auth login`. Depois dele, nenhum PR pede
   ação humana.

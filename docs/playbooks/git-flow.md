@@ -68,7 +68,7 @@ git checkout -b feat/<ID>-<slug>
 git branch --show-current             # confirme que saiu de main
 ```
 
-A partir daqui todos os papéis da tarefa trabalham nesta branch. Os commits seguem AGENTS.md §8:
+A partir daqui todos os papéis da tarefa trabalham nesta branch. Os commits seguem [`../conventions.md`](../conventions.md#commits):
 `<ID>: <resumo no imperativo>`, um por entrega coerente — **não** acumule a tarefa inteira em um
 commit só. O PR preserva todos eles.
 
@@ -154,7 +154,7 @@ EOF
 gh pr merge <n> --merge --delete-branch
 ```
 
-`--merge`, **não** `--squash`: o squash apagaria os commits individuais que AGENTS.md §8 exige, e
+`--merge`, **não** `--squash`: o squash apagaria os commits individuais que [`../conventions.md`](../conventions.md#commits) exige, e
 com eles a granularidade que motivou a decisão. Com merge commit, `git log --first-parent main` lê
 uma linha por tarefa e `git log feat/<ID>...` continua mostrando o detalhe.
 
@@ -195,7 +195,7 @@ portão inteiro do item 1 — não só o que falhou.
 | Erro | Por que importa |
 |---|---|
 | Criar a branch depois de já ter trabalhado em `main` | os commits nascem no lugar errado e o PR vira um `cherry-pick` manual. A branch abre **junto** com o `in_progress`. |
-| `--squash` no merge | apaga a granularidade de commit que AGENTS.md §8 exige e ADR-0013 protege. |
+| `--squash` no merge | apaga a granularidade de commit que `conventions.md` exige e ADR-0013 protege. |
 | Aprovar porque "eu mesmo fiz e sei que está certo" | é a auto-aprovação sem portão. O veredito se apoia na saída de comando, não na memória da sessão. |
 | Reexecutar só o item que falhou | os commits de correção podem ter quebrado outro item. O portão é de sete itens, sempre. |
 | Cair para commit em `main` quando o `gh` falha | destrói exatamente a propriedade que a decisão comprou. Falha de `gh` é bloqueio, não atalho. |

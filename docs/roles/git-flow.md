@@ -56,7 +56,7 @@ achou que aconteceu na sessão.
 5. O diff completo da branch contra `main` não traz segredo, credencial, token, arquivo
    temporário, `bin/`, `obj/`, `node_modules/`, `test-results/`, nem arquivo sem relação com a
    tarefa.
-6. Toda mensagem de commit da branch começa com `<ID>: ` e está no imperativo (AGENTS.md §8).
+6. Toda mensagem de commit da branch começa com `<ID>: ` e está no imperativo ([`../conventions.md`](../conventions.md#commits)).
 7. A branch faz merge limpo em `main`, sem conflito.
 
 **O portão recusa por omissão.** Item que você não conseguiu verificar conta como **não
