@@ -20,12 +20,18 @@
 
 ## Verificações
 
-Para cada item de `verifications` da tarefa, o comando e **a saída real, completa**:
+Para cada item de `verifications` da tarefa: **o comando literal, o exit code e a saída que
+comprova o critério**. Quando a saída tem centenas de linhas, cole o trecho probatório e aponte o
+log completo — regra em [`../conventions.md`](../conventions.md#evidência-em-relatório).
 
 ```
 $ <comando>
-<saída>
+<trecho que comprova — o resultado do teste, o hash, a contagem, a linha de erro>
+exit code: <n>
 ```
+
+> Resumir não é parafrasear. "Os testes passaram" não é evidência; `Passed! - Failed: 0,
+> Passed: 147` com exit code 0 é. Se o critério fala de um número, o número aparece aqui.
 
 ## Critérios de aceite
 

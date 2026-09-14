@@ -22,15 +22,27 @@ Se o conhecimento morar nos arquivos de uma ferramenta, a outra começa cega e e
 **Todo conteúdo real mora em `docs/` e em `AGENTS.md`. Os arquivos de ferramenta são ponteiros.**
 
 ```
-AGENTS.md          ← manual canônico (Codex lê direto; Claude lê via CLAUDE.md)
-CLAUDE.md          ← ~20 linhas: "leia AGENTS.md" + o que é só do Claude Code
+AGENTS.md          ← manual canônico: invariantes + roteador + fluxo (Codex lê direto)
+CLAUDE.md          ← ~35 linhas: "leia AGENTS.md" + o que é só do Claude Code
+docs/context-discipline.md ← o que carregar e o que não carregar (ADR-0014)
+docs/conventions.md, docs/environment.md ← detalhe carregado sob demanda
 docs/roles/*.md    ← responsabilidades reais dos papéis
 docs/playbooks/*.md ← procedimentos reais
-docs/backlog.json  ← estado, igual para os dois
-.claude/agents/*.md    → invólucro de 10 linhas sobre docs/roles/
-.claude/skills/*/SKILL.md → invólucro de 10 linhas sobre docs/playbooks/
+docs/backlog.json  ← estado, igual para os dois; cada tarefa declara seu context[]
+scripts/*.ps1      ← trabalho mecânico, igual para os dois
+.claude/agents/*.md    → invólucro sobre docs/roles/
+.claude/skills/*/SKILL.md → invólucro sobre docs/playbooks/
 .codex/config.toml     → só configuração de runtime, zero conhecimento
 ```
+
+**Divulgação progressiva vale nas duas ferramentas.** Nem o `context[]` das tarefas, nem os
+scripts, nem `docs/context-discipline.md` dependem de mecanismo exclusivo do Claude Code: são JSON,
+PowerShell e Markdown. O Codex lê o mesmo `AGENTS.md`, roda os mesmos scripts e carrega o mesmo
+`context[]` ([ADR-0014](decisions/adr-0014-divulgacao-progressiva-de-contexto.md)).
+
+A única exclusão que **é** específica do Claude Code são as regras `permissions.deny` de
+`.claude/settings.json`. Elas não carregam conhecimento nenhum — só impedem leitura de artefato de
+build — e sua ausência no Codex não muda entrega alguma.
 
 Regra: **se você precisou escrever a mesma frase em `.claude/` e em `.codex/`, ela estava no lugar
 errado — mova para `docs/`.**
@@ -108,15 +120,38 @@ codex -C "C:/Users/2273129/Documents/Projects/TemplateGenerator"
 
 Rode quando mudar qualquer arquivo de agente, skill ou config. Uma resposta "não" é defeito.
 
+Boa parte já é executável:
+
+```powershell
+powershell -File scripts/docs-links.ps1        # links e âncoras entre documentos
+powershell -File scripts/backlog-validate.ps1  # backlog, context[], roles, dependências
+```
+
 - [ ] `CLAUDE.md` continua com menos de 40 linhas e sem regra que não exista em `AGENTS.md`?
+- [ ] `AGENTS.md` continua sendo invariantes + roteador + fluxo, sem procedimento detalhado que
+      pertença a um playbook?
 - [ ] Todo `.claude/agents/*.md` aponta para um `docs/roles/*.md` existente?
 - [ ] Todo `.claude/skills/*/SKILL.md` local aponta para um `docs/playbooks/*.md` existente?
+- [ ] `scripts/docs-links.ps1` passa — todo link relativo e toda âncora resolvem?
+- [ ] `scripts/backlog-validate.ps1` passa — inclusive todo caminho de `context[]`?
+- [ ] Todo `context[]` continua **mínimo suficiente**, e não uma lista defensiva de tudo que
+      poderia ser útil ([ADR-0014](decisions/adr-0014-divulgacao-progressiva-de-contexto.md))?
+- [ ] Os scripts de `scripts/` continuam fazendo só trabalho mecânico, sem julgar critério de
+      aceite, revisar código ou decidir arquitetura?
+- [ ] Os scripts continuam em **ASCII puro**? (PowerShell 5.1 lê arquivo sem BOM na codepage do
+      console e quebra em qualquer byte não-ASCII — ver `docs/environment.md`.)
 - [ ] `.codex/config.toml` continua sem nenhuma instrução de comportamento (só runtime)?
 - [ ] `AGENTS.md` cabe em `project_doc_max_bytes`?
 - [ ] `codex doctor` ainda mostra `network sandbox: enabled` na raiz do projeto?
 - [ ] O procedimento da seção 4 de `AGENTS.md` é executável por uma sessão sem subagentes?
 - [ ] Nenhum documento em `docs/` menciona um mecanismo exclusivo de uma ferramenta como
-      obrigatório?
+      obrigatório? (As regras `permissions.deny` são a exceção conhecida, e não carregam
+      conhecimento — ver seção 2.)
 - [ ] O fluxo de branch e PR de ADR-0013 é executável nas duas ferramentas, sem depender de
       subagente?
 - [ ] `gh auth status` continua autenticado nesta máquina?
+
+> **Item que não pode ser verificado nesta máquina.** O `codex` CLI **não está instalado** aqui
+> (verificado em 2026-09-14, ao fechar o PR #1). O item do `codex doctor` fica **pendente**, nunca
+> marcado como cumprido — o portão recusa por omissão. Reexecute o checklist numa máquina com o
+> Codex instalado antes de afirmar paridade completa.
