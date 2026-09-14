@@ -8,7 +8,7 @@
   },
   "project": "TemplateGenerator",
   "templateVersion": "1.0.0",
-  "updatedAt": "2026-09-12",
+  "updatedAt": "2026-09-14",
   "states": ["pending", "in_progress", "blocked", "done"],
   "tasks": [
     {
@@ -200,18 +200,22 @@
     },
     {
       "id": "T05",
+      "finishedAt": "2026-09-14",
+      "startedAt": "2026-09-14",
       "pullRequest": null,
       "order": 5,
       "title": "SQLite, PostgreSQL e migracoes",
-      "state": "pending",
+      "state": "done",
       "dependsOn": ["T04"],
-      "roles": ["template-engineer", "qa"],
+      "roles": ["template-engineer", "architect", "backend", "frontend", "qa"],
       "skills": ["dotnet-templates", "verify-mvp"],
       "context": [
         "docs/architecture/generated-projects.md",
+        "docs/architecture/generation-engine.md",
         "docs/product/option-matrix.md",
         "docs/quality/test-strategy.md",
         "docs/decisions/adr-0011-contribuicao-por-marcador.md",
+        "docs/decisions/adr-0015-contribuicao-le-eixo-anterior.md",
         "docs/decisions/adr-0005-sem-containers.md",
         "docs/environment.md"
       ],
@@ -231,7 +235,7 @@
         "Conferir ausencia dos pacotes quando database = none."
       ],
       "blockers": [],
-      "report": null
+      "report": "docs/reports/T05.md"
     },
     {
       "id": "T06",
