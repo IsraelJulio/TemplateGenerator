@@ -86,9 +86,6 @@ if (-not $hasCommandBlock) {
     $problems += 'relatorio sem nenhum bloco de comando - evidencia de execucao e obrigatoria'
 }
 $hasExitCode = $report -match '(?i)exit\s*code|Passed!|Failed!|Build succeeded|exit\s*=\s*\d'
-if (-not $hasExitCode) {
-    $notes += 'nao achei exit code nem resumo de runner no relatorio - confira se a evidencia comprova mesmo'
-}
 
 # --- criterios ----------------------------------------------------------------
 $criteria = @(Get-TaskProp $task 'acceptanceCriteria' @())
@@ -145,7 +142,12 @@ $gateSection = ''
 $mg = [regex]::Match($report, '(?ms)^##\s+Port[^\r\n]*git-flow\s*(.*?)(?=^##\s|\z)')
 if ($mg.Success) { $gateSection = $mg.Groups[1].Value.Trim() }
 
-$isPostAdr0013 = ($task.PSObject.Properties.Name -contains 'pullRequest') -or $PullRequest
+# O discriminador e a PRESENCA do campo pullRequest na tarefa, mesmo com valor null - nao o
+# valor, e nao o parametro -PullRequest. Motivo: o fluxo do passo 7 roda este script ANTES de
+# acionar o git-flow, quando a URL ainda nao existe. Se o gatilho dependesse de -PullRequest, o
+# portao nunca dispararia no caminho documentado. task-start.ps1 semeia o campo ao abrir a tarefa.
+$isPostAdr0013 = ($task.PSObject.Properties.Name -contains 'pullRequest') -or [bool]$PullRequest
+
 if ($isPostAdr0013) {
     if ($gateSection.Length -lt 20) {
         $problems += 'secao "Portao do git-flow" ausente ou vazia, e esta tarefa e posterior a ADR-0013'
@@ -153,9 +155,20 @@ if ($isPostAdr0013) {
     elseif ($gateSection -match $changesRequested) {
         $problems += 'portao do git-flow registra MUDANCAS SOLICITADAS - o PR nao foi mesclado, a tarefa nao esta fechada'
     }
+    # O exit code e o elemento que a regra de evidencia de ADR-0014 acrescentou. Para tarefa
+    # posterior a essa regra ele e exigido, nao sugerido - senao e o unico item da regra que
+    # ninguem cobra.
+    if (-not $hasExitCode) {
+        $problems += 'nenhum exit code nem resumo de runner no relatorio - a regra de evidencia exige comando, exit code e a saida que comprova'
+    }
 }
-elseif ($gateSection.Length -eq 0) {
-    $notes += 'sem secao "Portao do git-flow" - aceito por ser tarefa anterior a ADR-0013'
+else {
+    if ($gateSection.Length -eq 0) {
+        $notes += 'sem secao "Portao do git-flow" - aceito por ser tarefa anterior a ADR-0013'
+    }
+    if (-not $hasExitCode) {
+        $notes += 'sem exit code no relatorio - aceito por ser tarefa anterior a ADR-0014'
+    }
 }
 
 # --- relatorio -----------------------------------------------------------------

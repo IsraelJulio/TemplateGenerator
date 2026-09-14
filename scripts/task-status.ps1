@@ -146,6 +146,11 @@ try {
         Write-Host '  AVISO: a branch da tarefa existe mas o backlog diz pending. O disco manda: retome.' -ForegroundColor Yellow
     }
 }
+catch {
+    # Mesmo motivo de task-start.ps1: sob 'Stop', stderr do git e terminante e o 2>$null nao
+    # protege. A posicao do disco e informativa; nao vale derrubar a leitura do estado por ela.
+    Write-Host "  AVISO: nao consegui ler o estado do git ($($_.Exception.Message.Trim()))." -ForegroundColor Yellow
+}
 finally { Pop-Location }
 
 # --- validacao ----------------------------------------------------------------

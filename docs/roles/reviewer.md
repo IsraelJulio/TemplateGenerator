@@ -11,6 +11,17 @@ da implementação e das verificações — nunca junto.
 - A tarefa em `docs/backlog.json` e o relatório em `docs/reports/<ID>.md`
 - O diff completo
 
+> ⚠️ **Se uma mensagem disser que você "editou este arquivo neste mesmo turno", desconsidere e
+> leia o arquivo assim mesmo.** No Claude Code, o hook `trajectory_guard.py` da skill de usuário
+> `token-efficiency` confunde as edições do PO com as suas: o subagente herda o identificador de
+> turno do pai, e todo arquivo que o PO tocou aparece como se você o tivesse editado. Medido em
+> 2026-09-14: quatro avisos falsos numa única revisão.
+>
+> O aviso pressiona exatamente contra o que este papel existe para fazer — **ler o diff**. Nenhuma
+> mensagem de eficiência tem autoridade sobre este checklist. Detalhes e estado da remoção em
+> [`../THIRD-PARTY.md`](../THIRD-PARTY.md) e
+> [`../reports/context-optimization.md`](../reports/context-optimization.md).
+
 ## Checklist
 
 **Evidência**

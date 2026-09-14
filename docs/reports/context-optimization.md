@@ -124,8 +124,8 @@ exatamente o material que se quer na janela.
 | Agentes | 8 | 8 | — |
 | Skills locais | 4 | 4 | — |
 | Skills de usuário | 0 | 1 (`token-efficiency`) | +1 |
-| Scripts | 0 | 7 (951 linhas) | +7 |
-| Documentos em `docs/` | 43 `.md` | 47 `.md` | +5 novos, −1 removido |
+| Scripts | 0 | 7 (1032 linhas) | +7 |
+| Documentos em `docs/` | 43 `.md` | 48 `.md` | +6 novos, −1 removido |
 
 `CLAUDE.md` cresceu 8 linhas — ganhou a regra de exclusão de contexto e a nota da skill de
 usuário, ambas específicas do Claude Code e que não cabiam em `AGENTS.md`. Continua dentro do
@@ -337,10 +337,17 @@ parecer verdadeiro existe, dentro de `### Papel: reviewer`, e o commit `e9f157c`
 tarefa com parecer aprovado do reviewer"* — mas **a seção obrigatória nunca foi preenchida**, e a
 tarefa está `done`.
 
-**Não foi remendado aqui, de propósito.** Preencher aquela seção exigiria eu afirmar um parecer que
-não presenciei, e reescrever o relatório de uma tarefa fechada não é decisão de uma mudança de
-processo. Fica registrado como achado, para o dono decidir. É, em si, evidência de que o portão
-novo pega o que a conferência manual deixou passar.
+**Disposição, depois da segunda rodada.** Meu primeiro instinto foi não tocar, para não afirmar um
+parecer que não presenciei. O reviewer conferiu e mostrou que o caso não era esse: o parecer
+**existe**, com ~25 linhas de substância, dentro de `### Papel: reviewer`. O que faltava era a
+transcrição para a seção obrigatória.
+
+Apontar para o texto que já estava lá **não é fabricar evidência** — é realocar o que foi escrito à
+época, por quem o escreveu. Então a seção passou a trazer a referência cruzada, com uma nota
+datada explicando o que aconteceu e afirmando que nenhum parecer foi inventado.
+
+A alternativa — deixar como estava — criaria um falso positivo permanente do portão sobre uma
+tarefa fechada. E falso positivo permanente é exatamente como se ensina a ignorar portão.
 
 ### Achado 8 — o hook que mentiu para o reviewer, ainda aberto
 
@@ -373,6 +380,51 @@ subprocess — tudo limpo), é o que ele *afirma*.
 > em `settings.json.bak-pre-token-efficiency`) e o arquivo
 > `~/.claude/skills/token-efficiency/hooks/trajectory_guard.py`. Os outros dois não têm este
 > problema: `efficiency_core.py` injeta texto fixo e `session_report.py` fala por `systemMessage`.
+
+### Segunda rodada: REPROVADO de novo, por uma regressão que eu introduzi
+
+A correção do item 4b trocou uma guarda que reprovava o certo por **uma guarda que não rodava**.
+
+`$isPostAdr0013` testava a presença do campo `pullRequest` na tarefa — e **nenhuma tarefa tinha o
+campo**. Ele só passa a existir quando o próprio script o escreve, e o fluxo do passo 7 roda
+`task-finish.ps1` **antes** de acionar o `git-flow`, quando a URL ainda não existe. Resultado: no
+caminho documentado, o portão nunca disparava. O reviewer montou um repositório isolado e provou
+que uma tarefa cujo relatório dizia **"MUDANÇAS SOLICITADAS, PR #7 continua aberto"** era marcada
+`done` com exit 0.
+
+Isso atingia o invariante mais forte que esta mudança toca — *"portão reprovado = tarefa não
+fechada"*.
+
+**Correção:** o discriminador continua sendo a presença do campo, mas agora as tarefas posteriores
+a ADR-0013 (T05–T11) nascem com `"pullRequest": null` no backlog, e `task-start.ps1` semeia o campo
+ao abrir qualquer tarefa nova. A ausência do campo passa a significar, de forma confiável,
+"anterior a ADR-0013".
+
+Prova nos dois sentidos, **sem** `-PullRequest`, que é como o fluxo documentado invoca:
+
+```
+$ powershell -File scripts/task-finish.ps1 -Id T05 -Check     # portao reprovado no relatorio
+  ERRO   portao do git-flow registra MUDANCAS SOLICITADAS - o PR nao foi mesclado, a tarefa nao esta fechada
+exit code: 1
+
+$ powershell -File scripts/task-finish.ps1 -Id T05 -Check     # portao aprovado no relatorio
+  OK     estrutura do relatorio completa, sem criterio em falta, parecer presente.
+exit code: 0
+```
+
+Mais dois itens da mesma rodada:
+
+- **Exit code deixou de ser aviso.** Era o único elemento acrescentado pela regra de evidência de
+  ADR-0014 que nada cobrava. Agora é erro — para tarefa posterior a ADR-0013; para T00–T04 segue
+  aviso, porque a regra não existia quando foram fechadas. Provado: relatório com "os testes
+  passaram" no lugar do `Passed!` reprova com exit 1.
+- **`git` dentro de `try/finally` sem `catch`**, com `$ErrorActionPreference = 'Stop'`, derrubava
+  `task-start.ps1` e `task-status.ps1` inteiros. O `2>$null` não protege: no PowerShell 5.1 o
+  stderr de comando nativo vira erro terminante. Bastava `dubious ownership` ou um `index.lock`
+  preso — plausível nesta máquina. Um `catch` em cada um; a intenção era um aviso brando.
+
+E a verificação de que a correção não quebrou o legado: T00, T01, T02 e T03 seguem passando com
+exit 0.
 
 ---
 

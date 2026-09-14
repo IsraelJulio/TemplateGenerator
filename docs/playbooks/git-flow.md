@@ -108,7 +108,7 @@ Corpo mínimo:
 <a tabela do relatório: critério | evidência | ✅>
 
 ## Verificações executadas
-<os comandos de `verifications`, com o resultado — a saída completa fica no relatório>
+<os comandos de `verifications`, com o exit code — a evidência detalhada fica no relatório>
 
 ## Relatório
 docs/reports/<ID>.md

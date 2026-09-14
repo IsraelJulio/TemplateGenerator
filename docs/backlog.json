@@ -200,6 +200,7 @@
     },
     {
       "id": "T05",
+      "pullRequest": null,
       "order": 5,
       "title": "SQLite, PostgreSQL e migracoes",
       "state": "pending",
@@ -234,6 +235,7 @@
     },
     {
       "id": "T06",
+      "pullRequest": null,
       "order": 6,
       "title": "Autenticacao Identity nativa",
       "state": "pending",
@@ -268,6 +270,7 @@
     },
     {
       "id": "T07",
+      "pullRequest": null,
       "order": 7,
       "title": "Autenticacao JWT externa",
       "state": "pending",
@@ -301,6 +304,7 @@
     },
     {
       "id": "T08",
+      "pullRequest": null,
       "order": 8,
       "title": "Swagger opcional e documentacao final dos ZIPs",
       "state": "pending",
@@ -330,6 +334,7 @@
     },
     {
       "id": "T09",
+      "pullRequest": null,
       "order": 9,
       "title": "Tela integrada ao catalogo e download",
       "state": "pending",
@@ -362,6 +367,7 @@
     },
     {
       "id": "T09b",
+      "pullRequest": null,
       "order": 9.5,
       "title": "Corrigir a corrida entre a troca de opcao e a leitura da arvore no e2e",
       "state": "pending",
@@ -389,6 +395,7 @@
     },
     {
       "id": "T10",
+      "pullRequest": null,
       "order": 10,
       "title": "Matriz completa e revisao funcional, visual e de seguranca",
       "state": "pending",
@@ -424,6 +431,7 @@
     },
     {
       "id": "T11",
+      "pullRequest": null,
       "order": 11,
       "title": "Validacao em ambiente limpo e entrega local documentada",
       "state": "pending",

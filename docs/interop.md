@@ -136,7 +136,7 @@ powershell -File scripts/backlog-validate.ps1  # backlog, context[], roles, depe
 - [ ] **Nenhuma referência em prosa a seção numerada** (`AGENTS.md` §N) aponta para seção que
       mudou de assunto ou deixou de existir? `docs-links.ps1` **não vê** essas referências, porque
       não são links Markdown. Confira com
-      `grep -rn "AGENTS\.md.*§" --include='*.md' docs/ .claude/`, ignorando `docs/reports/`, que é
+      `grep -rnE "AGENTS\.md.*(§|se[cç][aã]o [0-9])" --include='*.md' docs/ .claude/`, ignorando `docs/reports/`, que é
       registro histórico.
 - [ ] Ao mudar uma regra, você fez `grep` da redação **antiga** em `docs/` antes de dá-la por
       realocada? Regra que sobrevive em dois lugares se resolve sempre pela versão mais frouxa.

@@ -62,6 +62,12 @@ try {
         Write-Host "AVISO: arvore suja ($($dirty.Count) arquivo(s)). Leia o que ha antes de abrir a tarefa." -ForegroundColor Yellow
     }
 }
+catch {
+    # Sob $ErrorActionPreference = 'Stop', stderr de comando nativo vira erro terminante, e o
+    # 2>$null NAO protege. Um git que fale no stderr (repositorio ausente, dubious ownership,
+    # index.lock preso) derrubaria o passo 4 inteiro por causa de um AVISO brando.
+    Write-Host "AVISO: nao consegui ler o estado do git ($($_.Exception.Message.Trim()))." -ForegroundColor Yellow
+}
 finally { Pop-Location }
 
 $today = Today
@@ -108,6 +114,12 @@ $text = Read-BacklogText
 $text = Set-TaskField -Text $text -Id $Id -Field 'state' -Value 'in_progress'
 $text = Set-TaskField -Text $text -Id $Id -Field 'startedAt' -Value $today
 $text = Set-TaskField -Text $text -Id $Id -Field 'report' -Value $reportRel
+# Semeia pullRequest como null se ainda nao existir. A PRESENCA do campo e o que marca a tarefa
+# como posterior a ADR-0013, e e assim que task-finish.ps1 sabe que precisa exigir o portao do
+# git-flow. Sem esta linha, tarefa nova nasceria indistinguivel de T00-T04 e escaparia do portao.
+if ($task.PSObject.Properties.Name -notcontains 'pullRequest') {
+    $text = Set-TaskField -Text $text -Id $Id -Field 'pullRequest' -Value $null
+}
 $text = Set-BacklogUpdatedAt -Text $text -Date $today
 Write-BacklogText $text
 
