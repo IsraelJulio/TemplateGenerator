@@ -23,4 +23,11 @@
     <ProjectReference Include="..\__ProjectName__.Domain\__ProjectName__.Domain.csproj" />
   </ItemGroup>
 
+  <!--
+    As dependências de persistência da opção de banco escolhida na geração entram AQUI, e não no
+    projeto de API: é este projeto que hospeda o `DbContext` e as migrações. O projeto de API as
+    enxerga por transitividade, sem precisar declará-las de novo.
+  -->
+__PersistencePackageReferences__
+
 </Project>

@@ -26,12 +26,18 @@
  * `ItemStore.cs` para as duas arquiteturas, então o par `IItemStore`/`ItemStore`
  * é o mesmo nos dois lados.
  *
- * **O que continua sendo palpite:** os valores sem fragmento — `sqlite`,
- * `postgresql`, `identity`, `jwt`. Com ADR-0012 implementada, a tela desabilita
- * cada um deles, de modo que esse palpite é **inalcançável**: nenhuma seleção
- * que o resumo consegue mostrar depende dele. No dia em que o fragmento existir,
- * o valor acende, a combinação entra no contrato gerado e a amarração o alcança
- * sozinha.
+ * **O que entrou em T05:** `sqlite` e `postgresql`. Os fragmentos de banco
+ * passaram a existir, os dois valores acenderam, as combinações com banco
+ * entraram no contrato gerado e a amarração as alcançou — exatamente como
+ * previsto. Cada uma delas traz, além do `AppDbContext.cs` já modelado, o
+ * `PersistenceRegistration.cs`, os três arquivos de `Migrations/` e o
+ * `.config/dotnet-tools.json` na raiz do ZIP.
+ *
+ * **O que continua sendo palpite:** os valores sem fragmento — `identity` e
+ * `jwt`. Com ADR-0012 implementada, a tela desabilita cada um deles, de modo que
+ * esse palpite é **inalcançável**: nenhuma seleção que o resumo consegue mostrar
+ * depende dele. No dia em que o fragmento existir, o valor acende, a combinação
+ * entra no contrato gerado e a amarração o alcança sozinha.
  *
  * Regra de contenção: as strings de opção ficam confinadas em
  * {@link PROJECT_STRUCTURE_RULES}, {@link API_PROJECT_NAME_RULES} e
@@ -168,6 +174,13 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
   { path: '.gitignore' },
   { path: 'README.md', note: 'os comandos desta combinação' },
   { path: 'requests.http', note: 'exemplos de chamada' },
+  {
+    // Só com banco: fixa o dotnet-ef que aplica as migrações. Fica na raiz do
+    // ZIP, fora de qualquer projeto — é ferramenta da solução, não código dela.
+    path: '.config/dotnet-tools.json',
+    note: 'fixa o dotnet-ef desta solução',
+    when: [{ field: 'database', isNot: ['none'] }],
+  },
 
   // ----------------------------------------- projeto Web API (as duas)
   //
@@ -305,6 +318,16 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
     when: [{ field: 'database', isNot: ['none'] }],
   },
   {
+    path: `${PERSISTENCE_TOKEN}/PersistenceRegistration.cs`,
+    note: 'liga o DbContext e o store ao contêiner',
+    when: [{ field: 'database', isNot: ['none'] }],
+  },
+  // A pasta de migrações e seus três arquivos: a migração inicial, o Designer que
+  // a acompanha e o snapshot do modelo. Os nomes são os mesmos nos dois
+  // provedores; o que muda é o conteúdo, então a condição é só "tem banco". A
+  // nota no diretório é que diz qual provedor — e é ela que `project-structure`
+  // confere, porque nota não tem contraparte no ZIP.
+  {
     path: `${PERSISTENCE_TOKEN}/Migrations/`,
     note: 'migração inicial do SQLite',
     when: [{ field: 'database', is: ['sqlite'] }],
@@ -313,6 +336,18 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
     path: `${PERSISTENCE_TOKEN}/Migrations/`,
     note: 'migração inicial do PostgreSQL',
     when: [{ field: 'database', is: ['postgresql'] }],
+  },
+  {
+    path: `${PERSISTENCE_TOKEN}/Migrations/20260101000000_InitialCreate.cs`,
+    when: [{ field: 'database', isNot: ['none'] }],
+  },
+  {
+    path: `${PERSISTENCE_TOKEN}/Migrations/20260101000000_InitialCreate.Designer.cs`,
+    when: [{ field: 'database', isNot: ['none'] }],
+  },
+  {
+    path: `${PERSISTENCE_TOKEN}/Migrations/AppDbContextModelSnapshot.cs`,
+    when: [{ field: 'database', isNot: ['none'] }],
   },
 
   // ---------------------------------------------------------------- testes

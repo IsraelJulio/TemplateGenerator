@@ -199,7 +199,17 @@ ao fixar cada versão:
 |---|---|---|
 | `Microsoft.EntityFrameworkCore.Sqlite` | 10.0.12 | MIT |
 | `Npgsql.EntityFrameworkCore.PostgreSQL` | 10.0.3 | PostgreSQL License |
+| `Microsoft.EntityFrameworkCore.Design` | 10.0.12 (sqlite) / 10.0.4 (postgresql) | MIT |
+| `dotnet-ef` (ferramenta) | 10.0.12 | MIT |
 | `Swashbuckle.AspNetCore` | 10.2.3 | MIT |
+
+`Microsoft.EntityFrameworkCore.Design` entra em T05 como `PrivateAssets="all"` no projeto de subida
+de cada combinação com banco — é design-time, não sai publicado, mas é restaurado por quem baixa o
+ZIP; a versão acompanha o EF Core de cada provider. `dotnet-ef` é a **ferramenta** fixada em
+`.config/dotnet-tools.json` (não é `PackageReference`), presente na raiz de todo ZIP com banco, e
+serve ao passo `dotnet tool restore` + `dotnet ef database update` do README; é `10.0.12` para os
+dois bancos, porque a ferramenta de CLI opera sobre as migrações sem exigir paridade com o provider
+([ADR-0015](decisions/adr-0015-contribuicao-le-eixo-anterior.md)).
 
 ## Pacotes npm — plataforma
 

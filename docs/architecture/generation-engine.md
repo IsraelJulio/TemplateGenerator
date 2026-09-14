@@ -155,9 +155,19 @@ substitui. As regras, todas verificadas por teste:
    declara em lugar nenhum continua sendo erro.
 4. **Disjunção:** um nome que já seja marcador de valor é defeito.
 5. **Ordem:** a ordem de seleção — `common`, `architecture/*`, `database/*`, `auth/*`,
-   `swagger/enabled`. Declarada, estável, e portanto parte do hash.
-6. **Aninhamento:** a contribuição passa pelos marcadores de *valor* antes de entrar; um marcador de
-   *contribuição* dentro de uma contribuição é erro. Não há recursão.
+   `swagger/enabled`. Declarada, estável, e portanto parte do hash. Desde
+   [ADR-0015](../decisions/adr-0015-contribuicao-le-eixo-anterior.md) ela é **também ordem de
+   dependência**, e o item 6 é quem a usa: trocá-la deixou de ser só trocar o hash e pode virar
+   defeito de template.
+6. **Leitura para trás** ([ADR-0015](../decisions/adr-0015-contribuicao-le-eixo-anterior.md), que
+   substitui a regra original de ADR-0011): a contribuição passa pelos marcadores de *valor* antes
+   de entrar e pode usar marcador de *contribuição* **alimentado exclusivamente por eixos
+   estritamente anteriores** na ordem do item 5. Citar marcador do próprio eixo ou de eixo posterior
+   é erro. Quem alimenta o marcador é apurado sobre o repositório **inteiro**, como no item 3, então
+   um template é legal ou ilegal por si, e não conforme a combinação pedida. A resolução é uma
+   passada por eixo, na ordem: quando o eixo *n* é resolvido, os anteriores já estão fechados —
+   **termina por construção**, sem ponto fixo e sem detecção de ciclo. Guarde assim: *a contribuição
+   de um eixo anterior comporta-se, para um eixo posterior, como um marcador de valor.*
 7. **Regra da linha:** marcador sozinho na linha **e começando na coluna 0** substitui a linha
    inteira, incluindo a quebra. Zero contribuições ⇒ a linha some. Cada contribuição carrega a
    própria indentação; o motor não reindenta. Marcador sozinho na linha e **indentado** é defeito.
@@ -240,13 +250,24 @@ isso com um marcador **no caminho**, que é o item 8 de
 [ADR-0011](../decisions/adr-0011-contribuicao-por-marcador.md) e já tem teste — `__ApiProjectDir__`
 é o exemplo nomeado ali. É o uso pretendido; não invente mecanismo novo para isso.
 
-Um cuidado de nome, e vale conferir antes de T05: **o marcador precisa dizer o que resolve.** Se em
-`clean` ele resolver para o projeto de `Infrastructure` — que é onde a implementação da porta mora,
-pela seção "Clean Architecture" de [`generated-projects.md`](generated-projects.md) — então
-`__ApiProjectDir__` está misnomeado, porque o valor dele não é o diretório do `Api`. Nesse caso o
-nome certo descreve o papel (`__PersistenceProjectDir__`), e trocar custa renomear dois arquivos de
-`__parts__`. Marcador com nome que mente é a classe de defeito que ADR-0011 evita dando o nome do
-marcador ao arquivo: o nome é a documentação.
+**E, desde [ADR-0015](../decisions/adr-0015-contribuicao-le-eixo-anterior.md), o mesmo marcador vale
+dentro de uma contribuição**, e não só no caminho e no arquivo hospedeiro — é o que permite ao texto
+de `database/*` citar o caminho que `architecture/*` decidiu. A regra é o item 6: só para trás na
+ordem dos eixos.
+
+Um cuidado de nome, resolvido em T05: **o marcador precisa dizer o que resolve.** São dois, e são
+coisas diferentes:
+
+| Marcador | O que é | `simple` | `clean` |
+|---|---|---|---|
+| `__ApiProjectDir__` | o projeto que sobe a aplicação | `src/__ProjectName__` | `src/__ProjectName__.Api` |
+| `__PersistenceProjectDir__` | o projeto onde a persistência e as migrações moram | `src/__ProjectName__` | `src/__ProjectName__.Infrastructure` |
+| `__PersistenceDir__` | a **pasta** `Persistence/` dentro do projeto acima | `src/__ProjectName__/Persistence` | `src/__ProjectName__.Infrastructure/Persistence` |
+
+Em `simple` os dois primeiros resolvem para o mesmo projeto, e isso é correto, não repetição a
+enxugar: o que eles afirmam é diferente, e em `clean` os valores divergem. Marcador com nome que
+mente é a classe de defeito que ADR-0011 evita dando o nome do marcador ao arquivo: o nome é a
+documentação.
 
 A regra não substitui a verificação de casca da camada 1; ela evita o caso em vez de detectá-lo. As
 duas ficam, porque a segunda alcança também o arquivo que alguém escrever amanhã sem ler esta.

@@ -1,0 +1,6 @@
+
+  <ItemGroup Label="Persistência — PostgreSQL">
+    <!-- O provedor traz o EF Core junto, na versão que ele mesmo exige. Declarar o EF Core de novo
+         aqui abriria a porta para duas restrições de versão discordarem. -->
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+  </ItemGroup>

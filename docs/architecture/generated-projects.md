@@ -18,6 +18,11 @@
   README tem que rodar sem modificar código-fonte")
 - `requests.http` com exemplos de chamada, incluindo autenticação quando houver
 - `.gitignore`, `.editorconfig`, `global.json` fixando o SDK
+- `.config/dotnet-tools.json` fixando `dotnet-ef` em versão exata, **se e somente se**
+  `database ≠ none` — é o que faz o passo de migração do README ser `dotnet tool restore` seguido de
+  `dotnet ef database update`, sem instalar ferramenta global. Com `database = none` ele não existe:
+  um manifesto de ferramenta de EF Core num pacote sem EF Core seria a dependência de opção não
+  marcada que RF-20 recusa ([ADR-0015](../decisions/adr-0015-contribuicao-le-eixo-anterior.md))
 - `README.md` específico da combinação (RF-21)
 - `.templategenerator/manifest.json` (RF-22), no formato fixado adiante
 
@@ -353,6 +358,31 @@ Ambas as arquiteturas usam Minimal APIs e entregam:
 Migrações são **específicas do provider** — a migração de SQLite não serve para PostgreSQL.
 Cada combinação com banco carrega a sua.
 
+### A migração é aplicada por comando, não na subida — **decidido em T05**
+
+**O projeto gerado não chama `Database.Migrate()` no arranque, em nenhum provider.** "Aplicar
+migração" é um passo do README com comando copiável:
+
+```bash
+dotnet tool restore
+dotnet ef database update --project <projeto da persistência> --startup-project <projeto de API>
+```
+
+Os dois caminhos variam por arquitetura e chegam ao texto pelos marcadores
+`__PersistenceProjectDir__` e `__ApiProjectDir__` ([`generation-engine.md`](generation-engine.md)).
+O comando **não varia por provider**: o provedor sai do `DbContext`, não da linha de comando.
+
+O porquê, com as alternativas descartadas, está em
+[ADR-0015](../decisions/adr-0015-contribuicao-le-eixo-anterior.md). Em resumo: migrar na subida foi
+proposto para contornar um limite do mecanismo de contribuição, e pagar uma limitação nossa com o
+comportamento do projeto de outra pessoa é a troca errada — além de embarcar uma prática contestada
+(corrida entre instâncias, migração destrutiva sem revisão) num pacote que existe para ser levado
+adiante.
+
+**Consequência deliberada:** o projeto gerado não toca o banco na subida, sobe com o servidor fora
+do ar e responde `GET /health` mesmo assim. Uma sonda de "há migração pendente?" no arranque foi
+considerada e recusada.
+
 ## Por autenticação
 
 ### `identity` — ASP.NET Core Identity nativo
@@ -389,6 +419,15 @@ Quando `swagger = false`, nem o documento, nem a UI, nem as duas dependências a
 Precisa cobrir, para aquela combinação exata: pré-requisitos, instalação, configuração,
 migrações, execução, autenticação e teste do CRUD. **Todo comando do README tem que rodar sem
 modificar código-fonte** — isso é verificado na camada 3 de testes.
+
+**É um documento só.** O README não delega passo do caminho inicial a um segundo arquivo do pacote:
+a força de RF-21 vem de os comandos estarem todos nele, ao alcance da camada 3. Um passo que o
+mecanismo de template não consegue exprimir no README é problema do mecanismo, e é assim que
+[ADR-0015](../decisions/adr-0015-contribuicao-le-eixo-anterior.md) o tratou.
+
+**A camada 3 executa os comandos na ordem em que estão escritos**, `dotnet tool restore` e
+`dotnet ef database update` incluídos, antes de subir a aplicação. Ordem errada no README é falha de
+teste, não detalhe de redação.
 
 ## A frase da tela
 
