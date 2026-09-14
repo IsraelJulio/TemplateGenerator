@@ -1,0 +1,8 @@
+
+  <ItemGroup Label="Ferramentas de migração">
+    <!-- Pacote de design time do EF Core: é o que permite ao `dotnet ef` criar e aplicar migração
+         a partir deste projeto. Fica fora do que é publicado. A versão acompanha a do EF Core que
+         o provedor do Npgsql exige; adiantá-la faria duas versões do mesmo assembly disputarem a
+         compilação. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.4" PrivateAssets="all" />
+  </ItemGroup>

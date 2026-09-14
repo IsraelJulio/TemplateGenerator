@@ -1,0 +1,6 @@
+
+  <ItemGroup Label="Ferramentas de migração">
+    <!-- Pacote de design time do EF Core: é o que permite ao `dotnet ef` criar e aplicar migração
+         a partir deste projeto. Fica fora do que é publicado. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" PrivateAssets="all" />
+  </ItemGroup>

@@ -18,9 +18,7 @@ nenhum arquivo de código.
 ```bash
 dotnet --version
 ```
-
-Nada mais: esta combinação não usa banco de dados, não precisa de container e não exige
-certificado HTTPS de desenvolvimento — a aplicação sobe em HTTP.
+__ReadmePrerequisites__
 
 ## Estrutura
 
