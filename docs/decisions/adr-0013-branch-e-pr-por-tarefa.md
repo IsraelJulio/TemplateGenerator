@@ -4,7 +4,7 @@
 
 ## Contexto
 
-Até T04 o projeto trabalhou direto em `main`, e `AGENTS.md` §8 autorizava explicitamente:
+Até T04 o projeto trabalhou direto em `main`, e `AGENTS.md` §8 autorizava explicitamente (a regra vive hoje em `docs/conventions.md`):
 *"Trabalho direto em main é aceitável neste projeto de uma pessoa"*.
 
 O custo apareceu quando o histórico cresceu. Os 13 commits de T01 a T04 formam uma linha única;

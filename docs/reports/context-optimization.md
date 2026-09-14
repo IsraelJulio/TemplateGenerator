@@ -106,10 +106,12 @@ código               busca antes de leitura, por região
 |---|---:|---:|
 | `.claude/agents/po.md` | 24 | 1.394 |
 | `AGENTS.md` | 76 | 5.340 |
-| saída de `scripts/task-status.ps1` | 43 | 1.393 |
+| saída de `scripts/task-status.ps1` | 43 | ~1.380 |
 | **Total** | **143** | **8.127** |
 
 **44.759 → 8.127 bytes de material carregado antes de a sessão saber o que fazer: −82%.**
+
+A linha da saída do script varia algumas dezenas de bytes com o nome da branch, que ela imprime.
 
 O resto (`context[]`, roles, relatório) é carregado depois, e é *específico da tarefa* — que é
 exatamente o material que se quer na janela.

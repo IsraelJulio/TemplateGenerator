@@ -74,11 +74,18 @@ function Get-TaskSpan([string]$Text, [string]$Id) {
 }
 
 # Substitui (ou insere) um campo escalar dentro do objeto da tarefa, preservando a formatacao.
-function Set-TaskField([string]$Text, [string]$Id, [string]$Field, [string]$Value) {
+#
+# $Value e DELIBERADAMENTE sem tipo. Com [string]$Value o PowerShell coage $null para '' ao ligar
+# o parametro, o ramo de null abaixo fica inalcancavel, e o backlog recebe "" onde deveria receber
+# null - duas codificacoes para o mesmo estado dentro da unica fonte de status do projeto.
+# [AllowNull()][string] tambem nao resolve: a coercao acontece na ligacao, nao na validacao.
+function Set-TaskField([string]$Text, [string]$Id, [string]$Field, $Value) {
     $span = Get-TaskSpan -Text $Text -Id $Id
     $body = $Text.Substring($span[0], $span[1] - $span[0])
 
-    $encoded = if ($null -eq $Value) { 'null' } else { '"' + $Value.Replace('\', '\\').Replace('"', '\"') + '"' }
+    # Sem tipo no parametro, converta aqui - o ramo de null agora e alcancavel de verdade.
+    $encoded = if ($null -eq $Value) { 'null' }
+               else { '"' + ([string]$Value).Replace('\', '\\').Replace('"', '\"') + '"' }
     $pattern = '"' + [regex]::Escape($Field) + '"\s*:\s*(?:"(?:[^"\\]|\\.)*"|null|true|false|-?\d+(?:\.\d+)?)'
 
     if ([regex]::IsMatch($body, $pattern)) {
