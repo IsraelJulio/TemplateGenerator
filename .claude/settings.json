@@ -18,12 +18,40 @@
       "Bash(gh pr list:*)",
       "Bash(gh pr checks:*)",
       "Bash(gh pr comment:*)",
-      "Bash(gh pr merge:*)"
+      "Bash(gh pr merge:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File scripts/*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
-      "Bash(git push --delete:*)"
+      "Bash(git push --delete:*)",
+
+      "Read(./**/bin/**)",
+      "Read(./**/obj/**)",
+      "Read(./**/node_modules/**)",
+      "Read(./**/dist/**)",
+      "Read(./**/.angular/**)",
+      "Read(./**/TestResults/**)",
+      "Read(./**/test-results/**)",
+      "Read(./**/playwright-report/**)",
+      "Read(./**/blob-report/**)",
+      "Read(./**/coverage/**)",
+      "Read(./**/*.min.js)",
+      "Read(./**/*.map)",
+      "Read(./**/*.zip)",
+      "Read(./**/*.nupkg)",
+      "Read(./**/*.dll)",
+      "Read(./**/*.pdb)",
+      "Read(./**/*.woff2)",
+      "Read(./**/package-lock.json)",
+
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Read(./**/*.pfx)",
+      "Read(./**/*.key)",
+      "Read(./**/appsettings.*.local.json)"
     ]
   }
 }
