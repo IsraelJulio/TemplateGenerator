@@ -314,17 +314,9 @@ O alargamento fica registrado **aqui e na ADR**, e nao so no diff, porque quem a
 procura no documento, nao no JSON. E porque a primeira versao deste paragrafo provou que um
 documento errado sobre permissao e pior que documento nenhum.
 
----|---|---|
-| `Bash(powershell -NoProfile -ExecutionPolicy Bypass -File scripts/*)` | os sete scripts de `scripts/` | são o fluxo novo; pedir aprovação a cada `task-status` tornaria a automação inútil |
-| `Bash(dotnet build:*)` | build da solução | já era rodado em toda tarefa |
-| `Bash(dotnet test:*)` | testes | idem |
-
-Os três são **leitura, compilação e teste** — nenhum escreve no repositório, nenhum alcança a rede,
-nenhum toca `git` ou `gh` além do que já era permitido. O `deny` de `git push --force` e afins
-continua valendo, e `deny` sempre vence `allow` independentemente da ordem.
-
-O alargamento fica registrado **aqui e na ADR**, e não só no diff, porque quem audita permissão
-procura no documento, não no JSON.
+> **Nota sobre o destino dos logs**, levantada pelo `git-flow`: a entrada de `task-verify.ps1`
+> aceita qualquer argumento, e o script tem um parametro `-LogDir`. O padrao e `%TEMP%`, que e o
+> que a tabela descreve — mas o destino e argumento, nao constante.
 
 ---
 
