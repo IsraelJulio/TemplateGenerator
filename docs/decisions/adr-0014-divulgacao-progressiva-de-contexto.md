@@ -98,6 +98,29 @@ completo guardado em arquivo. Isso não afrouxa a comprovação: `Passed! - Fail
 com exit code 0 continua sendo evidência, e *"os testes passaram"* continua não sendo. O que muda é
 que o ruído deixa de ser obrigatório.
 
+### 5. A configuracao do Claude Code restringe leitura e libera parte dos scripts
+
+`.claude/settings.json` ganhou regras `permissions.deny` do tipo `Read(...)` sobre artefatos de
+build e padroes de segredo - o mecanismo suportado, ja que **`.claudeignore` nao existe**.
+
+Ganhou tambem entradas em `permissions.allow`, e essa e a unica parte desta decisao que **amplia**
+o que roda sem perguntar. Por isso fica escrita aqui, e nao so no JSON.
+
+Sao liberados apenas os que **nao escrevem no repositorio**: `task-status.ps1`,
+`backlog-validate.ps1`, `docs-links.ps1` (leitura pura), `task-verify.ps1` (logs em `%TEMP%`), e
+`dotnet build` / `dotnet test` (que escrevem `bin/`, `obj/` e `TestResults/`, todos ignorados).
+
+**`task-start.ps1` e `task-finish.ps1` ficam de fora, de proposito.** Os dois escrevem
+`docs/backlog.json`, que [ADR-0004](adr-0004-propriedade-do-backlog.md) reserva ao papel PO. Pedir
+aprovacao neles custa duas confirmacoes por tarefa, e e o preco de nao deixar a fonte de status do
+projeto mudar em silencio.
+
+A lista e **explicita, nao curinga**: um `scripts/*` auto-aprovaria qualquer script futuro que
+alguem largasse no diretorio - alargamento que ninguem teria decidido. A primeira redacao desta
+secao usava o curinga e afirmava que nada escrevia no repositorio; o portao do PR #3 reprovou a
+afirmacao, que era falsa. Fica registrado porque documento errado sobre permissao e pior que
+documento nenhum.
+
 ## Alternativas descartadas
 
 **`.claudeignore`.** Não existe na versão atual do Claude Code (2.1.270); o mecanismo suportado é
