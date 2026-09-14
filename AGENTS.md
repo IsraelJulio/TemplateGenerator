@@ -38,6 +38,7 @@ Estado do trabalho: **`docs/backlog.json` é a única fonte de status.** Nada é
 | Estratégia de testes (as 3 camadas) | `docs/quality/test-strategy.md` |
 | Decisões técnicas e seus porquês | `docs/decisions/` |
 | O que cada papel faz | `docs/roles/` |
+| Branches, pull requests e o portão de merge | `docs/roles/git-flow.md` |
 | Procedimentos passo a passo | `docs/playbooks/` |
 | Equivalência entre ferramentas | `docs/interop.md` |
 | Relatórios de execução | `docs/reports/` |
@@ -55,17 +56,23 @@ Este é **o** procedimento. Vale igual no Claude Code e no Codex. Quando alguém
 3. **Selecionar.** Se há tarefa `in_progress`, retome-a — não comece outra. Se não há, pegue a
    primeira `pending` cujas `dependsOn` estejam todas `done`. Se nenhuma qualificar, pare e
    explique o que bloqueia. **No máximo uma tarefa principal em andamento.**
-4. **Registrar o início.** Mude o estado para `in_progress`, preencha `startedAt`, crie
-   `docs/reports/<ID>.md` a partir de `docs/reports/_template.md`.
+4. **Registrar o início e abrir a branch.** Mude o estado para `in_progress`, preencha
+   `startedAt`, crie `docs/reports/<ID>.md` a partir de `docs/reports/_template.md` e acione o
+   papel `git-flow` para **criar a branch da tarefa** (`feat/<ID>-<slug>`). Nenhum trabalho da
+   tarefa acontece em `main` — ver `docs/roles/git-flow.md` e [ADR-0013](docs/decisions/adr-0013-branch-e-pr-por-tarefa.md).
 5. **Executar por papéis.** Siga `docs/roles/<papel>.md` para cada papel listado em `roles` da
    tarefa. Se a ferramenta suportar subagentes, delegue; se não, execute os papéis em sequência
    na mesma sessão. **O resultado esperado é o mesmo nos dois casos** — veja `docs/interop.md`.
 6. **Verificar.** Rode tudo que estiver em `verifications` da tarefa. Cole a saída real no
    relatório. Depois execute o papel `reviewer` como passo separado, com olhar independente.
 7. **Fechar.** Marque `done` apenas com os `acceptanceCriteria` **comprovados por saída de
-   comando colada no relatório**. Preencha `finishedAt` e `report`. Faça commit.
-8. **Informar e parar.** Diga o que terminou e qual é a próxima tarefa. **Não inicie a próxima
-   automaticamente.**
+   comando colada no relatório**. Preencha `finishedAt` e `report`. Faça commit na branch da
+   tarefa. Depois acione o papel `git-flow` para **abrir o pull request, julgá-lo contra o portão
+   de sete itens e mesclar**. Se o portão reprovar, a tarefa **não está fechada**: o PR fica
+   aberto, volte ao passo que falhou. Registre no relatório o número e a URL do PR, e o campo
+   `pullRequest` na tarefa do backlog.
+8. **Informar e parar.** Diga o que terminou, com o link do PR, e qual é a próxima tarefa. **Não
+   inicie a próxima automaticamente.**
 
 ### Proibições
 
@@ -120,6 +127,7 @@ Verificado em 2026-09-12, Windows 11:
 | Angular CLI | 22.1.2 | |
 | PostgreSQL | 18 (serviço `postgresql-x64-18`) | nativo, sem container; `psql` em `C:\Program Files\PostgreSQL\18\bin` |
 | git | 2.55.0 | |
+| GitHub CLI (`gh`) | 2.100.0 | instalado por `winget`, escopo de usuário, em `%LOCALAPPDATA%\Microsoft\WinGet\Links`. Ferramenta **do processo**, não do produto: não entra em `.csproj`, `package.json` nem em ZIP gerado. Exige `gh auth login` uma vez por máquina (ADR-0013) |
 
 **Não há Docker neste ambiente e não deve haver dependência de container.** PostgreSQL roda
 nativo; o provedor OIDC dos testes roda in-process. Podman é permitido mas opcional — nada no
@@ -131,6 +139,12 @@ backlog pode depender dele.
   código, nomes de arquivo de código, rotas e mensagens de log em **inglês**.
 - **Commits:** `<ID>: <resumo no imperativo>`, ex. `T01: criar estrutura do monorepo`.
   Um commit por entrega coerente; não acumule a tarefa inteira em um commit só.
-- **Branch:** `main`. Trabalho direto em `main` é aceitável neste projeto de uma pessoa.
+- **Branch:** uma por tarefa do backlog — `feat/<ID>-<slug>`, ou `fix/` quando a tarefa é
+  correção. Nasce no passo 4, morre no merge do passo 7. **Nada é commitado direto em `main`**;
+  `main` só recebe merge commit de pull request aprovado (ADR-0013). Falha do `gh` ou do remoto é
+  bloqueio, não permissão para voltar a commitar em `main`.
+- **Pull request:** um por tarefa, mesclado com `--merge` (nunca `--squash`, que apagaria os
+  commits individuais exigidos acima). O autor não pode aprovar o próprio PR no GitHub — o
+  veredito do `git-flow` é um comentário estruturado e **o merge é o registro da aprovação**.
 - **Arquivos temporários** nunca no repositório.
 - **Sem segredos** em arquivos versionados, inclusive nos ZIPs gerados.

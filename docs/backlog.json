@@ -1,5 +1,5 @@
 {
-  "$comment": "Fonte unica de status do projeto. Somente o papel PO edita este arquivo (ADR-0004). Estados: pending | in_progress | blocked | done. No maximo uma tarefa in_progress.",
+  "$comment": "Fonte unica de status do projeto. Somente o papel PO edita este arquivo (ADR-0004). Estados: pending | in_progress | blocked | done. No maximo uma tarefa in_progress. Desde ADR-0013, cada tarefa nasce numa branch feat/<ID>-<slug> e fecha por pull request; o campo pullRequest guarda a URL. Tarefas sem esse campo (T00 a T04) sao anteriores a decisao.",
   "project": "TemplateGenerator",
   "templateVersion": "1.0.0",
   "updatedAt": "2026-09-12",

@@ -4,6 +4,8 @@
 - **Início:** <ISO 8601>
 - **Fim:** <ISO 8601>
 - **Ferramenta:** Claude Code | Codex
+- **Branch:** `feat/<ID>-<slug>`
+- **Pull request:** <URL e número, preenchido no fechamento — ADR-0013>
 
 ## Objetivo
 
@@ -34,6 +36,10 @@ $ <comando>
 ## Parecer do reviewer
 
 <aprovado, ou reprovado com a lista do que falta — nunca só "está bom">
+
+## Portão do git-flow
+
+<veredito dos sete itens e o link do PR; se reprovou alguma vez, o que faltava e o que corrigiu>
 
 ## Bloqueios
 

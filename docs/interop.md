@@ -61,10 +61,19 @@ novo**, senão o `.codex/config.toml` é ignorado em silêncio e os restores vol
 Esta é a única diferença de comportamento que não dá para apagar:
 
 - **Claude Code:** o PO é o agente padrão e delega a `architect`, `backend`, `template-engineer`,
-  `frontend`, `qa` e `reviewer`, cada um com contexto próprio.
+  `frontend`, `qa`, `reviewer` e `git-flow`, cada um com contexto próprio.
 - **Codex:** uma sessão única assume o papel PO e **percorre os mesmos papéis em sequência**,
   lendo `docs/roles/<papel>.md` antes de cada bloco de trabalho e anunciando a troca de papel no
   relatório.
+
+O papel `git-flow` (ADR-0013) atravessa bem essa diferença porque é feito só de comandos `git` e
+`gh`: no Codex a sessão assume o papel nos passos 4 e 7 e roda o mesmo
+[`playbooks/git-flow.md`](playbooks/git-flow.md). **A branch, o PR e o veredito são idênticos nas
+duas ferramentas** — o PR não registra qual delas o abriu, e não deveria.
+
+A única perda no Codex é a garantia técnica: no Claude Code o `git-flow` não tem ferramenta de
+escrita e por isso **não consegue** consertar código para o próprio portão passar; no Codex isso
+volta a ser convenção, como em ADR-0004.
 
 O Codex 0.153 tem subagentes (`[agents]` no config, com `agents.<nome>` apontando para um
 `config_file`). Ainda **não** usamos isso: o ganho não compensa manter duas definições de papel
@@ -108,3 +117,6 @@ Rode quando mudar qualquer arquivo de agente, skill ou config. Uma resposta "nã
 - [ ] O procedimento da seção 4 de `AGENTS.md` é executável por uma sessão sem subagentes?
 - [ ] Nenhum documento em `docs/` menciona um mecanismo exclusivo de uma ferramenta como
       obrigatório?
+- [ ] O fluxo de branch e PR de ADR-0013 é executável nas duas ferramentas, sem depender de
+      subagente?
+- [ ] `gh auth status` continua autenticado nesta máquina?
