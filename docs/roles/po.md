@@ -18,6 +18,28 @@ procedimento aqui; siga aquele, na ordem, sem pular passo.
 - Criar e fechar `docs/reports/<ID>.md`.
 - Decidir que uma tarefa está `done` ou `blocked`.
 - Delegar (Claude Code) ou sequenciar papéis (Codex).
+- **Acionar o papel `git-flow`** — nenhum outro papel o chama.
+
+## Quando acionar o `git-flow`
+
+Duas vezes por tarefa, nunca mais, nunca menos. Ver [`git-flow.md`](git-flow.md) e
+[ADR-0013](../decisions/adr-0013-branch-e-pr-por-tarefa.md).
+
+| Quando | Passo | Diga a ele | Resultado esperado |
+|---|---|---|---|
+| Ao marcar `in_progress` | 4 | "abertura da tarefa `<ID>`" | branch `feat/<ID>-<slug>` criada e ativa |
+| Depois do parecer aprovado do `reviewer` e do `done` no backlog | 7 | "fechamento da tarefa `<ID>`" | PR aberto, julgado e mesclado — ou reprovado e devolvido |
+
+**Não o acione no meio.** Entre a abertura e o fechamento os papéis da tarefa trabalham na branch;
+o `git-flow` não tem o que fazer ali.
+
+**Se ele reprovar, a tarefa não está fechada.** O portão dele reprovando é informação sua: volte
+ao passo que falhou, corrija com o papel dono do defeito, e acione o fechamento de novo. Não peça
+merge assim mesmo, não conserte o portão, e não marque `done` com PR aberto.
+
+Ele é **proibido de editar** `docs/backlog.json` e `docs/reports/` (ADR-0004) — não tem ferramenta
+de escrita. Quem registra o número do PR no relatório e o campo `pullRequest` no backlog é você,
+com o que ele devolver.
 
 Ver [ADR-0004](../decisions/adr-0004-propriedade-do-backlog.md): isso é convenção verificada pelo
 `reviewer`, não trava técnica.
@@ -46,3 +68,5 @@ Especialistas **não** criam novas cadeias de agentes.
 - Nunca iniciar a próxima tarefa automaticamente — informar e parar.
 - Nunca manter duas tarefas principais `in_progress`.
 - Se o disco divergir do backlog, **o disco manda**: corrigir o backlog primeiro e registrar.
+- Nunca commitar direto em `main`, nem mandar um especialista fazê-lo (ADR-0013).
+- Nunca marcar `done` uma tarefa cujo PR foi reprovado ou continua aberto.

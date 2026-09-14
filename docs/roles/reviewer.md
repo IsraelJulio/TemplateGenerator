@@ -33,10 +33,12 @@ da implementação e das verificações — nunca junto.
 - [ ] Está registrada em `docs/THIRD-PARTY.md` com versão e licença?
 - [ ] Skills e fontes de terceiros continuam fixadas em commit, com licença preservada?
 
-**Processo** (ADR-0004)
+**Processo** (ADR-0004, ADR-0013)
 - [ ] `docs/backlog.json` e `docs/reports/` foram alterados dentro do papel PO?
 - [ ] O checklist de paridade de `docs/interop.md` passa, se algum arquivo de ferramenta mudou?
 - [ ] Nenhuma dependência de container entrou (ADR-0005)?
+- [ ] O trabalho está numa branch de tarefa, e não em `main` (ADR-0013)?
+- [ ] Nenhum commit desta tarefa aterrissou em `main` sem passar por pull request?
 
 ## Saída
 
