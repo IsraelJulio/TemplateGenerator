@@ -303,6 +303,8 @@ Claude Code. `context[]` é JSON, os scripts são PowerShell, a disciplina de co
 
 ## Parecer do reviewer
 
+**Quatro rodadas. Veredito final: APROVADO**, com o achado K registrado como pendencia.
+
 **Primeira rodada: REPROVADO**, com 10 itens. A revisão independente encontrou defeitos reais que
 esta sessão não teria achado sozinha. Os principais, todos corrigidos:
 
@@ -427,6 +429,55 @@ Mais dois itens da mesma rodada:
 
 E a verificação de que a correção não quebrou o legado: T00, T01, T02 e T03 seguem passando com
 exit 0.
+
+### Achado K - aberto, registrado a pedido do reviewer
+
+`task-finish.ps1` numa tarefa **ainda nao aberta** estoura com stack trace .NET em vez da mensagem
+que ele tem escrita para esse caso:
+
+```
+$ powershell -File scripts/task-finish.ps1 -Id T05 -Check
+task-finish.ps1 : Exception calling "ReadAllText" with "1" argument(s):
+"Could not find a part of the path '<raiz do repositorio>'."
+exit code: 1
+```
+
+**Mecanismo.** As tarefas pendentes tem `"report": null` - dado que ja existia em `main`.
+`Get-TaskProp` testa a **presenca do nome** do campo, nao o valor, entao o default nunca e usado e
+`$reportRel` vem `$null`. Dai `Join-Path $root $null` devolve a raiz do repositorio, `Test-Path`
+sobre a raiz devolve `$true` - e um diretorio - e a guarda escrita exatamente para este caso nao
+dispara. `ReadAllText` sobre um diretorio estoura.
+
+**Por que nao bloqueou o merge.** Falha **alto e seguro**: exit code **1**, nada e escrito, nenhuma
+tarefa e fechada por engano, nenhum portao e contornado. O dano e uma mensagem ruim num caminho
+pouco frequente - ID digitado errado, ou fechar tarefa que ninguem abriu.
+
+**Correcao, uma linha**, deixada para a proxima tarefa que tocar `scripts/`:
+
+```powershell
+$reportRel = Get-TaskProp $task 'report' $null
+if (-not $reportRel) { $reportRel = "docs/reports/$Id.md" }
+```
+
+Os outros usos de `Get-TaskProp` com default significativo (`finishedAt '?'`, `startedAt '?'`) tem
+o mesmo padrao, mas so imprimem - sao cosmeticos. `task-finish.ps1:51` e o unico consequente.
+
+**Nao foi corrigido aqui de proposito:** o parecer do `reviewer` ja estava dado, e mudar codigo
+depois da aprovacao faria o artefato mesclado diferir do revisado. Registrar e inscrever e o
+tratamento que a governanca deste projeto preve.
+
+---
+
+## Pendencias abertas ao fechar
+
+Tres achados ficam registrados e **nao** resolvidos nesta mudanca. Nenhum bloqueia, e todos tem
+dono e caminho:
+
+| # | Achado | Onde | Proximo passo |
+|---|---|---|---|
+| 8 | `trajectory_guard.py` afirma falsamente ao subagente que ele editou o arquivo que o pai editou | hook de terceiro, `~/.claude/` | remocao pendente de decisao do dono do ambiente; `docs/roles/reviewer.md` ja avisa o revisor a desconsiderar |
+| - | `docs/reports/T04.md` tinha a secao de parecer em `<pendente>` | relatorio de tarefa fechada | resolvido por referencia cruzada, com o veredito marcado como **inferido** |
+| K | `task-finish.ps1` estoura em tarefa nao aberta | `scripts/task-finish.ps1:51` | correcao de uma linha, na proxima tarefa que tocar `scripts/` |
 
 ---
 
