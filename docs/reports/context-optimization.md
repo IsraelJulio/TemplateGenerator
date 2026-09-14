@@ -275,14 +275,46 @@ O mecanismo suportado é `permissions.deny` com regras `Read(...)`, acrescentado
 **Limite conhecido e registrado:** regras `deny` valem para as ferramentas internas de leitura e
 busca, e **não** para o que passa por `Bash` (`cat`, `type`). Não são um sandbox.
 
-### O que a mesma mudança ALARGOU
+### O que a mesma mudanca ALARGOU
 
-Levantado pelo `git-flow` ao julgar o PR #2, e justo: o resto desta mudança restringe, mas
-`.claude/settings.json` também ganhou **três entradas em `permissions.allow`** — e a descrição
-acima falava só das exclusões.
+Levantado pelo `git-flow` ao julgar o PR #2, e justo: o resto desta mudanca restringe, mas
+`.claude/settings.json` tambem ganhou entradas em `permissions.allow`.
 
-| Entrada | O que passa a rodar sem perguntar | Por quê |
+A primeira redacao dizia que os scripts liberados "nao escrevem no repositorio". **Era falsa**, e o
+portao do PR #3 a reprovou: a entrada original era um curinga, `scripts/*`, e cobria
+`task-start.ps1` e `task-finish.ps1` - que escrevem em `docs/backlog.json` e `docs/reports/`,
+versionados, e justamente os dois arquivos que [ADR-0004](../decisions/adr-0004-propriedade-do-backlog.md)
+reserva ao papel PO.
+
+**Duas correcoes**, em vez de so consertar a frase:
+
+1. **O curinga virou lista explicita.** Um `scripts/*` tambem auto-aprovaria qualquer script novo
+   que alguem largasse no diretorio depois - alargamento que ninguem teria decidido.
+2. **Os dois que escrevem no repositorio ficaram de fora.** `task-start.ps1` e `task-finish.ps1`
+   passam a pedir aprovacao, que e o comportamento correto para quem muda a fonte de status.
+
+| Entrada liberada | Escreve o que | Onde |
 |---|---|---|
+| `task-status.ps1` | nada | so leitura |
+| `backlog-validate.ps1` | nada | so leitura |
+| `docs-links.ps1` | nada | so leitura |
+| `task-verify.ps1` | logs de build e teste | **fora do repositorio**, em `%TEMP%` |
+| `dotnet build` | `bin/`, `obj/` | na arvore, mas ignorados pelo `.gitignore` |
+| `dotnet test` | `bin/`, `obj/`, `TestResults/` | idem |
+
+**Nao liberados, de proposito:** `task-start.ps1` e `task-finish.ps1`. Ambos escrevem
+`docs/backlog.json`; o primeiro tambem cria `docs/reports/<ID>.md`. Sao os dois atos que mudam o
+estado do projeto, e pedir aprovacao neles custa duas confirmacoes por tarefa - preco baixo pela
+propriedade que ADR-0004 protege.
+
+Nenhuma das entradas liberadas alcanca a rede, e nenhuma toca `git` ou `gh` alem do que ja era
+permitido. O `deny` de `git push --force` e afins continua valendo.
+
+O alargamento fica registrado **aqui e na ADR**, e nao so no diff, porque quem audita permissao
+procura no documento, nao no JSON. E porque a primeira versao deste paragrafo provou que um
+documento errado sobre permissao e pior que documento nenhum.
+
+---|---|---|
 | `Bash(powershell -NoProfile -ExecutionPolicy Bypass -File scripts/*)` | os sete scripts de `scripts/` | são o fluxo novo; pedir aprovação a cada `task-status` tornaria a automação inútil |
 | `Bash(dotnet build:*)` | build da solução | já era rodado em toda tarefa |
 | `Bash(dotnet test:*)` | testes | idem |

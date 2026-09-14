@@ -19,7 +19,10 @@
       "Bash(gh pr checks:*)",
       "Bash(gh pr comment:*)",
       "Bash(gh pr merge:*)",
-      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File scripts/*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File scripts/task-status.ps1:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File scripts/backlog-validate.ps1:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File scripts/docs-links.ps1:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File scripts/task-verify.ps1:*)",
       "Bash(dotnet build:*)",
       "Bash(dotnet test:*)"
     ],
