@@ -4,6 +4,8 @@
 - **Tipo:** mudança do manual de operação (`chore/`), não tarefa do backlog
 - **Branch:** `chore/progressive-disclosure-de-contexto`
 - **Decisão:** [ADR-0014](../decisions/adr-0014-divulgacao-progressiva-de-contexto.md)
+- **Pull request:** [#2](https://github.com/IsraelJulio/TemplateGenerator/pull/2), mesclado em
+  2026-09-14, merge commit `33fe093`, com `--merge` (os 11 commits preservados)
 - **Escopo:** processo, contexto, documentação e automação de fluxo. **Nada em `src/` ou `tests/`.**
 
 > **Sobre os números.** Tudo abaixo é medido em **linhas e bytes de documento**, contados por
@@ -272,6 +274,25 @@ O mecanismo suportado é `permissions.deny` com regras `Read(...)`, acrescentado
 
 **Limite conhecido e registrado:** regras `deny` valem para as ferramentas internas de leitura e
 busca, e **não** para o que passa por `Bash` (`cat`, `type`). Não são um sandbox.
+
+### O que a mesma mudança ALARGOU
+
+Levantado pelo `git-flow` ao julgar o PR #2, e justo: o resto desta mudança restringe, mas
+`.claude/settings.json` também ganhou **três entradas em `permissions.allow`** — e a descrição
+acima falava só das exclusões.
+
+| Entrada | O que passa a rodar sem perguntar | Por quê |
+|---|---|---|
+| `Bash(powershell -NoProfile -ExecutionPolicy Bypass -File scripts/*)` | os sete scripts de `scripts/` | são o fluxo novo; pedir aprovação a cada `task-status` tornaria a automação inútil |
+| `Bash(dotnet build:*)` | build da solução | já era rodado em toda tarefa |
+| `Bash(dotnet test:*)` | testes | idem |
+
+Os três são **leitura, compilação e teste** — nenhum escreve no repositório, nenhum alcança a rede,
+nenhum toca `git` ou `gh` além do que já era permitido. O `deny` de `git push --force` e afins
+continua valendo, e `deny` sempre vence `allow` independentemente da ordem.
+
+O alargamento fica registrado **aqui e na ADR**, e não só no diff, porque quem audita permissão
+procura no documento, não no JSON.
 
 ---
 

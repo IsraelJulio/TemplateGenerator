@@ -98,6 +98,17 @@ completo guardado em arquivo. Isso não afrouxa a comprovação: `Passed! - Fail
 com exit code 0 continua sendo evidência, e *"os testes passaram"* continua não sendo. O que muda é
 que o ruído deixa de ser obrigatório.
 
+### 5. A configuração do Claude Code restringe leitura e libera os scripts
+
+`.claude/settings.json` ganhou regras `permissions.deny` do tipo `Read(...)` sobre artefatos de
+build e padrões de segredo — o mecanismo suportado, já que **`.claudeignore` não existe**.
+
+Ganhou também **três entradas em `permissions.allow`**: os scripts de `scripts/`, `dotnet build` e
+`dotnet test`. É a única parte desta decisão que **amplia** o que roda sem perguntar, e por isso
+fica escrita aqui e não só no JSON. Os três são leitura, compilação e teste: nenhum escreve no
+repositório, nenhum alcança a rede, nenhum toca `git` ou `gh`. Sem eles, pedir aprovação a cada
+`task-status.ps1` tornaria a automação inútil — que era o ponto de tê-la.
+
 ## Alternativas descartadas
 
 **`.claudeignore`.** Não existe na versão atual do Claude Code (2.1.270); o mecanismo suportado é
