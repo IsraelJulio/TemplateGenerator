@@ -29,6 +29,17 @@ namespace TemplateGenerator.Matrix.Tests.Layer1;
 /// teoremas desta classe passariam por vacuidade. Um verificador que para de verificar em silêncio
 /// é pior que nenhum.
 /// </para>
+/// <para>
+/// <strong>O que saiu daqui em T07, e por quê.</strong> Duas afirmações desta classe — "o CRUD
+/// exige token" e "todo comando de CRUD do README leva token" — não eram sobre o Identity: são
+/// sobre <em>haver autenticação</em> (RF-14, RF-21). Elas calculavam o esperado como
+/// <c>authentication == "identity"</c>, o que só coincidia com a verdade enquanto o Identity era a
+/// única autenticação escrita; com <c>auth/jwt</c> escrito, as 24 invocações de <c>jwt</c> caíram.
+/// As duas mudaram de casa para <see cref="AuthenticationMatrixTests"/>, com a condição certa e
+/// com o nome do que afirmam. Aqui ficou o que só vale para o Identity — o pacote de
+/// armazenamento, a ausência de segredo de assinatura, os endpoints nativos, as tabelas e as
+/// frases próprias do README.
+/// </para>
 /// </remarks>
 public sealed partial class IdentityFragmentMatrixTests
 {
@@ -237,35 +248,6 @@ public sealed partial class IdentityFragmentMatrixTests
 
     [Theory]
     [MemberData(nameof(AvailableCombinations))]
-    public async Task O_CRUD_exige_token_se_e_somente_se_ha_Identity_e_a_saude_nunca_exige(
-        string architecture,
-        string database,
-        string authentication,
-        bool swagger)
-    {
-        // RF-14 e RF-12, lidos no código gerado: o grupo `/items` ganha `RequireAuthorization` com
-        // Identity e não o ganha sem; `/health` nunca o ganha, em combinação nenhuma.
-        GeneratedPackage package = await GeneratedPackage.GenerateAsync(
-            Request(architecture, database, authentication, swagger),
-            TestContext.Current.CancellationToken);
-
-        bool expected = string.Equals(authentication, Identity, StringComparison.Ordinal);
-
-        Assert.True(
-            ItemEndpoints(package).Contains("items.RequireAuthorization();", StringComparison.Ordinal)
-                == expected,
-            $"{GeneratedPackage.Describe(package.Request)}: o CRUD " +
-            $"{(expected ? "não exige" : "exige")} token, e authentication = {authentication} " +
-            "(RF-14).");
-
-        string health = package.Read(package.Paths.Single(path =>
-            path.EndsWith("/HealthEndpoints.cs", StringComparison.Ordinal)));
-
-        Assert.DoesNotContain("RequireAuthorization", health, StringComparison.Ordinal);
-    }
-
-    [Theory]
-    [MemberData(nameof(AvailableCombinations))]
     public async Task Os_endpoints_nativos_e_as_tabelas_do_Identity_existem_se_e_somente_se_ha_Identity(
         string architecture,
         string database,
@@ -396,101 +378,12 @@ public sealed partial class IdentityFragmentMatrixTests
         }
     }
 
-    [Theory]
-    [MemberData(nameof(AvailableCombinations))]
-    public async Task Todo_comando_de_CRUD_do_README_leva_token_se_e_somente_se_ha_Identity(
-        string architecture,
-        string database,
-        string authentication,
-        bool swagger)
-    {
-        // RF-21 na metade que quase escapou: não basta o README **acrescentar** as frases certas
-        // sobre o Identity; os comandos que ele manda copiar precisam ser os comandos que
-        // funcionam naquela combinação. A primeira versão de T06 tratou o `requests.http` e
-        // esqueceu a seção "Testar o CRUD" do README, que continuava ensinando cinco chamadas sem
-        // `Authorization` — todas `401` com Identity — e uma tabela prometendo `200` e `201` para
-        // elas. O documento se contradizia, e a metade errada era a copiável.
-        //
-        // O teste anterior desta classe só conferia frases PRESENTES, e por isso passou verde em
-        // cima do defeito. Este confere o inverso, que é o que pega o caso: nenhum comando de CRUD
-        // pode estar **sem** token onde o token é obrigatório, e nenhum pode estar **com** token
-        // onde não há autenticação.
-        GeneratedPackage package = await GeneratedPackage.GenerateAsync(
-            Request(architecture, database, authentication, swagger),
-            TestContext.Current.CancellationToken);
-
-        bool expected = string.Equals(authentication, Identity, StringComparison.Ordinal);
-        string crud = CrudSection(package.Read("README.md"));
-
-        // "Contém `curl`", e não "começa com `curl`": no bloco PowerShell o corpo da requisição vai
-        // pelo pipe (`'{…}' | curl.exe …`, ver ReadmeShellMatrixTests), então a linha do POST começa
-        // pelo JSON. Um filtro de prefixo deixaria justamente essa linha de fora — e ela é uma das
-        // que precisam do token.
-        string[] calls =
-        [
-            .. crud
-                .Split('\n')
-                .Select(line => line.Trim())
-                .Where(line =>
-                    line.Contains("curl", StringComparison.Ordinal) &&
-                    line.Contains("/items", StringComparison.Ordinal)),
-        ];
-
-        // Sanidade: a seção tem cinco chamadas em Bash e duas em PowerShell. Se o recorte deixasse
-        // de achá-las — heading renomeado, bloco movido —, o laço abaixo passaria sem olhar nada, e
-        // este teste voltaria a ser a falsa segurança que ele existe para tirar.
-        Assert.True(
-            calls.Length >= 7,
-            $"{GeneratedPackage.Describe(package.Request)}: a seção de CRUD do README tem só " +
-            $"{calls.Length} chamada(s) a '/items'. O recorte da seção provavelmente quebrou, e " +
-            "a afirmação abaixo passaria por vacuidade.");
-
-        foreach (string call in calls)
-        {
-            Assert.True(
-                call.Contains("Authorization: Bearer", StringComparison.Ordinal) == expected,
-                $"{GeneratedPackage.Describe(package.Request)}: o README manda executar " +
-                $"`{call}`, que {(expected ? "responde 401 — falta o cabeçalho 'Authorization'" : "leva um cabeçalho 'Authorization' que esta combinação não tem")}. " +
-                "Todo comando do README tem de rodar como está (RF-21).");
-        }
-
-        // E a tabela de respostas: com Identity, a promessa de `200`/`201` só vale com o token, e a
-        // seção precisa dizer sob que condição ela deixa de valer. Sem autenticação não existe
-        // `401` a mencionar ali.
-        Assert.True(
-            crud.Contains("`401`", StringComparison.Ordinal) == expected,
-            $"{GeneratedPackage.Describe(package.Request)}: a seção de CRUD do README " +
-            $"{(expected ? "não diz" : "diz")} o que acontece sem token, e authentication = " +
-            $"{authentication}.");
-    }
-
     private static GenerationRequest Request(
         string architecture,
         string database,
         string authentication,
         bool swagger) =>
         new(Combinations.ProjectName, architecture, database, authentication, swagger, "net10.0");
-
-    /// <summary>
-    /// A seção "Testar o CRUD" do README, do próprio título até o título seguinte de mesmo nível.
-    /// </summary>
-    /// <remarks>
-    /// O recorte existe para a afirmação não escorregar para as outras seções: a de autenticação
-    /// cita `401` de propósito e mostra chamadas sem token para demonstrar a recusa, e misturar as
-    /// duas faria o teste cobrar a coisa errada de cada uma.
-    /// </remarks>
-    private static string CrudSection(string readme)
-    {
-        const string Heading = "## Testar o CRUD de";
-
-        int start = readme.IndexOf(Heading, StringComparison.Ordinal);
-
-        Assert.True(start >= 0, $"O README não tem a seção '{Heading} …'.");
-
-        int next = readme.IndexOf("\n## ", start + Heading.Length, StringComparison.Ordinal);
-
-        return next < 0 ? readme[start..] : readme[start..next];
-    }
 
     private static bool IsIdentity(GenerationRequest request) =>
         string.Equals(request.Authentication, Identity, StringComparison.Ordinal);
