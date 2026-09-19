@@ -40,10 +40,6 @@ public sealed class GenerationMatrixTests
     public static TheoryData<string, string, string, bool> AvailableWithSwaggerCombinations =>
         DataFrom([.. Combinations.Available.Where(request => request.Swagger)]);
 
-    /// <summary>As combinações que o motor recusa e a Api responde com <c>501</c>.</summary>
-    public static TheoryData<string, string, string, bool> UnavailableCombinations =>
-        DataFrom(Combinations.Unavailable);
-
     private static TheoryData<string, string, string, bool> DataFrom(
         IReadOnlyList<GenerationRequest> requests)
     {
@@ -94,11 +90,12 @@ public sealed class GenerationMatrixTests
         Assert.NotEmpty(AvailableCombinations);
         Assert.NotEmpty(AvailableWithSwaggerCombinations);
 
-        // `UnavailableCombinations` fica de fora desta lista de propósito: ele TEM de esvaziar em
-        // T08, quando o último fragmento for escrito, e exigir que ele tenha linha seria escrever
-        // aqui uma dívida com prazo indeterminado. Quem o vigia enquanto ele precisa existir é
-        // `AvailabilityMatrixTests`, que condiciona a exigência à presença de fragmento vazio no
-        // repositório — e por isso cai sozinho quando não houver mais nenhum.
+        // O recorte dos INDISPONÍVEIS não tem recorte de teoria aqui, e desde T07 não tem nem
+        // dados: com `auth/jwt` escrito, todo eixo passou a ter fragmento e
+        // `Combinations.Unavailable` esvaziou — as 32 válidas estão disponíveis. Exigir que ele
+        // tenha linha seria escrever aqui uma dívida que já venceu. Quem vigia que esse vazio
+        // continua sendo o vazio LEGÍTIMO — todo fragmento escrito, e não a derivação quebrada —
+        // é `AvailabilityMatrixTests`, nos dois sentidos.
         Assert.NotEmpty(Combinations.Clean);
 
         Assert.All(
