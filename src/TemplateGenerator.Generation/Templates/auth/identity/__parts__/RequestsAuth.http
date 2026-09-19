@@ -1,0 +1,48 @@
+# Autenticação — ASP.NET Core Identity nativo.
+#
+# As chamadas a `/items` acima respondem 401 sem o cabeçalho `Authorization`; `GET /health`
+# continua público. Execute o cadastro e o login abaixo e as chamadas seguintes já reaproveitam o
+# token da resposta do login.
+
+### Cadastro — responde 200 com corpo vazio
+POST {{host}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "pessoa@exemplo.com",
+  "password": "Senha!123"
+}
+
+### Login — devolve o bearer token do Identity, que não é um JWT de terceiros
+# @name login
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "pessoa@exemplo.com",
+  "password": "Senha!123"
+}
+
+### Listar os itens com o token do login
+GET {{host}}/items
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Criar um item com o token do login
+POST {{host}}/items
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "title": "Item autenticado"
+}
+
+### Renovar o par de tokens, sem pedir a senha de novo
+POST {{host}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.refreshToken}}"
+}
+
+### Sem `Authorization`, o mesmo CRUD responde 401
+GET {{host}}/items
