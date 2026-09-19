@@ -241,7 +241,7 @@
       "id": "T06",
       "finishedAt": "2026-09-19",
       "startedAt": "2026-09-18",
-      "pullRequest": null,
+      "pullRequest": "https://github.com/IsraelJulio/TemplateGenerator/pull/6",
       "order": 6,
       "title": "Autenticacao Identity nativa",
       "state": "done",
