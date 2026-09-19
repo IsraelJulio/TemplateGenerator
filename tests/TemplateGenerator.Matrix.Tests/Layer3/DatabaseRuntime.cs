@@ -155,9 +155,18 @@ internal sealed partial class DatabaseRuntime : IAsyncDisposable
                 $"run={run}.");
         }
 
-        Match command = EfDatabaseUpdate().Match(readme);
+        // TODOS os comandos de migração do README, na ordem escrita — não o primeiro. Uma combinação
+        // com Identity tem dois `DbContext` (o da aplicação e o `AppIdentityDbContext`) e, portanto,
+        // dois `dotnet ef database update`; executar só o primeiro deixaria as tabelas do Identity
+        // sem criar e `POST /auth/register` falharia em runtime. O `--context` faz parte do comando
+        // e precisa ser executado junto: com mais de um contexto no projeto, o `dotnet ef` recusa
+        // rodar sem ele.
+        string[] commands =
+        [
+            .. EfDatabaseUpdate().Matches(readme).Select(match => match.Value),
+        ];
 
-        if (!command.Success)
+        if (commands.Length == 0)
         {
             throw new InvalidOperationException(
                 "O README não traz 'dotnet ef database update --project <x> --startup-project <y>' " +
@@ -166,7 +175,11 @@ internal sealed partial class DatabaseRuntime : IAsyncDisposable
 
         await RunOrThrowAsync("dotnet", "restore --disable-build-servers", cancellationToken);
         await RunOrThrowAsync("dotnet", "tool restore", cancellationToken);
-        await RunOrThrowAsync("dotnet", command.Value, cancellationToken);
+
+        foreach (string command in commands)
+        {
+            await RunOrThrowAsync("dotnet", command, cancellationToken);
+        }
     }
 
     /// <summary>Compila o projeto Web API (o passo que o <c>dotnet run</c> do README faria).</summary>
@@ -378,8 +391,11 @@ internal sealed partial class DatabaseRuntime : IAsyncDisposable
         return port;
     }
 
+    // O `--context` é opcional na expressão porque nem todo README o traz, mas quando traz ele
+    // precisa entrar no comando executado: recortá-lo faria o `dotnet ef` recusar o comando num
+    // projeto com mais de um `DbContext` (o caso de Identity).
     [GeneratedRegex(
-        @"dotnet ef database update --project \S+ --startup-project \S+",
+        @"dotnet ef database update --project \S+ --startup-project \S+(?: --context \S+)?",
         RegexOptions.CultureInvariant)]
     private static partial Regex EfDatabaseUpdate();
 }
