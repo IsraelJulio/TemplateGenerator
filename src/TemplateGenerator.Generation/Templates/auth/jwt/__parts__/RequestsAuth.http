@@ -1,0 +1,30 @@
+# Autenticação — JWT de provedor externo.
+#
+# As chamadas a `/items` acima respondem 401 sem o cabeçalho `Authorization`; `GET /health`
+# continua público. Esta aplicação não emite token: pegue um token de acesso no provedor apontado
+# por `Jwt:Authority` e cole-o abaixo, no lugar do texto em maiúsculas.
+
+@token = COLE_O_TOKEN_AQUI
+
+### Listar os itens com o token do provedor
+GET {{host}}/items
+Authorization: Bearer {{token}}
+
+### Criar um item com o token do provedor
+POST {{host}}/items
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Item autenticado"
+}
+
+### Sem `Authorization`, o mesmo CRUD responde 401
+GET {{host}}/items
+
+### Assinatura, emissor, audiência ou validade errados também respondem 401
+GET {{host}}/items
+Authorization: Bearer nao.e.um.token.valido
+
+### Saúde — pública mesmo com autenticação ligada, e sem token
+GET {{host}}/health
