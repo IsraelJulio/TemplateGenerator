@@ -8,7 +8,7 @@
   },
   "project": "TemplateGenerator",
   "templateVersion": "1.0.0",
-  "updatedAt": "2026-09-14",
+  "updatedAt": "2026-09-19",
   "states": ["pending", "in_progress", "blocked", "done"],
   "tasks": [
     {
@@ -239,10 +239,12 @@
     },
     {
       "id": "T06",
+      "finishedAt": "2026-09-19",
+      "startedAt": "2026-09-18",
       "pullRequest": null,
       "order": 6,
       "title": "Autenticacao Identity nativa",
-      "state": "pending",
+      "state": "done",
       "dependsOn": ["T05"],
       "roles": ["template-engineer", "reviewer", "qa"],
       "skills": ["dotnet-templates", "verify-mvp"],
@@ -250,7 +252,10 @@
         "docs/architecture/generated-projects.md",
         "docs/product/option-matrix.md",
         "docs/product/requirements.md",
-        "docs/decisions/adr-0011-contribuicao-por-marcador.md"
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md",
+        "docs/decisions/adr-0015-contribuicao-le-eixo-anterior.md",
+        "docs/decisions/adr-0012-combinacao-sem-template.md",
+        "docs/decisions/adr-0010-estrutura-prevista-e-projecao.md"
       ],
       "objective": "Entregar ASP.NET Core Identity nativo sobre banco, com cadastro, login bearer e renovacao funcionando.",
       "acceptanceCriteria": [
@@ -270,7 +275,7 @@
         "Conferir rejeicao de identity + database none."
       ],
       "blockers": [],
-      "report": null
+      "report": "docs/reports/T06.md"
     },
     {
       "id": "T07",
@@ -285,7 +290,8 @@
         "docs/architecture/generated-projects.md",
         "docs/product/requirements.md",
         "docs/decisions/adr-0006-oidc-in-process.md",
-        "docs/decisions/adr-0011-contribuicao-por-marcador.md"
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md",
+        "docs/decisions/adr-0015-contribuicao-le-eixo-anterior.md"
       ],
       "objective": "Entregar validacao de JWT de provedor externo via Authority e Audience, com emissor OIDC de teste in-process.",
       "acceptanceCriteria": [
