@@ -1,5 +1,6 @@
 using __ProjectName__.Endpoints;
 using __ProjectName__.Persistence;
+__ProgramUsings__
 using __ProjectName__.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -27,5 +28,6 @@ __ProgramMiddleware__
 
 app.MapHealth();
 app.MapItems();
+__ProgramEndpoints__
 
 app.Run();

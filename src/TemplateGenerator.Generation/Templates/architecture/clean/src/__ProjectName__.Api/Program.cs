@@ -2,6 +2,7 @@ using __ProjectName__.Api.Endpoints;
 using __ProjectName__.Application.Items;
 using __ProjectName__.Domain.Abstractions;
 using __ProjectName__.Infrastructure.Persistence;
+__ProgramUsings__
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -28,5 +29,6 @@ __ProgramMiddleware__
 
 app.MapHealth();
 app.MapItems();
+__ProgramEndpoints__
 
 app.Run();
