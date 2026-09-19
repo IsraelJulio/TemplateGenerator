@@ -1,0 +1,10 @@
+
+  <ItemGroup Label="Identidade — ASP.NET Core Identity">
+    <!-- As tabelas de usuário do Identity sobre EF Core. Só o armazenamento entra aqui: os
+         endpoints de cadastro, login e renovação são nativos do ASP.NET Core e não custam pacote
+         nenhum. A versão é a mais BAIXA das linhas de EF Core que os provedores de banco usam, e
+         não a do provedor desta combinação: este pacote arrasta o EF Core Relational junto, e
+         escolher a linha mais baixa o deixa ser unificado para cima onde o provedor é mais novo,
+         em vez de empurrar o Relational acima do pacote de design time onde ele é mais antigo. -->
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.4" />
+  </ItemGroup>

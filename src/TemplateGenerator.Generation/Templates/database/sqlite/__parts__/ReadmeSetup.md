@@ -28,12 +28,14 @@ dotnet tool restore
 Depois aplique a migração:
 
 ```bash
-dotnet ef database update --project __PersistenceProjectDir__ --startup-project __ApiProjectDir__
+dotnet ef database update --project __PersistenceProjectDir__ --startup-project __ApiProjectDir__ --context AppDbContext
 ```
 
 `--project` é onde as migrações moram; `--startup-project` é o projeto que sobe a aplicação e
 carrega a configuração — é dele que sai a cadeia de conexão. Passar os dois deixa o comando igual
-em qualquer arquitetura, mesmo quando apontam para o mesmo projeto.
+em qualquer arquitetura, mesmo quando apontam para o mesmo projeto. `--context` diz a qual
+`DbContext` a migração pertence: um projeto pode hospedar mais de um, e nomeá-lo deixa o comando
+igual nos dois casos.
 
 Isso cria `app.db` e a tabela `Items`. Reaplicar o que já está aplicado não faz nada, então repetir
 o comando é seguro.

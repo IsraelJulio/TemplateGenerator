@@ -62,22 +62,34 @@ curl http://localhost:5100/health
 Resposta: `{"status":"ok"}`.
 
 ## Testar o CRUD de `Item`
+__ReadmeCrudAuth__
 
 Com a aplicação em execução, em outro terminal. Em Linux, macOS ou Git Bash:
 
 ```bash
-curl -i -X POST http://localhost:5100/items -H 'Content-Type: application/json' -d '{"title":"Primeiro item"}'
-curl http://localhost:5100/items
-curl http://localhost:5100/items/1
-curl -i -X PUT http://localhost:5100/items/1 -H 'Content-Type: application/json' -d '{"title":"Item renomeado"}'
-curl -i -X DELETE http://localhost:5100/items/1
+curl -i -X POST http://localhost:5100/items -H 'Content-Type: application/json'__ReadmeCrudAuthHeader__ -d '{"title":"Primeiro item"}'
+curl http://localhost:5100/items__ReadmeCrudAuthHeader__
+curl http://localhost:5100/items/1__ReadmeCrudAuthHeader__
+curl -i -X PUT http://localhost:5100/items/1 -H 'Content-Type: application/json'__ReadmeCrudAuthHeader__ -d '{"title":"Item renomeado"}'
+curl -i -X DELETE http://localhost:5100/items/1__ReadmeCrudAuthHeader__
 ```
 
-No PowerShell, use `curl.exe` e aspas duplas escapadas:
+No PowerShell, use `curl.exe` e mande o corpo JSON pelo **pipe**, e não em `-d`. O motivo é do
+shell, não do `curl`: o PowerShell entrega os argumentos a um programa nativo sem reconstruir as
+aspas, então um corpo com espaço — `"Primeiro item"` — chega partido em dois e o servidor responde
+`400`. Passando o corpo por `stdin` com `--data-binary '@-'`, ele não percorre a linha de comando e
+chega inteiro.
+
+A primeira linha do bloco é parte da correção, não enfeite: o Windows PowerShell escreve no `stdin`
+de um programa nativo em **US-ASCII** por padrão, e sem ela um título com acento — `"Primeiro
+ítem"` — chegaria ao servidor com `?` no lugar da letra. Essa falha é **silenciosa**: o corpo segue
+sendo JSON válido, a resposta é `201` e o dado gravado é que está corrompido. A linha é idempotente
+e vale pela sessão: repita-a em cada terminal novo.
 
 ```powershell
-curl.exe -i -X POST http://localhost:5100/items -H "Content-Type: application/json" -d '{\"title\":\"Primeiro item\"}'
-curl.exe http://localhost:5100/items
+$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+'{"title":"Primeiro item"}' | curl.exe -i -X POST http://localhost:5100/items -H "Content-Type: application/json"__ReadmeCrudAuthHeader__ --data-binary '@-'
+curl.exe http://localhost:5100/items__ReadmeCrudAuthHeader__
 ```
 
 O que esperar:

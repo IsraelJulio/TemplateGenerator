@@ -33,11 +33,24 @@
  * `PersistenceRegistration.cs`, os três arquivos de `Migrations/` e o
  * `.config/dotnet-tools.json` na raiz do ZIP.
  *
- * **O que continua sendo palpite:** os valores sem fragmento — `identity` e
- * `jwt`. Com ADR-0012 implementada, a tela desabilita cada um deles, de modo que
- * esse palpite é **inalcançável**: nenhuma seleção que o resumo consegue mostrar
- * depende dele. No dia em que o fragmento existir, o valor acende, a combinação
- * entra no contrato gerado e a amarração o alcança sozinha.
+ * **O que entrou em T06:** `identity`. O fragmento de autenticação passou a
+ * existir, o valor acendeu e as oito combinações dele entraram no contrato
+ * gerado — e a amarração cobrou na hora. As duas regras que a projeção
+ * mantinha como palpite apontavam para caminhos que o pacote real não tem:
+ * `Persistence/AppUser.cs` na Simples e `Infrastructure/Identity/AppUser.cs` na
+ * Clean. As duas saíram. No lugar delas entram sete regras sob `Identity/`,
+ * **dentro** da pasta de persistência — o usuário, o `DbContext` das tabelas de
+ * identidade, o registro dele e os três arquivos da migração própria. Nenhuma
+ * condiciona por arquitetura, porque `auth/identity` é um fragmento só e cai
+ * onde {@link PERSISTENCE_TOKEN} mandar; foi exatamente o erro do palpite
+ * antigo ter escrito uma regra por arquitetura para um arquivo que não varia
+ * por ela.
+ *
+ * **O que continua sendo palpite:** um valor só — `jwt`. Com ADR-0012
+ * implementada, a tela o desabilita, de modo que esse palpite é
+ * **inalcançável**: nenhuma seleção que o resumo consegue mostrar depende dele.
+ * No dia em que o fragmento existir, o valor acende, a combinação entra no
+ * contrato gerado e a amarração o alcança sozinha.
  *
  * Regra de contenção: as strings de opção ficam confinadas em
  * {@link PROJECT_STRUCTURE_RULES}, {@link API_PROJECT_NAME_RULES} e
@@ -215,10 +228,11 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
 
   // --------------------------------------------------- arquitetura simples
   //
-  // Um projeto só, com o modelo, o serviço e a porta dentro dele. As entradas
-  // sem condição de banco e as de `database: none` são **conferidas contra o ZIP
-  // real** por `zip-structure.spec.ts`; as de `identity` continuam projeção,
-  // porque o fragmento ainda não existe — e a tela não deixa chegar lá.
+  // Um projeto só, com o modelo, o serviço e a porta dentro dele. Desde T06
+  // **todas** as entradas deste bloco são conferidas contra o ZIP real por
+  // `zip-structure.spec.ts`: o que sobrava de projeção aqui eram as de
+  // `identity`, e elas saíram deste bloco — o fragmento existe, e o que ele
+  // traz não varia por arquitetura, então mora na seção "identidade".
   {
     path: `src/${A}/Models/Item.cs`,
     when: [{ field: 'architecture', is: ['simple'] }],
@@ -236,14 +250,6 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
     path: `src/${A}/Persistence/IItemStore.cs`,
     note: 'a porta que o serviço enxerga',
     when: [{ field: 'architecture', is: ['simple'] }],
-  },
-  {
-    path: `src/${A}/Persistence/AppUser.cs`,
-    note: 'usuários do Identity',
-    when: [
-      { field: 'architecture', is: ['simple'] },
-      { field: 'authentication', is: ['identity'] },
-    ],
   },
 
   // ----------------------------------------------------- clean architecture
@@ -286,14 +292,6 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
   {
     path: `src/${P}.Infrastructure/${P}.Infrastructure.csproj`,
     when: [{ field: 'architecture', is: ['clean'] }],
-  },
-  {
-    path: `src/${P}.Infrastructure/Identity/AppUser.cs`,
-    note: 'usuários do Identity',
-    when: [
-      { field: 'architecture', is: ['clean'] },
-      { field: 'authentication', is: ['identity'] },
-    ],
   },
 
   // ------------------------------------------------------------ persistência
@@ -348,6 +346,55 @@ export const PROJECT_STRUCTURE_RULES: readonly StructureRule[] = [
   {
     path: `${PERSISTENCE_TOKEN}/Migrations/AppDbContextModelSnapshot.cs`,
     when: [{ field: 'database', isNot: ['none'] }],
+  },
+
+  // -------------------------------------------------------------- identidade
+  //
+  // Tudo do `auth/identity` cai em `Identity/`, **dentro** da pasta de
+  // persistência — o mesmo {@link PERSISTENCE_TOKEN} do `ItemStore.cs`, pelo
+  // mesmo motivo: o fragmento de autenticação é **um só** e precisa cair na
+  // pasta que a arquitetura escolheu. Por isso nenhuma regra daqui condiciona
+  // por `architecture`, e por isso são sete regras, e não catorze.
+  //
+  // A condição é só `authentication: identity`, sem checar banco: a restrição
+  // `identity-requires-database` do catálogo já impede a combinação sem banco
+  // de chegar até aqui, e repeti-la nesta lista seria reescrever a regra de
+  // compatibilidade na tela.
+  //
+  // **São dois `DbContext` no mesmo banco** — `AppDbContext`, acima, e
+  // `AppIdentityDbContext`, aqui —, cada um com o seu conjunto de migrações. A
+  // decisão e o porquê estão em `generated-projects.md`, seção "As tabelas de
+  // identidade têm `DbContext` e migração próprios".
+  {
+    path: `${PERSISTENCE_TOKEN}/Identity/AppUser.cs`,
+    note: 'usuários do Identity',
+    when: [{ field: 'authentication', is: ['identity'] }],
+  },
+  {
+    path: `${PERSISTENCE_TOKEN}/Identity/AppIdentityDbContext.cs`,
+    note: 'as tabelas de identidade, no mesmo banco',
+    when: [{ field: 'authentication', is: ['identity'] }],
+  },
+  {
+    path: `${PERSISTENCE_TOKEN}/Identity/IdentityRegistration.cs`,
+    when: [{ field: 'authentication', is: ['identity'] }],
+  },
+  {
+    path: `${PERSISTENCE_TOKEN}/Identity/Migrations/`,
+    note: 'migração própria das tabelas de identidade',
+    when: [{ field: 'authentication', is: ['identity'] }],
+  },
+  {
+    path: `${PERSISTENCE_TOKEN}/Identity/Migrations/20260101000100_IdentitySchema.cs`,
+    when: [{ field: 'authentication', is: ['identity'] }],
+  },
+  {
+    path: `${PERSISTENCE_TOKEN}/Identity/Migrations/20260101000100_IdentitySchema.Designer.cs`,
+    when: [{ field: 'authentication', is: ['identity'] }],
+  },
+  {
+    path: `${PERSISTENCE_TOKEN}/Identity/Migrations/AppIdentityDbContextModelSnapshot.cs`,
+    when: [{ field: 'authentication', is: ['identity'] }],
   },
 
   // ---------------------------------------------------------------- testes

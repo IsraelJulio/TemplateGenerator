@@ -201,7 +201,18 @@ ao fixar cada versão:
 | `Npgsql.EntityFrameworkCore.PostgreSQL` | 10.0.3 | PostgreSQL License |
 | `Microsoft.EntityFrameworkCore.Design` | 10.0.12 (sqlite) / 10.0.4 (postgresql) | MIT |
 | `dotnet-ef` (ferramenta) | 10.0.12 | MIT |
+| `Microsoft.AspNetCore.Identity.EntityFrameworkCore` | 10.0.4 | MIT |
 | `Swashbuckle.AspNetCore` | 10.2.3 | MIT |
+
+`Microsoft.AspNetCore.Identity.EntityFrameworkCore` entra em **T06**, no projeto de persistência das
+oito combinações com `authentication = identity` — é ele que traz `IdentityDbContext` e as tabelas de
+usuário. Ele é o **único** pacote que o Identity custa: os endpoints de cadastro, login e renovação
+(`MapIdentityApi`) são do framework compartilhado do ASP.NET Core e não acrescentam dependência
+nenhuma. A versão é **10.0.4**, e não a mais nova da linha, porque ela arrasta
+`Microsoft.EntityFrameworkCore.Relational` na mesma versão: com PostgreSQL o design time está em
+10.0.4, e subir este pacote poria duas linhas do mesmo assembly na mesma compilação. Em SQLite o
+provider unifica para cima, sem prejuízo. A escolha é afirmada contra o literal em
+`IdentityFragmentMatrixTests`.
 
 `Microsoft.EntityFrameworkCore.Design` entra em T05 como `PrivateAssets="all"` no projeto de subida
 de cada combinação com banco — é design-time, não sai publicado, mas é restaurado por quem baixa o

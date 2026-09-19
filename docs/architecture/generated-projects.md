@@ -265,8 +265,9 @@ três razões, em ordem de peso.
    - `database/sqlite` e `database/postgresql` acrescentam `AppDbContext` em `Infrastructure`, com
      `DbSet<Item>` — precisa de `Domain` e de mais nada;
    - `auth/identity` usa os endpoints nativos (`MapIdentityApi`) e `AppUser : IdentityUser`, que é
-     tipo de pacote de infraestrutura e por isso já está projetado em
-     `Infrastructure/Identity/AppUser.cs` — **não há porta a declarar**;
+     tipo de pacote de infraestrutura e por isso mora dentro do projeto de persistência — em T06
+     ficou em `Infrastructure/Persistence/Identity/AppUser.cs`, ao lado do `DbContext` de
+     identidade, e não numa pasta irmã de `Persistence/` — **e não há porta a declarar**;
    - `auth/jwt` é validação por `Authority`/`Audience`, composição pura, sem porta;
    - RF-15 fixa dados compartilhados **sem regra de proprietário**, o que elimina o `ICurrentUser`
      que seria a porta mais provável da autenticação.
@@ -365,12 +366,22 @@ migração" é um passo do README com comando copiável:
 
 ```bash
 dotnet tool restore
-dotnet ef database update --project <projeto da persistência> --startup-project <projeto de API>
+dotnet ef database update --project <projeto da persistência> --startup-project <projeto de API> --context <DbContext>
 ```
 
 Os dois caminhos variam por arquitetura e chegam ao texto pelos marcadores
 `__PersistenceProjectDir__` e `__ApiProjectDir__` ([`generation-engine.md`](generation-engine.md)).
 O comando **não varia por provider**: o provedor sai do `DbContext`, não da linha de comando.
+
+**`--context` entra em todas as combinações com banco desde T06.** Onde há um `DbContext` só ele é
+**uniforme**, não obrigatório — o comando funcionaria sem ele; onde há dois, ele é a única forma de o
+comando funcionar. A razão de escrevê-lo sempre é de forma, não de gosto: com
+`authentication = identity` o pacote passa a ter **dois** `DbContext` no mesmo projeto de
+persistência — `AppDbContext`, dos dados da aplicação, e `AppIdentityDbContext`, das tabelas de
+usuário —, e o `dotnet ef` recusa trabalhar sem saber de qual deles se trata. Nomear o contexto
+**sempre**, inclusive nas combinações sem Identity, é o que mantém um comando só em toda a matriz:
+a alternativa seria o texto do eixo `database` mudar conforme o eixo `authentication`, que é
+leitura para a frente e ADR-0015 proíbe.
 
 O porquê, com as alternativas descartadas, está em
 [ADR-0015](../decisions/adr-0015-contribuicao-le-eixo-anterior.md). Em resumo: migrar na subida foi
@@ -394,6 +405,54 @@ considerada e recusada.
 - Envio de e-mail (confirmação, recuperação) **exige configuração adicional e não faz parte do
   fluxo garantido do MVP**. O README diz isso explicitamente.
 - Exige `database ∈ {sqlite, postgresql}`.
+- O CRUD inteiro ganha `RequireAuthorization()`; `GET /health` fica fora do grupo e continua
+  público. A autorização é **binária** (RF-14, RF-15): token válido basta, e não há política por
+  papel nem por claim.
+
+#### As tabelas de identidade têm `DbContext` e migração próprios — **decidido em T06**
+
+**O Identity não entra no `AppDbContext`.** Ele traz um segundo contexto,
+`AppIdentityDbContext : IdentityDbContext<AppUser>`, no mesmo banco e no mesmo projeto de
+persistência, com migração própria em `Identity/Migrations/`. O README ganha, depois do passo de
+migração da aplicação, um segundo `dotnet ef database update … --context AppIdentityDbContext`.
+
+A razão é o modelo de composição, e ela é dura: `AppDbContext` e a migração dele pertencem ao
+fragmento `database/*` (regra do hospedeiro mínimo, [`generation-engine.md`](generation-engine.md)),
+e trocar a **classe base** de um arquivo de `database/*` conforme o eixo `auth` não é exprimível —
+contribuição concatena, não substitui, e a única saída seria `auth/none` e `auth/jwt` contribuírem
+cada um a base "normal", o que acenderia `jwt` como disponível antes de ele ter template
+([ADR-0012](../decisions/adr-0012-combinacao-sem-template.md)). Com dois contextos, cada eixo
+continua dono do que escreve, e o preço é um comando a mais no README.
+
+**A migração de identidade é a mesma nos dois providers, e isso não contradiz "migração é específica
+do provider".** Ela é escrita **sem `type:` nas colunas**, de modo que o tipo de cada coluna saia do
+mapeamento do provedor em tempo de execução — é o mesmo DDL que o `dotnet ef` geraria para cada
+banco.
+
+> **Como isso foi conferido, e como *não* deve ser conferido.** O teste que vale é
+> `dotnet ef migrations add Probe --context AppIdentityDbContext` sobre o projeto gerado: em T06 ele
+> saiu com `Up()` e `Down()` **vazios** nos dois providers, o que prova que o *model snapshot* e o
+> modelo do `IdentityDbContext<AppUser>` coincidem — é isso que decide se quem receber o projeto leva
+> uma migração espúria depois. `dotnet ef migrations script` **não** serve para essa pergunta: ele só
+> renderiza o `Up()` existente e não compara nada com o snapshot.
+
+O que sobra de específico do provedor são
+**quatro marcadores**, de três naturezas, todos alimentados pelo eixo `database` e lidos para trás
+(ADR-0015):
+
+| Marcador | O que é | `sqlite` | `postgresql` |
+|---|---|---|---|
+| `__EfUseProvider__` | como o provedor é ligado no `AddDbContext` do Identity | `options.UseSqlite(connectionString)` | `options.UseNpgsql(connectionString)` |
+| `__EfGeneratedKey__` | a anotação que torna uma chave inteira autogerada, na migração | `Sqlite:Autoincrement` | `Npgsql:ValueGenerationStrategy` |
+| `__EfGeneratedKeyProperty__` | a mesma estratégia no *model snapshot* | (nenhuma) | `UseIdentityByDefaultColumn` |
+| `__EfMigrationUsings__` | o `using` que a anotação exige | (nenhum) | `Npgsql…Metadata` |
+
+O primeiro é o que faz o `AddDbContext` do Identity sequer funcionar, e é fácil esquecê-lo ao contar
+"o que muda na migração" — ele não muda a migração, muda a composição. Os outros três existem porque
+a estratégia de chave autogerada é o único ponto do esquema de identidade que o mapeamento do
+provedor não resolve sozinho. O fragmento `auth/identity` é um só e não poderia
+carregar duas migrações; o fragmento `database/*` não pode carregar tabelas de Identity que só
+existem às vezes. O marcador é o que resolve os dois de uma vez.
 
 ### `jwt` — provedor externo
 

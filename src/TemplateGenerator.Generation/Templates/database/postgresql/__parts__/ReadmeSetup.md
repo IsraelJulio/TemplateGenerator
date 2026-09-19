@@ -49,12 +49,14 @@ dotnet tool restore
 Depois aplique a migração, no mesmo terminal em que você definiu a variável do passo 1:
 
 ```bash
-dotnet ef database update --project __PersistenceProjectDir__ --startup-project __ApiProjectDir__
+dotnet ef database update --project __PersistenceProjectDir__ --startup-project __ApiProjectDir__ --context AppDbContext
 ```
 
 `--project` é onde as migrações moram; `--startup-project` é o projeto que sobe a aplicação e
 carrega a configuração — é dele que sai a cadeia de conexão. Passar os dois deixa o comando igual
-em qualquer arquitetura, mesmo quando apontam para o mesmo projeto.
+em qualquer arquitetura, mesmo quando apontam para o mesmo projeto. `--context` diz a qual
+`DbContext` a migração pertence: um projeto pode hospedar mais de um, e nomeá-lo deixa o comando
+igual nos dois casos.
 
 O comando cria o banco, se ele ainda não existir, e a tabela `Items`. Para criá-lo na primeira vez,
 o usuário da conexão precisa ter permissão de `CREATEDB` — o usuário `postgres` tem. Reaplicar o

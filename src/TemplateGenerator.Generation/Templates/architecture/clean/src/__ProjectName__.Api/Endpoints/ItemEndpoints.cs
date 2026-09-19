@@ -24,6 +24,7 @@ public static class ItemEndpoints
         ArgumentNullException.ThrowIfNull(routes);
 
         RouteGroupBuilder items = routes.MapGroup("/items");
+__ItemsAuthorization__
 
         items.MapGet("", async (ItemService service, CancellationToken cancellationToken) =>
             Results.Ok(await service.ListAsync(cancellationToken)))
