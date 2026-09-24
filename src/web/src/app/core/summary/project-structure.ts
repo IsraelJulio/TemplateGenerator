@@ -46,11 +46,19 @@
  * antigo ter escrito uma regra por arquitetura para um arquivo que não varia
  * por ela.
  *
- * **O que continua sendo palpite:** um valor só — `jwt`. Com ADR-0012
- * implementada, a tela o desabilita, de modo que esse palpite é
- * **inalcançável**: nenhuma seleção que o resumo consegue mostrar depende dele.
- * No dia em que o fragmento existir, o valor acende, a combinação entra no
- * contrato gerado e a amarração o alcança sozinha.
+ * **O que entrou em T07:** `jwt` — o último valor que ainda era palpite. O
+ * fragmento passou a existir, o valor acendeu e as 24 combinações dele entraram
+ * no contrato gerado, que subiu de 40 para 64. **Nada aqui precisou mudar**, e
+ * isso é o resultado, não sorte: `auth/jwt` não acrescenta arquivo nenhum ao
+ * pacote — a árvore de uma combinação com `jwt` é idêntica à da mesma
+ * combinação com `none`. O que ele acrescenta é uma **nota** sobre um caminho
+ * que já existia, `appsettings.json`, e nota não entra na comparação de
+ * `zip-structure.spec.ts`.
+ *
+ * **Com isso não há mais palpite nesta projeção.** Todos os valores de todos os
+ * eixos têm fragmento, e toda regra daqui está amarrada a pacote real. A
+ * próxima regra que alguém escrever sem fragmento correspondente volta a ser
+ * palpite — e, ao contrário das anteriores, não terá um `⚠️` no topo avisando.
  *
  * Regra de contenção: as strings de opção ficam confinadas em
  * {@link PROJECT_STRUCTURE_RULES}, {@link API_PROJECT_NAME_RULES} e
