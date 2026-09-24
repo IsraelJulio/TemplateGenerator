@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Xunit;
@@ -54,10 +55,21 @@ public sealed class InProcessOidcIssuerTests
         await using InProcessOidcIssuer issuer = await InProcessOidcIssuer.StartAsync(
             cancellationToken);
 
-        using HttpClient client = new() { Timeout = TimeSpan.FromSeconds(10) };
+        // Sem proxy, e isto não é ajuste de conveniência. O `HttpClient` padrão resolve o proxy do
+        // sistema, e numa máquina de empresa isso pode significar WPAD e um gateway que ACEITA a
+        // conexão e não responde — que é exatamente o sintoma que derrubou este teste na suíte
+        // inteira: conexão estabelecida, leitura abortada aos dez segundos. O que o teste afirma é
+        // que o EMISSOR responde em `127.0.0.1`; mandar a chamada pela rede da empresa para chegar
+        // ao próprio processo não faz parte da afirmação, e só acrescenta uma dependência externa
+        // num teste que ADR-0005 existe para manter local.
+        using HttpClientHandler direto = new() { UseProxy = false };
 
-        using JsonDocument discovery = JsonDocument.Parse(await client.GetStringAsync(
-            new Uri($"{issuer.Authority}/.well-known/openid-configuration"),
+        using HttpClient client = new(direto) { Timeout = TimeSpan.FromSeconds(10) };
+
+        using JsonDocument discovery = JsonDocument.Parse(await BaixarAsync(
+            client,
+            issuer,
+            "/.well-known/openid-configuration",
             cancellationToken));
 
         // O `issuer` anunciado É o `Authority` configurado: é essa igualdade que o `JwtBearer`
@@ -66,8 +78,12 @@ public sealed class InProcessOidcIssuerTests
 
         string jwksUri = discovery.RootElement.GetProperty("jwks_uri").GetString()!;
 
-        using JsonDocument jwks = JsonDocument.Parse(await client.GetStringAsync(
-            new Uri(jwksUri),
+        Assert.StartsWith(issuer.Authority, jwksUri, StringComparison.Ordinal);
+
+        using JsonDocument jwks = JsonDocument.Parse(await BaixarAsync(
+            client,
+            issuer,
+            jwksUri[issuer.Authority.Length..],
             cancellationToken));
 
         JsonElement key = Assert.Single(jwks.RootElement.GetProperty("keys").EnumerateArray());
@@ -148,6 +164,75 @@ public sealed class InProcessOidcIssuerTests
             "Há chave ou certificado versionado no repositório, e não pode haver (T07, " +
             "verificação 4; ADR-0006, 'chave gerada no próprio teste, nunca versionada'):" +
             Environment.NewLine + string.Join(Environment.NewLine, offenders));
+    }
+
+    /// <summary>
+    /// Baixa um documento do emissor e, quando a chamada não completa, diz <strong>qual</strong>
+    /// das duas coisas aconteceu: ninguém escutando naquele endereço, ou alguém escutando e a
+    /// resposta não vindo.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A distinção existe porque as duas já aconteceram e o sintoma delas é o mesmo — uma
+    /// <c>SocketException</c> de operação abortada, dez segundos depois, sem dizer nem o endereço
+    /// que o teste tentou. Foi assim que a corrida de porta desta classe apareceu: uma falha
+    /// mensal, sob carga, com uma mensagem que não apontava para lugar nenhum.
+    /// </para>
+    /// <para>
+    /// Isto <strong>não afrouxa</strong> nada: o prazo continua o mesmo e a asserção continua a
+    /// mesma. O que muda é que a falha passa a nomear a causa em vez de deixá-la para quem for
+    /// investigar depois.
+    /// </para>
+    /// </remarks>
+    private static async Task<string> BaixarAsync(
+        HttpClient client,
+        InProcessOidcIssuer issuer,
+        string rota,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await client.GetStringAsync(
+                new Uri($"{issuer.Authority}{rota}"),
+                cancellationToken);
+        }
+        catch (Exception failure) when (failure is HttpRequestException or TaskCanceledException)
+        {
+            throw new InvalidOperationException(
+                $"O emissor OIDC de teste não respondeu '{rota}' em '{issuer.Authority}'. " +
+                $"Sondagem TCP direta da porta: {Sondar(new Uri(issuer.Authority))}. " +
+                $"Pool de threads no momento da falha: {ThreadPool.ThreadCount} thread(s), " +
+                $"{ThreadPool.PendingWorkItemCount} item(ns) pendente(s).",
+                failure);
+        }
+    }
+
+    /// <summary>
+    /// O que acontece ao abrir uma conexão TCP crua em <paramref name="address"/>, com as três
+    /// respostas <strong>distinguidas</strong>.
+    /// </summary>
+    /// <remarks>
+    /// "Recusada" e "não respondeu a tempo" significam coisas opostas — endereço errado contra
+    /// servidor ocupado — e a primeira versão desta sondagem devolvia <c>false</c> para as duas.
+    /// Ela chegou a afirmar "a porta NÃO aceita conexão" sobre uma porta que o próprio rastro de
+    /// pilha mostrava conectada. Uma sondagem que confunde as duas causas é pior que nenhuma: ela
+    /// aponta com confiança para o lugar errado.
+    /// </remarks>
+    private static string Sondar(Uri address)
+    {
+        try
+        {
+            using TcpClient probe = new();
+
+            return probe.ConnectAsync(address.Host, address.Port).Wait(TimeSpan.FromSeconds(2))
+                ? "conexão ACEITA (há servidor escutando; o endereço está certo e ele não " +
+                  "respondeu a tempo)"
+                : "conexão NÃO COMPLETOU em 2s (nem aceita nem recusada — travou)";
+        }
+        catch (AggregateException erro) when (erro.InnerException is SocketException socket)
+        {
+            return $"conexão RECUSADA ({socket.SocketErrorCode}) — não há servidor neste endereço";
+        }
     }
 
     /// <summary>O módulo da única chave de um JWKS.</summary>

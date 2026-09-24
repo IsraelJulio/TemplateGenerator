@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using TemplateGenerator.Generation;
@@ -118,7 +117,7 @@ internal sealed partial class DatabaseRuntime : IAsyncDisposable
             request.DotnetVersion,
             $"{projectName}.dll");
 
-        return new DatabaseRuntime(root, projectDirectory, assembly, FreePort());
+        return new DatabaseRuntime(root, projectDirectory, assembly, LoopbackPort.Reserve());
     }
 
     /// <summary>O texto do <c>README.md</c> gerado, na raiz do pacote.</summary>
@@ -376,19 +375,6 @@ internal sealed partial class DatabaseRuntime : IAsyncDisposable
                 $"`{file} {arguments}` falhou com código {exit}. Saída:" +
                 System.Environment.NewLine + output);
         }
-    }
-
-    private static int FreePort()
-    {
-        using TcpListener listener = new(System.Net.IPAddress.Loopback, 0);
-
-        listener.Start();
-
-        int port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
-
-        listener.Stop();
-
-        return port;
     }
 
     // O `--context` é opcional na expressão porque nem todo README o traz, mas quando traz ele

@@ -1,5 +1,4 @@
 using System.Buffers.Text;
-using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -91,11 +90,13 @@ public sealed class InProcessOidcIssuer : IAsyncDisposable
         // assinatura estivesse desligada.
         RSA intrusa = RSA.Create(2048);
 
-        int port = FreePort();
-        string authority = $"http://127.0.0.1:{port}";
-
         string jwks = JwksOf(publicada);
-        string discovery = DiscoveryOf(authority);
+
+        // O documento de descoberta só pode ser montado DEPOIS do `Start`, porque ele anuncia o
+        // `issuer` e o `issuer` é o endereço que o Kestrel acabou de bindar. O `handler` lê esta
+        // variável capturada; ela é preenchida antes de esta função retornar, e antes disso
+        // ninguém no mundo conhece a porta para chegar aqui.
+        string discovery = string.Empty;
 
         WebApplicationBuilder builder = WebApplication.CreateSlimBuilder();
 
@@ -103,7 +104,9 @@ public sealed class InProcessOidcIssuer : IAsyncDisposable
 
         WebApplication app = builder.Build();
 
-        app.Urls.Add(authority);
+        // Porta 0: quem escolhe é o sistema operacional, no ato de bindar, e o socket nunca é
+        // solto no meio do caminho. Ver `EnderecoBindado`.
+        app.Urls.Add("http://127.0.0.1:0");
 
         app.MapGet(
             "/.well-known/openid-configuration",
@@ -112,6 +115,10 @@ public sealed class InProcessOidcIssuer : IAsyncDisposable
         app.MapGet("/.well-known/jwks.json", () => Results.Content(jwks, "application/json"));
 
         await app.StartAsync(cancellationToken);
+
+        string authority = EnderecoBindado(app);
+
+        discovery = DiscoveryOf(authority);
 
         return new InProcessOidcIssuer(app, authority, publicada, intrusa)
         {
@@ -269,16 +276,55 @@ public sealed class InProcessOidcIssuer : IAsyncDisposable
         Base64Url.EncodeToString(Encoding.UTF8.GetBytes(
             node.ToJsonString(new JsonSerializerOptions { WriteIndented = false })));
 
-    private static int FreePort()
+    /// <summary>
+    /// O endereço que o Kestrel <strong>efetivamente</strong> bindou, lido depois do
+    /// <c>StartAsync</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>O defeito que esta função existe para não ter.</strong> A versão anterior escolhia
+    /// a porta antes de subir: um <c>TcpListener</c> na porta 0, lia a porta que o sistema deu,
+    /// <strong>soltava o socket</strong> e só depois mandava o Kestrel bindar aquele número. Entre
+    /// soltar e rebindar existe uma janela, e a camada 3 executa em paralelo vários processos que
+    /// também reservam porta dinâmica — é a definição de corrida, e ela aparece exatamente onde
+    /// apareceu: na suíte inteira, sob carga, e nunca com o teste isolado.
+    /// </para>
+    /// <para>
+    /// Aqui o socket <strong>nunca é solto</strong>: <c>http://127.0.0.1:0</c> vai para o Kestrel,
+    /// que binda e devolve o endereço real em <c>IServerAddressesFeature</c> — que é o que
+    /// <see cref="WebApplication.Urls"/> expõe. Não há janela porque não há intervalo entre
+    /// escolher e possuir.
+    /// </para>
+    /// <para>
+    /// A conferência de que a porta deixou de ser <c>0</c> não é zelo: se um dia o servidor parar
+    /// de reescrever a coleção de endereços, o <c>Authority</c> sairia daqui como
+    /// <c>http://127.0.0.1:0</c> e o sintoma seria de novo um <em>timeout</em> de cliente, longe
+    /// da causa. Falhar aqui, na construção, é o que mantém a causa perto do efeito.
+    /// </para>
+    /// </remarks>
+    private static string EnderecoBindado(WebApplication app)
     {
-        using TcpListener listener = new(System.Net.IPAddress.Loopback, 0);
+        string[] addresses = [.. app.Urls];
 
-        listener.Start();
+        if (addresses.Length != 1)
+        {
+            throw new InvalidOperationException(
+                "O emissor OIDC de teste bindou " + addresses.Length + " endereço(s) " +
+                $"({string.Join(", ", addresses)}), e precisa ser exatamente um: o `Authority` que " +
+                "a aplicação gerada recebe é um só.");
+        }
 
-        int port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+        string authority = addresses[0].TrimEnd('/');
 
-        listener.Stop();
+        if (authority.EndsWith(":0", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"O servidor devolveu '{authority}' depois do Start: a porta continua sendo 0, " +
+                "então ele não reescreveu o endereço com a porta que bindou. O `Authority` daqui " +
+                "seria inalcançável e o sintoma apareceria longe da causa, como um timeout de " +
+                "cliente.");
+        }
 
-        return port;
+        return authority;
     }
 }
