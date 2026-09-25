@@ -280,7 +280,7 @@
     {
       "id": "T07",
       "finishedAt": "2026-09-25",
-      "pullRequest": null,
+      "pullRequest": "https://github.com/IsraelJulio/TemplateGenerator/pull/8",
       "order": 7,
       "title": "Autenticacao JWT externa",
       "state": "done",
