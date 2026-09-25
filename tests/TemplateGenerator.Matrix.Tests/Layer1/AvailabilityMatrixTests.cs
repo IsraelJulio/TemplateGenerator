@@ -28,6 +28,35 @@ namespace TemplateGenerator.Matrix.Tests.Layer1;
 /// para <em>todas</em> as combinações que a derivação de PRODUÇÃO marca como indisponíveis, que
 /// ela nomeia o campo certo, e que nenhuma delas sai com cabeçalho de download.
 /// </para>
+/// <para>
+/// <strong>O que T07 mudou nas duas primeiras afirmações, e por quê.</strong> Com
+/// <c>auth/jwt</c> escrito, <em>todo</em> eixo passou a ter fragmento e
+/// <see cref="Combinations.Unavailable"/> ficou vazio — as 32 combinações válidas estão
+/// disponíveis. As duas afirmações eram <c>[Theory]</c> sobre esse recorte, e uma teoria sem dados
+/// <strong>falha</strong> no xUnit v3 ("No data found"), por um motivo que é sucesso e não
+/// regressão.
+/// </para>
+/// <para>
+/// A saída <em>não</em> podia ser apagá-las: o caminho do <c>501</c> não pode simplesmente deixar
+/// de ser verificado. Também não podia ser deixá-las como teoria vazia caso o xUnit mudasse de
+/// comportamento — um verificador que passa por vacuidade é exatamente o que ADR-0011 e ADR-0015
+/// proíbem. Elas viraram <c>[Fact]</c> que percorrem o recorte e, quando ele está vazio,
+/// <strong>cobram a única razão que torna o vazio legítimo</strong>
+/// (<see cref="ExigirQueOVazioSejaLegitimo"/>): que nenhum eixo de fragmento esteja vazio e que a
+/// derivação classifique as 32 como disponíveis. Se a derivação quebrar e passar a dizer
+/// "disponível" para tudo sem que os fragmentos existam, isto cai — que é precisamente o modo de
+/// falha que a teoria vazia esconderia.
+/// </para>
+/// <para>
+/// <strong>E onde o caminho do 501 continua exercitado de verdade</strong>, já que a matriz de
+/// produção não produz mais nenhum caso: a recusa do motor em
+/// <c>GenerationPlanTests.Combinacao_indisponivel_e_recusada_pelo_motor_sem_passar_por_HTTP</c>, e
+/// a resposta da Api nos cinco testes de <c>GenerationNotImplementedEndpointTests</c> — os dois
+/// sobre um repositório de fragmentos controlado, que é a forma de exercitar o caminho depois que
+/// o repositório de produção deixou de ter combinação indisponível. Nenhum dos dois é cópia da
+/// regra: ambos usam a <em>mesma</em> <c>TemplateAvailability</c> de produção, sobre outra origem
+/// de fragmentos.
+/// </para>
 /// </remarks>
 public sealed class AvailabilityMatrixTests : IDisposable
 {
@@ -35,95 +64,135 @@ public sealed class AvailabilityMatrixTests : IDisposable
 
     private readonly MatrixApiFactory _factory = new();
 
-    public static TheoryData<string, string, string, bool> UnavailableCombinations =>
-        GenerationMatrixTests.UnavailableCombinations;
-
     public static TheoryData<string, string, string, bool> AvailableCombinations =>
         GenerationMatrixTests.AvailableCombinations;
 
     public void Dispose() => _factory.Dispose();
 
-    [Theory]
-    [MemberData(nameof(UnavailableCombinations))]
-    public async Task Combinacao_indisponivel_e_recusada_pelo_motor(
-        string architecture,
-        string database,
-        string authentication,
-        bool swagger)
+    [Fact]
+    public async Task Toda_combinacao_indisponivel_e_recusada_pelo_motor()
     {
         // ADR-0012, item 5, linha 3: o MOTOR recusa — exceção, não pacote. Sem este lado, quem
         // chama o motor direto continuaria recebendo o pacote defeituoso, e quem chama o motor
         // direto é a camada 1 inteira. Nenhum HTTP aqui, de propósito: a recusa é do motor.
-        GenerationRequest request = Request(architecture, database, authentication, swagger);
+        int verificadas = 0;
 
-        GenerationNotAvailableException failure =
-            await Assert.ThrowsAsync<GenerationNotAvailableException>(
-                () => GeneratedPackage.GenerateAsync(
-                    request,
-                    TestContext.Current.CancellationToken));
+        foreach (GenerationRequest request in Combinations.Unavailable)
+        {
+            GenerationNotAvailableException failure =
+                await Assert.ThrowsAsync<GenerationNotAvailableException>(
+                    () => GeneratedPackage.GenerateAsync(
+                        request,
+                        TestContext.Current.CancellationToken));
 
-        Assert.NotEmpty(failure.Fields);
-        Assert.Equal(TemplateAvailability.UnavailableReason, failure.Reason);
+            Assert.NotEmpty(failure.Fields);
+            Assert.Equal(TemplateAvailability.UnavailableReason, failure.Reason);
 
-        // Os campos que a exceção nomeia são exatamente os que a derivação marca — não um
-        // subconjunto, não "pelo menos um".
-        Assert.Equal(
-            TemplateAvailability.Current.UnavailableFields(request),
-            failure.Fields);
+            // Os campos que a exceção nomeia são exatamente os que a derivação marca — não um
+            // subconjunto, não "pelo menos um".
+            Assert.Equal(
+                TemplateAvailability.Current.UnavailableFields(request),
+                failure.Fields);
+
+            verificadas++;
+        }
+
+        ExigirQueOVazioSejaLegitimo(verificadas);
     }
 
-    [Theory]
-    [MemberData(nameof(UnavailableCombinations))]
-    public async Task Combinacao_indisponivel_responde_501_sem_cabecalho_de_download(
-        string architecture,
-        string database,
-        string authentication,
-        bool swagger)
+    [Fact]
+    public async Task Toda_combinacao_indisponivel_responde_501_sem_cabecalho_de_download()
     {
         // ADR-0012, item 5, linha 4. Falha quando a recusa entrou tarde demais no pipeline: o
         // `GeneratedArchiveResult` escreve `application/zip` e `Content-Disposition: attachment`
         // como primeira coisa que faz, então uma recusa depois dele sai com cabeçalho de download
         // em cima — e é o cabeçalho, não o status, que manda o navegador salvar o arquivo.
-        GenerationRequest request = Request(architecture, database, authentication, swagger);
-
         using HttpClient client = _factory.CreateClient();
 
-        using HttpResponseMessage response = await client.PostAsJsonAsync(
-            _route,
-            Body(request),
-            TestContext.Current.CancellationToken);
+        int verificadas = 0;
 
-        string description = GeneratedPackage.Describe(request);
+        foreach (GenerationRequest request in Combinations.Unavailable)
+        {
+            using HttpResponseMessage response = await client.PostAsJsonAsync(
+                _route,
+                Body(request),
+                TestContext.Current.CancellationToken);
+
+            string description = GeneratedPackage.Describe(request);
+
+            Assert.True(
+                response.StatusCode == HttpStatusCode.NotImplemented,
+                $"{description}: a Api respondeu {(int)response.StatusCode}, e a combinação está " +
+                "indisponível. ADR-0012: nunca 200.");
+
+            Assert.Equal(
+                "application/problem+json",
+                response.Content.Headers.ContentType?.MediaType);
+
+            Assert.Null(response.Content.Headers.ContentDisposition);
+
+            Assert.DoesNotContain(
+                "Content-Disposition",
+                response.Headers.Concat(response.Content.Headers).Select(header => header.Key));
+
+            using JsonDocument problem = JsonDocument.Parse(
+                await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+
+            string[] fields =
+            [
+                .. problem.RootElement
+                    .GetProperty("errors")
+                    .EnumerateObject()
+                    .Select(entry => entry.Name),
+            ];
+
+            // O campo em `errors` é o que a tela posiciona *inline*. Ele vem da mesma derivação
+            // que a recusa do motor, e a ordem é a dos campos no catálogo.
+            Assert.Equal(TemplateAvailability.Current.UnavailableFields(request), fields);
+
+            verificadas++;
+        }
+
+        ExigirQueOVazioSejaLegitimo(verificadas);
+    }
+
+    /// <summary>
+    /// Quando o recorte de indisponíveis não tinha o que verificar, cobra a
+    /// <strong>única</strong> razão que torna isso legítimo.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// "Não havia nada a verificar" é a resposta que um verificador quebrado também dá. A
+    /// diferença entre o vazio legítimo e o vazio por defeito está inteira aqui: legítimo é o
+    /// vazio em que <em>todo</em> eixo de fragmento tem conteúdo — aí não existe combinação
+    /// indisponível porque não existe valor sem template — e em que a derivação, coerentemente,
+    /// classifica as 32 combinações válidas como disponíveis.
+    /// </para>
+    /// <para>
+    /// O dia em que um fragmento esvaziar, ou em que um valor novo entrar no catálogo sem
+    /// diretório, este método torna as duas afirmações acima vermelhas de novo — e elas voltam a
+    /// ter caso a verificar sozinhas, sem ninguém precisar lembrar delas. É a mesma mecânica de
+    /// data de validade de <see cref="A_derivacao_nao_responde_sempre_a_mesma_coisa"/>, do outro
+    /// lado da mesma decisão.
+    /// </para>
+    /// </remarks>
+    private static void ExigirQueOVazioSejaLegitimo(int verificadas)
+    {
+        if (verificadas > 0)
+        {
+            return;
+        }
+
+        string[] emptyFragments = EmptyFragments();
 
         Assert.True(
-            response.StatusCode == HttpStatusCode.NotImplemented,
-            $"{description}: a Api respondeu {(int)response.StatusCode}, e a combinação está " +
-            "indisponível. ADR-0012: nunca 200.");
+            emptyFragments.Length == 0,
+            "Nenhuma combinação da matriz está indisponível, mas ainda existem diretórios de eixo " +
+            $"vazios ({string.Join(", ", emptyFragments)}). Ou a derivação parou de derivar, ou a " +
+            "varredura de fragmentos vazios ficou desalinhada dela — nos dois casos, a afirmação " +
+            "acima não verificou nada e ADR-0012, item 5, linhas 3 e 4 deixaram de ser cobradas.");
 
-        Assert.Equal(
-            "application/problem+json",
-            response.Content.Headers.ContentType?.MediaType);
-
-        Assert.Null(response.Content.Headers.ContentDisposition);
-
-        Assert.DoesNotContain(
-            "Content-Disposition",
-            response.Headers.Concat(response.Content.Headers).Select(header => header.Key));
-
-        using JsonDocument problem = JsonDocument.Parse(
-            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
-
-        string[] fields =
-        [
-            .. problem.RootElement
-                .GetProperty("errors")
-                .EnumerateObject()
-                .Select(entry => entry.Name),
-        ];
-
-        // O campo em `errors` é o que a tela posiciona *inline*. Ele vem da mesma derivação que a
-        // recusa do motor, e a ordem é a dos campos no catálogo.
-        Assert.Equal(TemplateAvailability.Current.UnavailableFields(request), fields);
+        Assert.Equal(Combinations.Valid.Count, Combinations.Available.Count);
     }
 
     [Theory]

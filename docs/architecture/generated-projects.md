@@ -462,6 +462,50 @@ existem às vezes. O marcador é o que resolve os dois de uma vez.
 - Rejeita assinatura, emissor, audiência e validade incorretos (RF-19).
 - O README acrescenta um passo: apontar `Authority`/`Audience` para o provedor existente.
 
+#### O que foi decidido em T07
+
+Quatro propriedades do projeto entregue que **não** são óbvias a partir dos bullets acima, e que
+quem for mexer no fragmento precisa saber antes de "consertar" alguma delas.
+
+**A seção de configuração é `Jwt:`, não `Authentication:`.** Desde o .NET 8 o `AddJwtBearer` liga
+sozinho a configuração em `Authentication:Schemes:Bearer:*`, com `ValidAudiences` no plural. Usar
+`Authentication:Authority` criaria duas seções parecidas, com regras de ligação diferentes, sob o
+mesmo nome. `Jwt:Authority` e `Jwt:Audience` são lidos explicitamente no `Program.cs` e não encostam
+na convenção do framework. As variáveis de ambiente correspondentes são `Jwt__Authority` e
+`Jwt__Audience`, que é o caminho que o README ensina — ele não manda editar arquivo.
+
+**As duas chaves nascem vazias**, não com URL de exemplo. Com URL falsa o projeto tentaria buscar
+metadados de um host inexistente e o CRUD responderia 500; vazio, a aplicação sobe, `/health`
+responde 200 e o CRUD responde 401, que é a resposta certa para "não configurado".
+
+**`ClockSkew = TimeSpan.Zero`, divergindo do default da Microsoft**, que tolera token vencido por até
+cinco minutos. Com a folga padrão, "rejeita validade incorreta" (RF-19) só seria verdade cinco
+minutos depois do vencimento — e um critério que só vale depois de cinco minutos não é o critério. A
+divergência falha **fechada** (o erro possível é recusar um token que valeria, nunca aceitar um que
+não vale) e é revelada dentro do próprio artefato entregue, em dois lugares: o comentário do
+`Program.cs` e a tabela do README, que dizem qual é o default e onde a folga volta. O teste que a
+afirma usa `exp` de trinta segundos no passado — número escolhido para ser **aceito** se alguém
+remover a linha.
+
+**`RequireHttpsMetadata = !builder.Environment.IsDevelopment()`.** Com `true` fixo, um emissor local
+em `http://` seria inalcançável e o emissor de teste de
+[ADR-0006](../decisions/adr-0006-oidc-in-process.md) não teria como existir; com `false` fixo, o
+projeto entregue aceitaria metadados em claro em produção. A forma escolhida falha fechada: quando
+`ASPNETCORE_ENVIRONMENT` não está definida, o ambiente é `Production` e a exigência de HTTPS vale.
+
+**O que `jwt` deliberadamente não faz:** não acrescenta arquivo nenhum ao ZIP — a árvore de uma
+combinação com `jwt` é idêntica à da mesma combinação com `none`, e a única diferença no pacote é
+conteúdo de arquivos que já existiam. Não usa `dotnet user-secrets` (exigiria `UserSecretsId` no
+`.csproj`, e `dotnet user-secrets init` edita o `.csproj`, o que é modificar código-fonte, contra
+RF-21). E **não integra com o Swagger**: `jwt + swagger` não ganha botão *Authorize* no documento
+OpenAPI. Este último é lacuna conhecida, não decisão fechada — é a primeira pergunta de quem baixar
+essa combinação.
+
+Ao contrário de `identity`, `jwt` **não** tem a restrição `identity-requires-database`: ele funciona
+com qualquer banco, inclusive `none`, porque nenhuma contribuição dele cita `DbContext`,
+`__PersistenceProjectDir__` ou pacote de EF Core. O único marcador de eixo anterior que ele lê é
+`__ApiProjectDir__`, de `architecture/*`.
+
 ## Swagger
 
 Ver [ADR-0001](../decisions/adr-0001-swagger.md). Quando `swagger = true`:

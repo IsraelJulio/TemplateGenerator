@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Net.Sockets;
 using System.Text;
 using TemplateGenerator.Generation;
 using TemplateGenerator.Generation.Engine;
@@ -148,7 +147,7 @@ internal sealed class GeneratedProject : IAsyncDisposable
                 Environment.NewLine + output);
         }
 
-        return new GeneratedProject(root, projectName, assembly, FreePort());
+        return new GeneratedProject(root, projectName, assembly, LoopbackPort.Reserve());
     }
 
     /// <summary>
@@ -302,19 +301,6 @@ internal sealed class GeneratedProject : IAsyncDisposable
         {
             // Idem.
         }
-    }
-
-    private static int FreePort()
-    {
-        using TcpListener listener = new(System.Net.IPAddress.Loopback, 0);
-
-        listener.Start();
-
-        int port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
-
-        listener.Stop();
-
-        return port;
     }
 
     private static async Task<(int Exit, string Output)> RunAsync(

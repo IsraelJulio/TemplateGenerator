@@ -1,0 +1,8 @@
+
+  <ItemGroup Label="Autenticação — JWT de provedor externo">
+    <!-- O validador de bearer JWT do ASP.NET Core, e só ele. Nenhum pacote de servidor de
+         identidade entra aqui: este projeto confere o token que chega e não emite nenhum, então
+         não vem junto emissor, armazenamento de usuário nem chave de assinatura. Ele entra no
+         projeto de composição, que é quem configura a autenticação. -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
+  </ItemGroup>

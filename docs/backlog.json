@@ -8,7 +8,7 @@
   },
   "project": "TemplateGenerator",
   "templateVersion": "1.0.0",
-  "updatedAt": "2026-09-19",
+  "updatedAt": "2026-09-25",
   "states": ["pending", "in_progress", "blocked", "done"],
   "tasks": [
     {
@@ -279,10 +279,12 @@
     },
     {
       "id": "T07",
+      "finishedAt": "2026-09-25",
       "pullRequest": null,
       "order": 7,
       "title": "Autenticacao JWT externa",
-      "state": "pending",
+      "state": "done",
+      "startedAt": "2026-09-19",
       "dependsOn": ["T06"],
       "roles": ["template-engineer", "reviewer", "qa"],
       "skills": ["dotnet-templates", "verify-mvp"],
@@ -291,7 +293,9 @@
         "docs/product/requirements.md",
         "docs/decisions/adr-0006-oidc-in-process.md",
         "docs/decisions/adr-0011-contribuicao-por-marcador.md",
-        "docs/decisions/adr-0015-contribuicao-le-eixo-anterior.md"
+        "docs/decisions/adr-0015-contribuicao-le-eixo-anterior.md",
+        "docs/decisions/adr-0005-sem-containers.md",
+        "docs/decisions/adr-0012-combinacao-sem-template.md"
       ],
       "objective": "Entregar validacao de JWT de provedor externo via Authority e Audience, com emissor OIDC de teste in-process.",
       "acceptanceCriteria": [
@@ -310,7 +314,7 @@
         "Conferir ausencia de qualquer segredo versionado."
       ],
       "blockers": [],
-      "report": null
+      "report": "docs/reports/T07.md"
     },
     {
       "id": "T08",
