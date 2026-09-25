@@ -202,6 +202,7 @@ ao fixar cada versão:
 | `Microsoft.EntityFrameworkCore.Design` | 10.0.12 (sqlite) / 10.0.4 (postgresql) | MIT |
 | `dotnet-ef` (ferramenta) | 10.0.12 | MIT |
 | `Microsoft.AspNetCore.Identity.EntityFrameworkCore` | 10.0.4 | MIT |
+| `Microsoft.AspNetCore.Authentication.JwtBearer` | 10.0.12 | MIT |
 | `Swashbuckle.AspNetCore` | 10.2.3 | MIT |
 
 `Microsoft.AspNetCore.Identity.EntityFrameworkCore` entra em **T06**, no projeto de persistência das
@@ -213,6 +214,18 @@ nenhuma. A versão é **10.0.4**, e não a mais nova da linha, porque ela arrast
 10.0.4, e subir este pacote poria duas linhas do mesmo assembly na mesma compilação. Em SQLite o
 provider unifica para cima, sem prejuízo. A escolha é afirmada contra o literal em
 `IdentityFragmentMatrixTests`.
+
+`Microsoft.AspNetCore.Authentication.JwtBearer` entra em **T07**, no projeto de **composição** — não
+no de persistência — das **12** combinações com `authentication = jwt`. Ele é o **único** pacote que a
+opção `jwt` custa, e o projeto dela é diferente do de `identity` pelo mesmo motivo que a escolha do
+projeto é: `identity` leva tabelas e por isso paga no projeto que fala com o banco; `jwt` só valida
+token e não toca o banco, então em Clean o pacote cai no `.Api`, que é o único projeto que configura
+autenticação. É também o que permite `jwt` funcionar com `database = none`. A versão é **10.0.12**,
+a mais nova da linha, sem a restrição que prendeu o Identity em 10.0.4: este pacote não arrasta
+`Microsoft.EntityFrameworkCore.Relational` nem nada do EF Core, então não há duas linhas do mesmo
+assembly a conciliar. A escolha é afirmada contra o literal em `JwtFragmentMatrixTests`, que também
+proíbe Duende, IdentityServer4, OpenIddict e `Microsoft.AspNetCore.Identity*` em qualquer projeto de
+qualquer combinação com `jwt` — a metade negativa de "sem provedor embutido".
 
 `Microsoft.EntityFrameworkCore.Design` entra em T05 como `PrivateAssets="all"` no projeto de subida
 de cada combinação com banco — é design-time, não sai publicado, mas é restaurado por quem baixa o
