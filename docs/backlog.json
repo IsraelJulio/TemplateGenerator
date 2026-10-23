@@ -352,10 +352,11 @@
     },
     {
       "id": "T09",
+      "startedAt": "2026-10-23",
       "pullRequest": null,
       "order": 9,
       "title": "Tela integrada ao catalogo e download",
-      "state": "pending",
+      "state": "in_progress",
       "dependsOn": ["T02", "T08"],
       "roles": ["frontend", "backend", "qa"],
       "skills": ["verify-mvp"],
@@ -381,7 +382,7 @@
         "Inspecao visual em desktop e celular, com captura de tela."
       ],
       "blockers": [],
-      "report": null
+      "report": "docs/reports/T09.md"
     },
     {
       "id": "T09b",
