@@ -1,4 +1,8 @@
-import { CATALOG_FIXTURE, MALFORMED_CATALOG_FIXTURE } from '../../testing/catalog.fixture';
+import {
+  CATALOG_FIXTURE,
+  MALFORMED_CATALOG_FIXTURE,
+  SNAPSHOT_CATALOG,
+} from '../../testing/catalog.fixture';
 import { TemplateOptionsCatalog } from '../catalog/template-options.model';
 import {
   PROJECT_NAME,
@@ -14,24 +18,18 @@ describe('buildTemplateForm', () => {
 
     expect(Object.keys(form.controls)).toEqual([
       PROJECT_NAME,
-      'architecture',
-      'database',
-      'authentication',
-      'swagger',
-      'dotnetVersion',
+      ...Object.keys(SNAPSHOT_CATALOG.fields),
     ]);
   });
 
   it('aplica os padrões que vieram do catálogo', () => {
     const form = buildTemplateForm(CATALOG_FIXTURE);
 
-    expect(readSelection(form)).toEqual({
-      architecture: 'simple',
-      database: 'none',
-      authentication: 'none',
-      swagger: true,
-      dotnetVersion: 'net10.0',
-    });
+    expect(readSelection(form)).toEqual(
+      Object.fromEntries(
+        Object.entries(SNAPSHOT_CATALOG.fields).map(([key, field]) => [key, field.default]),
+      ),
+    );
   });
 
   it('acompanha um catálogo com campo novo, sem alteração de código', () => {

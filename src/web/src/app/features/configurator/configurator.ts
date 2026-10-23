@@ -111,6 +111,32 @@ export class Configurator implements OnInit {
     this.projectNameTouched() ? describeProjectNameProblem(this.projectName().trim()) : null,
   );
 
+  /**
+   * What goes inline under the project name: the local problem, then whatever
+   * the API addressed to `projectName` on the last attempt (RF-06). The local
+   * check is convenience; the server is sovereign and can refuse a name the
+   * screen accepted, and its message has to land in this field, not only in the
+   * general notice.
+   */
+  protected readonly projectNameMessages = computed<readonly string[]>(() => {
+    const local = this.projectNameError();
+    const fromApi = this.generationFailure()?.fieldErrors[PROJECT_NAME] ?? [];
+    return [...(local ? [local] : []), ...fromApi.filter((message) => message !== local)];
+  });
+
+  /**
+   * Messages the API addressed to a key the screen does not render — neither
+   * the project name nor a catalog field. They go in the general notice, so a
+   * refusal is never silently dropped.
+   */
+  protected readonly unplacedErrors = computed<readonly string[]>(() => {
+    const fieldErrors = this.generationFailure()?.fieldErrors ?? {};
+    const catalogFields = this.catalog()?.fields ?? {};
+    return Object.entries(fieldErrors)
+      .filter(([key]) => key !== PROJECT_NAME && !(key in catalogFields))
+      .flatMap(([, messages]) => messages);
+  });
+
   ngOnInit(): void {
     this.loadCatalog();
   }

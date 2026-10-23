@@ -1,5 +1,16 @@
-import { Locator, Page, expect, test } from '@playwright/test';
-import { unzipSync } from 'fflate';
+import { expect, test } from '@playwright/test';
+import {
+  PROJECT_NAME,
+  ZIP_SIGNATURE,
+  chooseNonDefault,
+  expectSelection,
+  openZip,
+  readCatalog,
+  saveZip,
+  treeOnScreen,
+  waitForCatalog,
+  zipEntries,
+} from './support';
 
 /**
  * Critério de aceite 11 de T03: **o download pela tela salva um ZIP de verdade
@@ -11,75 +22,13 @@ import { unzipSync } from 'fflate';
  * teste falha na subida, e é isso que se quer: um teste que passe com o gerador
  * desligado não prova o critério.
  *
- * **Nenhum valor de opção aparece neste arquivo.** A combinação exercitada é a
- * que o próprio catálogo traz como padrão — o formulário nasce preenchido, e o
- * teste só digita o nome do projeto. Isso não é economia de digitação: é a
+ * **Nenhum valor de opção aparece neste arquivo.** A combinação dos primeiros
+ * testes é a que o próprio catálogo traz como padrão — o formulário nasce
+ * preenchido, e o teste só digita o nome do projeto; a do último é lida do
+ * catálogo servido (T09). Isso não é economia de digitação: é a
  * mesma regra de RF-02 que vale para a tela, e mantém o teste válido se um
  * padrão mudar no backend.
  */
-
-/** O nome que expõe a decisão de `generated-projects.md` sobre o sufixo. */
-const PROJECT_NAME = 'Acme.Billing.Api';
-
-/** Um ZIP começa com a assinatura local do primeiro registro. */
-const ZIP_SIGNATURE = [0x50, 0x4b, 0x03, 0x04];
-
-/**
- * A árvore que a tela está mostrando, como caminhos completos.
- *
- * O componente renderiza uma linha por nó, com a profundidade na custom
- * property `--depth` e o nome já com a `/` final quando é diretório. Remontar o
- * caminho a partir disso lê exatamente o que a pessoa vê, que é o ponto — ler
- * `projectStructure()` de novo seria conferir a derivação contra ela mesma.
- */
-async function treeOnScreen(page: Page): Promise<string[]> {
-  const lines = await page.locator('.tree .tree__line').all();
-  const stack: string[] = [];
-  const paths: string[] = [];
-
-  for (const line of lines) {
-    const depth = Number(
-      await line.evaluate((el) => getComputedStyle(el).getPropertyValue('--depth')),
-    );
-    const name = (await line.locator('.tree__name').innerText()).trim();
-
-    stack.length = depth;
-    stack[depth] = name;
-    paths.push(stack.join(''));
-  }
-
-  return paths;
-}
-
-/** O pacote aberto de verdade: bytes descomprimidos, por caminho. */
-function openZip(bytes: Uint8Array): Record<string, Uint8Array> {
-  return unzipSync(bytes);
-}
-
-/** As entradas do ZIP, no mesmo formato da árvore: diretório termina em `/`. */
-function zipEntries(files: Record<string, Uint8Array>): string[] {
-  const entries = new Set<string>(Object.keys(files));
-
-  // Um ZIP não precisa carregar registro próprio para diretório, e o do gerador
-  // não carrega. A árvore da tela mostra pasta, então as pastas implícitas
-  // entram aqui — derivadas dos arquivos, nunca supostas.
-  for (const path of Object.keys(files)) {
-    const segments = path.split('/');
-    for (let i = 1; i < segments.length; i += 1) {
-      entries.add(`${segments.slice(0, i).join('/')}/`);
-    }
-  }
-
-  return [...entries].sort();
-}
-
-async function waitForCatalog(page: Page): Promise<Locator> {
-  const form = page.locator('form.config');
-  // O catálogo vem da API de verdade; a tela fica em "Carregando as opções…"
-  // até ele chegar.
-  await expect(form).toBeVisible({ timeout: 30_000 });
-  return form;
-}
 
 test('baixa um ZIP de verdade, e o pacote é o que a tela prometeu', async ({ page }, testInfo) => {
   await page.goto('/');
@@ -271,4 +220,74 @@ test('desabilita na tela o que a API marcou como sem template', async ({ page })
   }
 
   expect(desabilitados, 'nenhuma opção veio desabilitada — a API mudou?').toBeGreaterThan(0);
+});
+
+/**
+ * Critério 5 de T09: uma combinação **não padrão**, preenchida pela tela com
+ * valores lidos do catálogo — a última opção habilitada de cada campo de
+ * escolha e o interruptor invertido (`chooseNonDefault`). Nenhum valor é
+ * nomeado aqui.
+ *
+ * O que se afirma é o **manifesto** do ZIP (RF-22) contra as escolhas da tela, e
+ * um conjunto de caminhos que vale em qualquer combinação. A árvore da tela não
+ * é lida depois de mudar opções: essa leitura tem uma corrida conhecida, que é
+ * a T09b, e a comparação árvore × ZIP já está nos testes acima e em
+ * `zip-structure.spec.ts`.
+ */
+test('uma combinação não padrão escolhida pela tela chega inteira ao manifesto do ZIP', async ({
+  page,
+}, testInfo) => {
+  await page.goto('/');
+  const form = await waitForCatalog(page);
+  const catalog = await readCatalog(page);
+
+  const escolhas = await chooseNonDefault(page, catalog);
+  await page.getByLabel('Nome do projeto').fill(PROJECT_NAME);
+
+  // Não padrão de verdade: todo campo que oferece mais de uma posição saiu do
+  // padrão. Um catálogo em que só sobrasse o padrão faria este teste repetir o
+  // primeiro.
+  const mudou = Object.entries(catalog.fields).filter(
+    ([key, field]) => escolhas[key] !== field.default,
+  );
+  const mutaveis = Object.values(catalog.fields).filter(
+    (field) => field.type === 'boolean' || (field.values ?? []).length > 1,
+  );
+  expect(mudou.length, 'campos fora do padrão').toBe(mutaveis.length);
+  expect(mudou.length).toBeGreaterThan(1);
+
+  const baixando = page.waitForEvent('download', { timeout: 120_000 });
+  await form.getByRole('button', { name: 'Gerar projeto' }).click();
+  const download = await baixando;
+  expect(download.suggestedFilename()).toBe(`${PROJECT_NAME}.zip`);
+
+  const files = openZip(await saveZip(download, testInfo));
+  const real = zipEntries(files);
+
+  const manifest = JSON.parse(new TextDecoder().decode(files['.templategenerator/manifest.json']));
+  expect(manifest).toEqual({
+    templateVersion: catalog.templateVersion,
+    options: { projectName: PROJECT_NAME, ...escolhas },
+  });
+
+  // Caminhos-chave que valem em qualquer combinação (RF-10).
+  for (const path of ['README.md', 'requests.http', `${PROJECT_NAME}.sln`]) {
+    expect(real, path).toContain(path);
+  }
+  const csprojs = real.filter((path) => path.endsWith('.csproj'));
+  expect(csprojs.some((path) => path.startsWith('src/'))).toBe(true);
+  expect(csprojs.some((path) => path.startsWith('tests/'))).toBe(true);
+  for (const path of csprojs) {
+    expect(path.split('/').at(-1), path).toMatch(
+      new RegExp(`^${PROJECT_NAME.replace(/\./g, '\\.')}`),
+    );
+  }
+  expect(real.filter((path) => path.includes('__ProjectName__'))).toEqual([]);
+
+  const readme = new TextDecoder().decode(files['README.md']);
+  expect(readme).toContain(PROJECT_NAME);
+
+  // E a tela, depois do download, continua mostrando a mesma combinação.
+  await expectSelection(page, escolhas);
+  await expect(page.locator('.notice--done')).toContainText(`${PROJECT_NAME}.zip`);
 });

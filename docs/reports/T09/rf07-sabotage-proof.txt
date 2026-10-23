@@ -1,0 +1,16 @@
+$ (guarda "|| this.generating()" removida de configurator.ts:212) npx playwright test e2e/generation-states.e2e.ts -g "RF-07"
+  x  1 [desktop] › e2e\generation-states.e2e.ts:74:7 › envio duplicado por duplo clique gera um POST e um download só (RF-07) (1.3s)
+  ok 2 [desktop] › e2e\generation-states.e2e.ts:74:7 › envio duplicado por Enter repetido gera um POST e um download só (RF-07) (1.3s)
+  x  3 [celular] › e2e\generation-states.e2e.ts:74:7 › envio duplicado por duplo clique gera um POST e um download só (RF-07) (1.2s)
+  ok 4 [celular] › e2e\generation-states.e2e.ts:74:7 › envio duplicado por Enter repetido gera um POST e um download só (RF-07) (1.3s)
+    Expected: 1
+    Received: 2
+    test-results\generation-states.e2e.ts-e-b0e8c-OST-e-um-download-só-RF-07--desktop\test-failed-1.png
+        npx playwright show-trace test-results\generation-states.e2e.ts-e-b0e8c-OST-e-um-download-só-RF-07--desktop\trace.zip
+    Expected: 1
+    Received: 4
+    test-results\generation-states.e2e.ts-e-b0e8c-OST-e-um-download-só-RF-07--celular\test-failed-1.png
+        npx playwright show-trace test-results\generation-states.e2e.ts-e-b0e8c-OST-e-um-download-só-RF-07--celular\trace.zip
+  2 failed
+  2 passed (22.1s)
+exit code: 1

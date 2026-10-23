@@ -51,17 +51,20 @@
                 spellcheck="false"
                 placeholder="Acme.Billing.Api"
                 (blur)="projectNameTouched.set(true)"
-                [attr.aria-invalid]="projectNameError() ? 'true' : null"
+                [attr.aria-invalid]="projectNameMessages().length > 0 ? 'true' : null"
                 [attr.aria-describedby]="
-                  projectNameError()
+                  projectNameMessages().length > 0
                     ? projectNameKey + '-hint ' + projectNameKey + '-error'
                     : projectNameKey + '-hint'
                 "
               />
-              @if (projectNameError(); as message) {
-                <p class="field__error" [id]="projectNameKey + '-error'" role="alert">
-                  {{ message }}
-                </p>
+              <!-- A regra local e a recusa do servidor caem no mesmo lugar (RF-06). -->
+              @if (projectNameMessages().length > 0) {
+                <div [id]="projectNameKey + '-error'" role="alert">
+                  @for (message of projectNameMessages(); track message) {
+                    <p class="field__error">{{ message }}</p>
+                  }
+                </div>
               }
             </div>
 
@@ -154,6 +157,9 @@
                   @if (failure.detail) {
                     <p class="notice__detail">{{ failure.detail }}</p>
                   }
+                  @for (message of unplacedErrors(); track message) {
+                    <p class="notice__detail">{{ message }}</p>
+                  }
                   <p class="notice__detail">Nenhuma escolha foi perdida.</p>
                 </div>
               }
@@ -177,7 +183,7 @@
                 </p>
               } @else {
                 <p class="actions__status">
-                  O pacote é montado na hora, com os arquivos listados ao lado.
+                  O pacote é montado na hora, com os arquivos listados no resumo.
                 </p>
               }
             </div>

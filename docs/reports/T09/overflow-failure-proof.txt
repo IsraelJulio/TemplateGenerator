@@ -1,0 +1,60 @@
+Running 1 test using 1 worker
+  x  1 [desktop] › e2e\horizontal-overflow.e2e.ts:99:5 › a página não rola na horizontal em sete larguras e três estados de conteúdo (1.7s)
+  1) [desktop] › e2e\horizontal-overflow.e2e.ts:99:5 › a página não rola na horizontal em sete larguras e três estados de conteúdo 
+    Error: transbordo horizontal:
+    [inicial @ 320px]
+        documentElement.scrollWidth 400 > clientWidth 320
+        body.scrollWidth 400 > clientWidth 320
+        culpados:
+          <div.shell> right=400.0 "Gerador de projetos .NET Escolha a combi"
+          <header.masthead> right=380.0 "Gerador de projetos .NET Escolha a combi"
+          <h1.masthead__title> right=380.0 "Gerador de projetos .NET"
+          <p.masthead__lede> right=380.0 "Escolha a combinação, confira o que vai "
+          <p.masthead__version> right=380.0 "Catálogo 1.0.0"
+          <div.layout> right=380.0 "Nome do projeto Vira o namespace do C# e"
+          <form.panel.config.ng-untouched.ng-pristine.ng-invalid> right=380.0 "Nome do projeto Vira o namespace do C# e"
+          <div.field> right=379.0 "Nome do projeto Vira o namespace do C# e"
+    [combinação não padrão @ 320px]
+        documentElement.scrollWidth 400 > clientWidth 320
+        body.scrollWidth 400 > clientWidth 320
+        culpados:
+          <div.shell> right=400.0 "Gerador de projetos .NET Escolha a combi"
+          <header.masthead> right=380.0 "Gerador de projetos .NET Escolha a combi"
+          <h1.masthead__title> right=380.0 "Gerador de projetos .NET"
+          <p.masthead__lede> right=380.0 "Escolha a combinação, confira o que vai "
+          <p.masthead__version> right=380.0 "Catálogo 1.0.0"
+          <div.layout> right=380.0 "Nome do projeto Vira o namespace do C# e"
+          <form.panel.config.ng-dirty.ng-touched.ng-valid> right=380.0 "Nome do projeto Vira o namespace do C# e"
+          <div.field> right=379.0 "Nome do projeto Vira o namespace do C# e"
+    [nome de 64 letras @ 320px]
+        documentElement.scrollWidth 400 > clientWidth 320
+        body.scrollWidth 400 > clientWidth 320
+        culpados:
+          <div.shell> right=378.0 "Gerador de projetos .NET Escolha a combi"
+          <header.masthead> right=358.0 "Gerador de projetos .NET Escolha a combi"
+          <h1.masthead__title> right=358.0 "Gerador de projetos .NET"
+          <p.masthead__lede> right=358.0 "Escolha a combinação, confira o que vai "
+          <p.masthead__version> right=358.0 "Catálogo 1.0.0"
+          <div.layout> right=358.0 "Nome do projeto Vira o namespace do C# e"
+          <form.panel.config.ng-dirty.ng-valid.ng-touched> right=358.0 "Nome do projeto Vira o namespace do C# e"
+          <div.field> right=357.0 "Nome do projeto Vira o namespace do C# e"
+    expect(received).toEqual(expected) // deep equality
+    - Expected  -  1
+    + Received  + 38
+    - Array []
+    + Array [
+    +   "[inicial @ 320px]
+    +     documentElement.scrollWidth 400 > clientWidth 320
+    +     body.scrollWidth 400 > clientWidth 320
+    +     culpados:
+    +       <div.shell> right=400.0 \"Gerador de projetos .NET Escolha a combi\"
+    +       <header.masthead> right=380.0 \"Gerador de projetos .NET Escolha a combi\"
+    +       <h1.masthead__title> right=380.0 \"Gerador de projetos .NET\"
+    +       <p.masthead__lede> right=380.0 \"Escolha a combinação, confira o que vai \"
+    +       <p.masthead__version> right=380.0 \"Catálogo 1.0.0\"
+    +       <div.layout> right=380.0 \"Nome do projeto Vira o namespace do C# e\"
+    +       <form.panel.config.ng-untouched.ng-pristine.ng-invalid> right=380.0 \"Nome do projeto Vira o namespace do C# e\"
+    +       <div.field> right=379.0 \"Nome do projeto Vira o namespace do C# e\"",
+    +   "[combinação não padrão @ 320px]
+    +     documentElement.scrollWidth 400 > clientWidth 320
+    +     body.scrollWidth 400 > clientWidth 320

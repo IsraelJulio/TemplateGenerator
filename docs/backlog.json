@@ -352,10 +352,12 @@
     },
     {
       "id": "T09",
+      "finishedAt": "2026-10-23",
+      "startedAt": "2026-10-23",
       "pullRequest": null,
       "order": 9,
       "title": "Tela integrada ao catalogo e download",
-      "state": "pending",
+      "state": "done",
       "dependsOn": ["T02", "T08"],
       "roles": ["frontend", "backend", "qa"],
       "skills": ["verify-mvp"],
@@ -381,7 +383,7 @@
         "Inspecao visual em desktop e celular, com captura de tela."
       ],
       "blockers": [],
-      "report": null
+      "report": "docs/reports/T09.md"
     },
     {
       "id": "T09b",
@@ -418,14 +420,16 @@
       "title": "Matriz completa e revisao funcional, visual e de seguranca",
       "state": "pending",
       "dependsOn": ["T09"],
-      "roles": ["qa", "reviewer"],
+      "roles": ["qa", "frontend", "architect", "reviewer"],
       "skills": ["verify-mvp"],
       "context": [
         "docs/quality/test-strategy.md",
         "docs/quality/definition-of-done.md",
         "docs/product/option-matrix.md",
         "docs/decisions/adr-0009-fixacao-de-versoes-npm.md",
-        "docs/THIRD-PARTY.md"
+        "docs/THIRD-PARTY.md",
+        "docs/architecture/http-contract.md",
+        "docs/design/visual-spec.md"
       ],
       "objective": "Executar as camadas 1 a 3 inteiras e a revisao independente de qualidade, seguranca e licencas.",
       "acceptanceCriteria": [
@@ -437,7 +441,12 @@
         "Parecer de seguranca e de licencas do reviewer, escrito, sem pendencia aberta.",
         "Existe teste de guarda de RNF-06 para a plataforma: falha diante de intervalo ou curinga no Directory.Packages.props. Hoje 'versao exata' na plataforma e so convencao — o backlog ja cobre os .csproj gerados em T03, mas nao a plataforma.",
         "A auditoria de licencas npm e um script que FALHA fora da lista permitida, nao uma tabela mantida a mao. Em T01 eram 502 dependencias transitivas e em T03 passaram a 506; esse numero nao se mantem manualmente, e a tabela ja ficou defasada uma vez.",
-        "A regra de versao npm de ADR-0009 ganha verificacao executavel: falha diante de intervalo em pacote fora da lista de excecao, que e a dos pacotes onde ng update atua. Hoje jsdom, prettier e vitest estao com intervalo e fora da regra, e a propria ADR admite que sem verificacao a secao e comentario, nao regra."
+        "A regra de versao npm de ADR-0009 ganha verificacao executavel: falha diante de intervalo em pacote fora da lista de excecao, que e a dos pacotes onde ng update atua. Hoje jsdom, prettier e vitest estao com intervalo e fora da regra, e a propria ADR admite que sem verificacao a secao e comentario, nao regra.",
+        "RF-06 contra o servidor real tambem para campo do catalogo: um e2e reescreve o corpo em transito para uma combinacao que a restricao proibe e afirma a mensagem do 400 real no campo enderecado, com as escolhas preservadas. Motivo, do reviewer de T09 (ressalva 2): o e2e de T09 so exercita erro enderecado a projectName; o endereçamento a campo do catalogo segue provado so no Vitest, com duble.",
+        "A sonda de transbordo de e2e/horizontal-overflow.e2e.ts acusa tambem elemento que passa da borda de um ancestral com overflow hidden ou clip (nao auto/scroll). Motivo, do reviewer de T09 (ressalva 4): .options { overflow: hidden } em configurator.css recorta sem aviso, e um transbordo de rotulo ou descricao de opcao escaparia do scrollWidth e da sonda - o mesmo recorte mudo que motivou o criterio 6 de T09, agora numa caixa local.",
+        "O e2e 'desabilita na tela o que a API marcou como sem template' volta a testar o que o nome diz, ou e renomeado e reescrito para o que testa. Motivo, do reviewer de T09 (ressalva 5): desde T08 o catalogo traz unavailable: [], e o teste passa so pela desabilitacao vinda da restricao; nome e mensagem ('a API mudou?') ficaram enganosos.",
+        "O campo de nome do projeto deixa claro quando esta vazio: o placeholder 'Acme.Billing.Api' em --ink-soft hoje parece valor preenchido (captura docs/reports/T09/01-inicial-celular.png). Motivo: defeito nao corrigido 1 de T09; so o 'Sem nome ainda' do resumo revela o campo vazio.",
+        "Decisao registrada sobre description em valor de escolha: o contrato (docs/architecture/http-contract.md) diz se e obrigatoria, e o catalogo cumpre - hoje o unico valor de dotnetVersion nao tem description. Motivo: defeito nao corrigido 4 de T09; a tela tolera a ausencia, com teste, mas o contrato nao decide."
       ],
       "verifications": [
         "Executar as camadas 1, 2 e 3 completas.",

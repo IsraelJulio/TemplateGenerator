@@ -2,18 +2,19 @@ import {
   CATALOG_FIXTURE,
   IMPLEMENTED_CATALOG_FIXTURE,
   MALFORMED_CATALOG_FIXTURE,
+  SNAPSHOT_CATALOG,
   UNAVAILABLE_REASON,
 } from '../../testing/catalog.fixture';
 import { evaluateAvailability, findViolations, violationsByField } from './constraints';
 import { TemplateOptionsCatalog } from './template-options.model';
 
-const DEFAULTS = {
-  architecture: 'simple',
-  database: 'none',
-  authentication: 'none',
-  swagger: true,
-  dotnetVersion: 'net10.0',
-};
+/** Os padrões, lidos do snapshot do catálogo. */
+const DEFAULTS: Record<string, string | boolean> = Object.fromEntries(
+  Object.entries(SNAPSHOT_CATALOG.fields).map(([key, field]) => [key, field.default]),
+);
+
+/** A restrição do catálogo, e a mensagem que ela manda — nunca copiada aqui. */
+const [CONSTRAINT] = SNAPSHOT_CATALOG.constraints;
 
 function availabilityOf(
   catalog: TemplateOptionsCatalog,
@@ -36,7 +37,7 @@ describe('constraints', () => {
     });
 
     expect(violations).toHaveLength(1);
-    expect(violations[0].constraint.id).toBe('identity-requires-database');
+    expect(violations[0].constraint).toEqual(CONSTRAINT);
     expect(violations[0].fields).toEqual(['authentication']);
   });
 
@@ -46,9 +47,7 @@ describe('constraints', () => {
       authentication: 'identity',
     });
 
-    expect(grouped).toEqual({
-      authentication: ['O Identity nativo precisa de um banco para persistir os usuários.'],
-    });
+    expect(grouped).toEqual({ authentication: [CONSTRAINT.message] });
   });
 
   it('desabilita a opção incompatível e informa o motivo do catálogo', () => {
@@ -64,9 +63,7 @@ describe('constraints', () => {
     );
 
     expect(identity?.disabled).toBe(true);
-    expect(identity?.reason).toBe(
-      'O Identity nativo precisa de um banco para persistir os usuários.',
-    );
+    expect(identity?.reason).toBe(CONSTRAINT.message);
   });
 
   it('libera a opção assim que o restante da seleção satisfaz a regra', () => {
@@ -137,15 +134,33 @@ describe('constraints', () => {
   });
 
   it('tolera na leitura uma restrição em forma escalar, que o backend não emite', () => {
-    const clean = availabilityOf(
-      MALFORMED_CATALOG_FIXTURE,
-      { architecture: 'simple', swagger: false },
-      'architecture',
-      'clean',
-    );
+    // A variante malformada traz o `when` da restrição como valor único, sem
+    // array, e nenhum campo com `type`. A leitura tem de chegar ao mesmo lugar.
+    const [malformed] = MALFORMED_CATALOG_FIXTURE.constraints;
+    expect(Array.isArray(malformed.when['authentication'])).toBe(false);
 
-    expect(clean?.disabled).toBe(true);
-    expect(clean?.reason).toBe('Regra hipotética, em forma escalar.');
+    const semBanco = availabilityOf(
+      MALFORMED_CATALOG_FIXTURE,
+      DEFAULTS,
+      'authentication',
+      'identity',
+    );
+    expect(semBanco?.disabled).toBe(true);
+    expect(semBanco?.reason).toBe(CONSTRAINT.message);
+
+    const comBanco = availabilityOf(
+      MALFORMED_CATALOG_FIXTURE,
+      { ...DEFAULTS, database: 'postgresql' },
+      'authentication',
+      'identity',
+    );
+    expect(comBanco?.disabled).toBe(false);
+  });
+
+  it('tolera na leitura um catálogo sem `unavailable`, que o backend sempre emite', () => {
+    expect('unavailable' in MALFORMED_CATALOG_FIXTURE).toBe(false);
+    const availability = evaluateAvailability(MALFORMED_CATALOG_FIXTURE, DEFAULTS);
+    expect(availability['database'].every((option) => !option.disabled)).toBe(true);
   });
 });
 

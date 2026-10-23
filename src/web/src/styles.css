@@ -111,8 +111,10 @@ body {
   font-weight: 400;
   line-height: 1.55;
   overflow-wrap: break-word;
-  /* A página nunca rola na horizontal. */
-  overflow-x: hidden;
+  /* "A página nunca rola na horizontal" (visual-spec.md) é garantido pelo
+     layout, não escondido aqui: um `overflow-x: hidden` no body cortaria o
+     conteúdo que transborda em vez de impedir que transborde. A garantia é
+     medida em sete larguras por `e2e/horizontal-overflow.e2e.ts`. */
   -webkit-font-smoothing: antialiased;
 }
 
