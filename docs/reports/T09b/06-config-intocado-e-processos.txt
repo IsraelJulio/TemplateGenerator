@@ -1,0 +1,40 @@
+T09b - criterios 6 e 7: playwright.config.ts nao mudou; nada de retry, timeout maior, waitForTimeout ou sleep
+Executado em: 2026-10-23T13:27:46Z (UTC), branch fix/T09b-corrigir-a-corrida-entre-a-troca-de-opcao-e-a-leit, arvore de trabalho sem commit
+
+$ git diff --stat -- src/web/playwright.config.ts   (vazio = sem mudanca)
+exit=0
+$ git status --short -- src/web/playwright.config.ts   (vazio = sem mudanca)
+exit=0
+$ grep -n "retries" src/web/playwright.config.ts
+27:  retries: 0,
+exit=0
+
+== O que mudou em src/web/
+$ git status --short -- src/web
+ M src/web/e2e/download.e2e.ts
+ M src/web/e2e/support.ts
+?? src/web/e2e/tree-read.e2e.ts
+$ git diff --stat -- src/web
+ src/web/e2e/download.e2e.ts |  68 +++++++----------
+ src/web/e2e/support.ts      | 179 +++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 184 insertions(+), 63 deletions(-)
+
+== Linhas ACRESCENTADAS em e2e/ que citam timeout, retries, waitForTimeout ou sleep
+$ git diff -U0 -- src/web/e2e | grep -nE "^\+.*(waitForTimeout|sleep|retries|timeout)"; grep -nE "(waitForTimeout|sleep|retries|timeout)" src/web/e2e/tree-read.e2e.ts   (arquivo novo, fora do git diff)
+151:+ * Usa o timeout padrão do `expect`, sem `waitForTimeout`: o intervalo entre as
+204:+ * Se a árvore não muda, a chamada falha no timeout padrão dizendo qual condição
+268:+  const downloading = page.waitForEvent('download', { timeout: 120_000 });
+59: * esgota o timeout padrão e diz que a árvore lida não é diferente da anterior.
+(as duas linhas de comentario citam o timeout PADRAO e a ausencia de waitForTimeout; a unica
+ chamada com timeout, waitForEvent('download', { timeout: 120_000 }), e o mesmo valor que o teste
+ "a outra arquitetura" ja usava em HEAD, movido para generateAndOpen. expect.poll em settle()
+ nao recebe timeout: usa o padrao do expect, 5000 ms, visto em 03 como 'Timeout 5000ms exceeded'.)
+$ git show HEAD:src/web/e2e/download.e2e.ts | grep -n "120_000"
+49:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
+132:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
+161:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
+259:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
+
+== Processos encerrados: nada escutando em 5080 nem 4200 depois das execucoes
+$ netstat -ano | grep -E ":(5080|4200) .*LISTENING"   (exit 1 = nenhuma linha)
+exit=1

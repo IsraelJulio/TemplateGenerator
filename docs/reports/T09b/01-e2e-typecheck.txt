@@ -1,0 +1,9 @@
+T09b - typecheck do fluxo ponta a ponta
+Executado em: 2026-10-23T13:23:57Z (UTC), branch fix/T09b-corrigir-a-corrida-entre-a-troca-de-opcao-e-a-leit, arvore de trabalho sem commit
+
+$ cd src/web && npm run e2e:typecheck
+
+> web@0.0.0 e2e:typecheck
+> tsc -p tsconfig.e2e.json --noEmit
+
+exit=0

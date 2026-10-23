@@ -29,34 +29,127 @@ export const TEMPLATES_ROUTE = '**/api/templates';
 export type Selection = Record<string, OptionValue>;
 
 /**
- * A árvore que a tela está mostrando, como caminhos completos.
+ * **Uma** leitura da árvore que a tela está mostrando, como caminhos completos.
  *
  * O componente renderiza uma linha por nó, com a profundidade na custom
  * property `--depth` e o nome já com a `/` final quando é diretório. Remontar o
  * caminho a partir disso lê exatamente o que a pessoa vê, que é o ponto — ler
  * `projectStructure()` de novo seria conferir a derivação contra ela mesma.
  *
- * **Só para a combinação que a tela já mostra estável.** Ler a árvore logo
- * depois de mudar uma opção tem uma corrida conhecida (T09b); os testes novos de
- * T09 afirmam o manifesto e caminhos-chave do ZIP em vez de chamar isto.
+ * A leitura inteira acontece num só `evaluateAll`, isto é, numa só tarefa do
+ * navegador: o render do Angular não tem como se intercalar no meio dela e
+ * misturar linhas de duas árvores.
+ *
+ * **Não é exportada, de propósito (T09b).** Uma leitura só não sabe se o render
+ * que a última troca agendou já aconteceu. Sem zone.js, o Angular agenda o
+ * render para depois do evento, enquanto o `checked` do rádio o navegador põe na
+ * hora — `toBeChecked()` passa com a árvore ainda velha na tela. Quem lê a árvore
+ * usa {@link stableTree} ou {@link treeAfterChange}.
  */
-export async function treeOnScreen(page: Page): Promise<string[]> {
-  const lines = await page.locator('.tree .tree__line').all();
-  const stack: string[] = [];
-  const paths: string[] = [];
+async function readTree(page: Page): Promise<string[]> {
+  return page.locator('.tree .tree__line').evaluateAll((lines) => {
+    const stack: string[] = [];
+    return lines.map((line) => {
+      const depth = Number(getComputedStyle(line).getPropertyValue('--depth'));
+      const name = (line.querySelector<HTMLElement>('.tree__name')?.innerText ?? '').trim();
+      stack.length = depth;
+      stack[depth] = name;
+      return stack.join('');
+    });
+  });
+}
 
-  for (const line of lines) {
-    const depth = Number(
-      await line.evaluate((el) => getComputedStyle(el).getPropertyValue('--depth')),
-    );
-    const name = (await line.locator('.tree__name').innerText()).trim();
+function sameTree(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((path, i) => path === b[i]);
+}
 
-    stack.length = depth;
-    stack[depth] = name;
-    paths.push(stack.join(''));
-  }
+/** O que a falha mostra: cada condição, cumprida ou não, e a árvore lida. */
+function describeRead(conditions: Record<string, boolean>, tree: readonly string[]): string {
+  return [
+    ...Object.entries(conditions).map(([name, met]) => `${name}: ${met ? 'sim' : 'NÃO'}`),
+    `árvore lida (${tree.length} linhas):`,
+    ...tree.map((path) => `  ${path}`),
+  ].join('\n');
+}
 
-  return paths;
+const SETTLED = 'assentou';
+
+/**
+ * Lê a árvore até que ela cumpra `required` **e** seja igual à leitura anterior.
+ * Usa o timeout padrão do `expect`, sem `waitForTimeout`: o intervalo entre as
+ * leituras é o de `expect.poll`. A falha diz qual condição não se cumpriu e
+ * mostra a árvore lida.
+ */
+async function settle(
+  page: Page,
+  message: string,
+  required: (current: readonly string[]) => Record<string, boolean>,
+): Promise<string[]> {
+  let last: string[] | undefined;
+  await expect
+    .poll(
+      async () => {
+        const current = await readTree(page);
+        const conditions = {
+          ...required(current),
+          'igual em duas leituras seguidas': last !== undefined && sameTree(current, last),
+        };
+        last = current;
+        return Object.values(conditions).every(Boolean)
+          ? SETTLED
+          : describeRead(conditions, current);
+      },
+      { message },
+    )
+    .toBe(SETTLED);
+  return last!;
+}
+
+/**
+ * A árvore da tela **quando nada mudou desde o carregamento**: não vazia e igual
+ * em duas leituras seguidas.
+ *
+ * Serve de ponto de partida para {@link treeAfterChange}, e só para isso.
+ * Estabilidade sozinha é satisfeita por uma árvore que ainda não mudou: logo
+ * depois de uma troca, esta função devolve a árvore **anterior** sem reclamar. A
+ * prova está em `tree-read.e2e.ts`.
+ */
+export function stableTree(page: Page): Promise<string[]> {
+  return settle(page, 'a árvore da tela não assentou', (current) => ({
+    'não vazia': current.length > 0,
+  }));
+}
+
+/**
+ * A árvore da tela **depois de uma troca**: a primeira leitura que é diferente de
+ * `previous` **e** igual à leitura seguinte (T09b, critério 4).
+ *
+ * As duas condições são necessárias. Estabilidade sozinha é satisfeita pela
+ * árvore que ainda não mudou. Diferença sozinha pode pegar um estado
+ * intermediário de render. `previous` tem de ser lido **antes** da troca, com
+ * {@link stableTree} ou com uma chamada anterior desta função.
+ *
+ * Se a árvore não muda, a chamada falha no timeout padrão dizendo qual condição
+ * faltou, em vez de devolver a árvore anterior como se fosse a nova.
+ */
+export function treeAfterChange(page: Page, previous: readonly string[]): Promise<string[]> {
+  return settle(
+    page,
+    'a árvore da tela não assentou numa leitura nova depois da troca',
+    (current) => ({
+      'diferente da anterior': !sameTree(current, previous),
+    }),
+  );
+}
+
+/** A comparação árvore × ZIP: o que a tela prometeu contra o que o pacote trouxe. */
+export function expectTreeMatchesZip(promised: readonly string[], real: readonly string[]): void {
+  const sobrando = promised.filter((path) => !real.includes(path));
+  const faltando = real.filter((path) => !promised.includes(path));
+  expect(
+    { sobrando, faltando },
+    'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
+  ).toEqual({ sobrando: [], faltando: [] });
 }
 
 /** O pacote aberto de verdade: bytes descomprimidos, por caminho. */
@@ -103,6 +196,52 @@ export async function waitForCatalog(page: Page): Promise<Locator> {
   // até ele chegar.
   await expect(form).toBeVisible({ timeout: 30_000 });
   return form;
+}
+
+/**
+ * Abre a tela, espera o catálogo e digita o nome do projeto. Devolve o
+ * formulário e a árvore já com o nome.
+ *
+ * Digitar o nome também é uma troca: com o campo vazio a árvore mostra um
+ * marcador no lugar do nome, e o nome digitado só entra nos caminhos no render
+ * seguinte. Por isso a árvore devolvida é lida com {@link treeAfterChange}, a
+ * partir da árvore do campo vazio.
+ */
+export async function openWithProjectName(page: Page): Promise<{ form: Locator; tree: string[] }> {
+  await page.goto('/');
+  const form = await waitForCatalog(page);
+  const emptyName = await stableTree(page);
+  await page.getByLabel('Nome do projeto').fill(PROJECT_NAME);
+  const tree = await treeAfterChange(page, emptyName);
+  return { form, tree };
+}
+
+/**
+ * Escolhe pela seta do teclado a **segunda** opção do primeiro grupo de rádio:
+ * "a outra arquitetura que o catálogo oferece", seja ela qual for.
+ *
+ * O `toBeChecked()` confirma a escolha, **não** o render. O navegador marca o
+ * rádio na hora da seta, e a árvore só muda quando o render agendado acontecer.
+ * Quem quiser a árvore nova chama {@link treeAfterChange} com a árvore lida antes.
+ */
+export async function pickSecondOfFirstGroup(page: Page, form: Locator): Promise<void> {
+  const radios = form.locator('fieldset').first().locator('input[type="radio"]');
+  await radios.first().focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(radios.nth(1)).toBeChecked();
+}
+
+/** Clica em "Gerar projeto", salva o download e devolve as entradas do ZIP. */
+export async function generateAndOpen(
+  page: Page,
+  form: Locator,
+  testInfo: TestInfo,
+): Promise<string[]> {
+  // A escuta é armada antes do clique: o download pode começar antes de
+  // `click()` resolver, e aí o evento já teria passado.
+  const downloading = page.waitForEvent('download', { timeout: 120_000 });
+  await form.getByRole('button', { name: 'Gerar projeto' }).click();
+  return zipEntries(openZip(await saveZip(await downloading, testInfo)));
 }
 
 /**
