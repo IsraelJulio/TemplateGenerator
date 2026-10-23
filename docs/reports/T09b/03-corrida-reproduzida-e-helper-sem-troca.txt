@@ -10,8 +10,12 @@ O que cada teste mostra
   relogio da pagina (page.clock.pauseAt) entre o foco e a seta: sem setTimeout nem
   requestAnimationFrame, o render que o Angular sem zone.js agenda fica pendente. toBeChecked()
   passa, a guarda length>20 passa, a leitura pega a arvore da arquitetura ANTERIOR, o relogio e
-  solto, o ZIP e o da nova, e a comparacao falha com a mesma assinatura observada em T04
-  (criterio 1). Isto confirma por execucao o mecanismo do architect (criterio 2).
+  solto, o ZIP e o da nova, e a comparacao falha na mesma assercao que falhou em T04
+  (criterio 1). Isto mostra por execucao que o mecanismo do architect existe e produz essa
+  falha (criterio 2); que ele tenha sido a causa em T04 continua inferencia, porque o traco
+  daquela falha nao existe.
+  [Nota do PO, rodada 2 da revisao: o comentario da fonte do script, mais abaixo, ainda diz
+  "assinatura". Ele fica como esta porque e a fonte literal que rodou; vale a redacao acima.]
   ESPERADO: FALHAR, nos dois projetos.
 - "repro: helper NOVO ..." e o mesmo render parado com treeAcross: a leitura de antes acontece
   com o render ainda parado (arvore velha), a troca e soltar o relogio, e o helper devolve a
