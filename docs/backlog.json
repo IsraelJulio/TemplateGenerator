@@ -432,10 +432,11 @@
     },
     {
       "id": "T09b",
+      "startedAt": "2026-10-23",
       "pullRequest": null,
       "order": 9.5,
       "title": "Corrigir a corrida entre a troca de opcao e a leitura da arvore no e2e",
-      "state": "pending",
+      "state": "in_progress",
       "dependsOn": ["T09"],
       "roles": ["frontend", "qa"],
       "skills": ["verify-mvp"],
@@ -455,7 +456,7 @@
         "Executar a suite e2e completa, desktop e celular."
       ],
       "blockers": [],
-      "report": null,
+      "report": "docs/reports/T09b.md",
       "note": "Licao de processo registrada em T04: ao observar um flake, salve test-results/ ANTES de reexecutar. As tres reexecucoes sobrescreveram o traco, que estava sendo gravado por retain-on-failure, e destruiram a unica evidencia que existia."
     },
     {
