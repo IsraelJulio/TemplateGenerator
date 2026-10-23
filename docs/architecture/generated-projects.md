@@ -574,9 +574,10 @@ marcador num eixo que não tem nada a ver com o assunto.
 
 **O filtro do requisito é exato para o pacote entregue, não para qualquer extensão dele.** Ele olha
 `IAuthorizeData` sem `IAllowAnonymous`, que é o que `RequireAuthorization()` e `MapIdentityApi`
-põem. Quem estender o projeto com uma `FallbackPolicy` ou com
-`RequireAuthorization(policy => …)` baseado só em requisito pode ter rota protegida sem cadeado no
-documento. O comentário do template diz qual metadado é lido.
+põem. `RequireAuthorization(policy => …)` e `RequireAuthorization(AuthorizationPolicy)` também
+deixam `IAuthorizeData` no endpoint, e ganham cadeado — medido pelo reviewer de T08b num app .NET 10.
+Ficam **sem** cadeado só uma `FallbackPolicy`, que não deixa metadado nenhum, e um atributo que
+implemente apenas `IAuthorizationRequirementData`. O comentário do template diz qual metadado é lido.
 
 ## README gerado
 
