@@ -464,7 +464,7 @@
       "title": "Matriz completa e revisao funcional, visual e de seguranca",
       "state": "pending",
       "dependsOn": ["T09"],
-      "roles": ["qa", "frontend", "architect", "reviewer"],
+      "roles": ["qa", "frontend", "template-engineer", "architect", "reviewer"],
       "skills": ["verify-mvp"],
       "context": [
         "docs/quality/test-strategy.md",
@@ -490,7 +490,8 @@
         "A sonda de transbordo de e2e/horizontal-overflow.e2e.ts acusa tambem elemento que passa da borda de um ancestral com overflow hidden ou clip (nao auto/scroll). Motivo, do reviewer de T09 (ressalva 4): .options { overflow: hidden } em configurator.css recorta sem aviso, e um transbordo de rotulo ou descricao de opcao escaparia do scrollWidth e da sonda - o mesmo recorte mudo que motivou o criterio 6 de T09, agora numa caixa local.",
         "O e2e 'desabilita na tela o que a API marcou como sem template' volta a testar o que o nome diz, ou e renomeado e reescrito para o que testa. Motivo, do reviewer de T09 (ressalva 5): desde T08 o catalogo traz unavailable: [], e o teste passa so pela desabilitacao vinda da restricao; nome e mensagem ('a API mudou?') ficaram enganosos.",
         "O campo de nome do projeto deixa claro quando esta vazio: o placeholder 'Acme.Billing.Api' em --ink-soft hoje parece valor preenchido (captura docs/reports/T09/01-inicial-celular.png). Motivo: defeito nao corrigido 1 de T09; so o 'Sem nome ainda' do resumo revela o campo vazio.",
-        "Decisao registrada sobre description em valor de escolha: o contrato (docs/architecture/http-contract.md) diz se e obrigatoria, e o catalogo cumpre - hoje o unico valor de dotnetVersion nao tem description. Motivo: defeito nao corrigido 4 de T09; a tela tolera a ausencia, com teste, mas o contrato nao decide."
+        "Decisao registrada sobre description em valor de escolha: o contrato (docs/architecture/http-contract.md) diz se e obrigatoria, e o catalogo cumpre - hoje o unico valor de dotnetVersion nao tem description. Motivo: defeito nao corrigido 4 de T09; a tela tolera a ausencia, com teste, mas o contrato nao decide.",
+        "O documento OpenAPI dos projetos gerados declara as respostas reais de cada rota de /items (201 no POST, 204 no PUT e no DELETE, 404 quando nao existe, 400 de validacao e, com autenticacao, 401), e /auth/manage/* declara o 401. Motivo: o qa de T08b viu na interface do Swagger o 201 e o 401 marcados como Undocumented (docs/reports/T08b/02-get-items-sem-authorize-401.png e 05-post-items-com-authorize-201.png): hoje so o 200 e declarado. Defeito anterior a T08b, de template (metadado Produces nos endpoints)."
       ],
       "verifications": [
         "Executar as camadas 1, 2 e 3 completas.",

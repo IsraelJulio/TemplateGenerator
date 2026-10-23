@@ -408,6 +408,9 @@ considerada e recusada.
 - O CRUD inteiro ganha `RequireAuthorization()`; `GET /health` fica fora do grupo e continua
   público. A autorização é **binária** (RF-14, RF-15): token válido basta, e não há política por
   papel nem por claim.
+- As rotas de gestão da conta que `MapIdentityApi` mapeia em `/auth/manage/...` (`info` e `2fa`)
+  também exigem token, pelo próprio framework. O README as cita como protegidas e, com Swagger, elas
+  têm cadeado no documento (T08b).
 
 #### As tabelas de identidade têm `DbContext` e migração próprios — **decidido em T06**
 
@@ -497,9 +500,8 @@ projeto entregue aceitaria metadados em claro em produção. A forma escolhida f
 combinação com `jwt` é idêntica à da mesma combinação com `none`, e a única diferença no pacote é
 conteúdo de arquivos que já existiam. Não usa `dotnet user-secrets` (exigiria `UserSecretsId` no
 `.csproj`, e `dotnet user-secrets init` edita o `.csproj`, o que é modificar código-fonte, contra
-RF-21). E **não integra com o Swagger**: `jwt + swagger` não ganha botão *Authorize* no documento
-OpenAPI. Este último é lacuna conhecida, não decisão fechada — é a primeira pergunta de quem baixar
-essa combinação.
+RF-21). Com `swagger = true` ele ganha o botão *Authorize* desde T08b: o esquema declarado é
+`http`/`bearer` com `bearerFormat: JWT` (ver "Swagger → O que foi fixado em T08b").
 
 Ao contrário de `identity`, `jwt` **não** tem a restrição `identity-requires-database`: ele funciona
 com qualquer banco, inclusive `none`, porque nenhuma contribuição dele cita `DbContext`,
@@ -526,17 +528,47 @@ Quando `swagger = false`, nem o documento, nem a UI, nem as duas dependências a
 |---|---|---|
 | Pacotes declarados ⇔ opção marcada, versão exata | 1, nas 32 | `PackageReferenceMatrixTests` |
 | Nenhum pacote de Swagger **transitivo** com a opção desmarcada; os dois resolvidos no Web API com ela marcada | 2 | `DatabaseBuildMatrixTests`, lendo `obj/project.assets.json` de cada projeto de `src/` |
-| Documento nativo e interface respondem; `/swagger/v1/swagger.json` (o gerador do próprio Swashbuckle) **não** | 3, todas as linhas | `SwaggerRoutes` |
+| Documento nativo e interface respondem; `/swagger/v1/swagger.json` (o gerador do próprio Swashbuckle) **não**; esquema de segurança conforme a autenticação (T08b, abaixo) | 3, todas as linhas | `SwaggerRoutes` |
 | Com a opção marcada, **fora de Development** nenhuma rota de documentação responde | 3 | `Com_swagger_fora_de_Development_nenhuma_rota_de_documentacao_responde` |
 
-**A lacuna do botão *Authorize* continua aberta, mas deixou de ser silenciosa.** Com
-`authentication ≠ none` e `swagger = true`, o README ganha a subseção `### Swagger e autenticação`,
-contribuída por `auth/identity` e `auth/jwt` pelo marcador `__ReadmeSwaggerAuth__`, que
-`swagger/enabled` lê para trás ([ADR-0015](../decisions/adr-0015-contribuicao-le-eixo-anterior.md)).
-Ela diz o que a pessoa vai ver: documento e interface públicos em Development, as rotas de `/items`
-listadas, e o *Try it out* delas respondendo `401`, porque o documento não declara esquema de
-segurança. Fechar a lacuna — declarar o esquema *bearer* no documento — é a mesma contribuição
-cruzada, em `Program.cs`, e precisa de critério de aceite próprio; T08 não o tinha.
+A lacuna do botão *Authorize*, deixada aberta aqui, foi fechada em T08b; ver abaixo.
+
+### O que foi fixado em T08b
+
+**Com `swagger = true` e `authentication ≠ none`, o documento declara o esquema *bearer* e a
+interface ganha o botão *Authorize*.** O cruzamento `auth × swagger` é só leitura para trás
+([ADR-0015](../decisions/adr-0015-contribuicao-le-eixo-anterior.md)):
+
+- `auth/identity` e `auth/jwt` contribuem dois marcadores:
+  - `__OpenApiSecurity__`, a lambda inteira de `AddOpenApi(options => { … })`, com o invólucro
+    incluído (regra 7b de ADR-0011);
+  - `__OpenApiSecurityUsings__`, com `Microsoft.AspNetCore.Authorization` e `Microsoft.OpenApi`.
+- `swagger/enabled` os lê em `AddOpenApi(__OpenApiSecurity__)` e no próprio `ProgramUsings`.
+- Com `auth = none` os dois resolvem vazios: a chamada fica `AddOpenApi()` e nenhum `using` entra.
+- Sem Swagger, ninguém os lê.
+
+Não há condicional em template.
+
+- **Esquema:** `http`/`bearer`. No Identity, **sem** `bearerFormat`, porque o token é opaco. No
+  JWT, `bearerFormat: JWT`.
+- **Requisito:** é posto por operação, nunca na raiz, e só onde o endpoint tem `IAuthorizeData`
+  sem `IAllowAnonymous`, que é o mesmo metadado que decide o `401`. Isso cobre o CRUD de `/items`
+  e, com Identity, `/auth/manage/...`. `/health`, `/auth/register`, `/auth/login`, `/auth/refresh`
+  e as rotas de e-mail ficam sem cadeado.
+- **Pacotes:** nenhum novo. `Microsoft.OpenApi` chega por transitividade, pelo
+  `Microsoft.AspNetCore.OpenApi`.
+- **README:** a subseção `### Swagger e autenticação` explica o botão, de onde vem o token, o que
+  colar (só o token, sem `Bearer `) e o `200`/`401` do *Try it out*.
+
+| Afirmação | Camada | Teste |
+|---|---|---|
+| Código de segurança no `Program.cs` ⇔ `swagger && auth ≠ none`; `bearerFormat` só no JWT; Swagger acrescenta exatamente os dois pacotes de ADR-0001 | 1, nas 32 | `OpenApiSecurityMatrixTests` |
+| Esquema presente ⇔ há autenticação; requisito em cada operação ⇔ ela é protegida | 3 | `SwaggerRoutes` |
+| README explica o botão, a origem do token, o que colar e o `200`/`401` | 1 | `ReadmeCompletenessMatrixTests` |
+
+**Repetição deliberada:** as duas contribuições `OpenApiSecurity.cs` repetem cerca de 30 linhas e
+diferem só em `BearerFormat`, `Description` e comentário. Um marcador para `bearerFormat` foi
+recusado: marcador carrega um fato de outro eixo, não um pedaço de código.
 
 ## README gerado
 

@@ -1,0 +1,29 @@
+
+$ dotnet build
+  exit code: 0
+  | Build succeeded.
+  |     0 Warning(s)
+  |     0 Error(s)
+  6.7s | 13 linhas | log completo: C:\Users\2273129\AppData\Local\Temp\templategenerator-verify\20261023-091631\build.log
+
+$ dotnet test
+  exit code: 0
+  | Passed!  - Failed:     0, Passed:   233, Skipped:     0, Total:   233, Duration: 248 ms - TemplateGenerator.Generation.Tests.dll (net10.0)
+  | Passed!  - Failed:     0, Passed:    73, Skipped:     0, Total:    73, Duration: 10 s - TemplateGenerator.Api.Tests.dll (net10.0)
+  | Passed!  - Failed:     0, Passed:  1622, Skipped:     0, Total:  1622, Duration: 2 m 39 s - TemplateGenerator.Matrix.Tests.dll (net10.0)
+  172.7s | 19 linhas | log completo: C:\Users\2273129\AppData\Local\Temp\templategenerator-verify\20261023-091631\test.log
+
+Resumo
+
+Passo        ExitCode Segundos Linhas Log                                                                              
+-----        -------- -------- ------ ---                                                                              
+dotnet build        0      6.7     13 C:\Users\2273129\AppData\Local\Temp\templategenerator-verify\20261023-091631\b...
+dotnet test         0    172.7     19 C:\Users\2273129\AppData\Local\Temp\templategenerator-verify\20261023-091631\t...
+
+
+
+Logs completos em: C:\Users\2273129\AppData\Local\Temp\templategenerator-verify\20261023-091631
+
+Para o relatorio, cole: o comando, o exit code e o trecho que comprova o criterio.
+Nao cole o log inteiro - docs/conventions.md#evidencia-em-relatorio.
+exit=0

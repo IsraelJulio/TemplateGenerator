@@ -1,0 +1,68 @@
+Test run for C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:02.47]     TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(architecture: "clean", database: "sqlite", authentication: "identity", swagger: True) [FAIL]
+  Failed TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(architecture: "clean", database: "sqlite", authentication: "identity", swagger: True) [25 ms]
+  Error Message:
+   clean/sqlite/identity/swagger=on: o Program.cs não traz 'options.AddOperationTransformer('. O esquema bearer entra no documento se e somente se swagger = true e authentication ≠ none (T08b, critérios 1 e 3).
+  Stack Trace:
+     at TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(String architecture, String database, String authentication, Boolean swagger) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer1\OpenApiSecurityMatrixTests.cs:line 100
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:02.90]     TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(architecture: "clean", database: "postgresql", authentication: "identity", swagger: True) [FAIL]
+  Failed TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(architecture: "clean", database: "postgresql", authentication: "identity", swagger: True) [26 ms]
+  Error Message:
+   clean/postgresql/identity/swagger=on: o Program.cs não traz 'options.AddOperationTransformer('. O esquema bearer entra no documento se e somente se swagger = true e authentication ≠ none (T08b, critérios 1 e 3).
+  Stack Trace:
+     at TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(String architecture, String database, String authentication, Boolean swagger) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer1\OpenApiSecurityMatrixTests.cs:line 100
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:02.97]     TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(architecture: "simple", database: "sqlite", authentication: "identity", swagger: True) [FAIL]
+  Failed TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(architecture: "simple", database: "sqlite", authentication: "identity", swagger: True) [18 ms]
+  Error Message:
+   simple/sqlite/identity/swagger=on: o Program.cs não traz 'options.AddOperationTransformer('. O esquema bearer entra no documento se e somente se swagger = true e authentication ≠ none (T08b, critérios 1 e 3).
+  Stack Trace:
+     at TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(String architecture, String database, String authentication, Boolean swagger) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer1\OpenApiSecurityMatrixTests.cs:line 100
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:03.02]     TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(architecture: "simple", database: "postgresql", authentication: "identity", swagger: True) [FAIL]
+  Failed TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(architecture: "simple", database: "postgresql", authentication: "identity", swagger: True) [28 ms]
+  Error Message:
+   simple/postgresql/identity/swagger=on: o Program.cs não traz 'options.AddOperationTransformer('. O esquema bearer entra no documento se e somente se swagger = true e authentication ≠ none (T08b, critérios 1 e 3).
+  Stack Trace:
+     at TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_Program_declara_seguranca_no_documento_se_e_somente_se_ha_Swagger_e_autenticacao(String architecture, String database, String authentication, Boolean swagger) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer1\OpenApiSecurityMatrixTests.cs:line 100
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:03.08]     TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(architecture: "clean", database: "postgresql", authentication: "identity", swagger: True) [FAIL]
+  Failed TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(architecture: "clean", database: "postgresql", authentication: "identity", swagger: True) [41 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "using Matriz.Exemplo.Api.Api.Endpoints;\nusing Matr"···
+Not found: "metadata.OfType<IAuthorizeData>().Any() && !metada"···
+  Stack Trace:
+     at TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(String architecture, String database, String authentication, Boolean swagger) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer1\OpenApiSecurityMatrixTests.cs:line 149
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:03.10]     TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(architecture: "clean", database: "sqlite", authentication: "identity", swagger: True) [FAIL]
+  Failed TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(architecture: "clean", database: "sqlite", authentication: "identity", swagger: True) [20 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "using Matriz.Exemplo.Api.Api.Endpoints;\nusing Matr"···
+Not found: "metadata.OfType<IAuthorizeData>().Any() && !metada"···
+  Stack Trace:
+     at TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(String architecture, String database, String authentication, Boolean swagger) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer1\OpenApiSecurityMatrixTests.cs:line 149
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:03.23]     TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(architecture: "simple", database: "sqlite", authentication: "identity", swagger: True) [FAIL]
+  Failed TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(architecture: "simple", database: "sqlite", authentication: "identity", swagger: True) [24 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "using Matriz.Exemplo.Api.Endpoints;\nusing Matriz.E"···
+Not found: "metadata.OfType<IAuthorizeData>().Any() && !metada"···
+  Stack Trace:
+     at TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(String architecture, String database, String authentication, Boolean swagger) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer1\OpenApiSecurityMatrixTests.cs:line 149
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:03.27]     TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(architecture: "simple", database: "postgresql", authentication: "identity", swagger: True) [FAIL]
+  Failed TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(architecture: "simple", database: "postgresql", authentication: "identity", swagger: True) [25 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "using Matriz.Exemplo.Api.Endpoints;\nusing Matriz.E"···
+Not found: "metadata.OfType<IAuthorizeData>().Any() && !metada"···
+  Stack Trace:
+     at TemplateGenerator.Matrix.Tests.Layer1.OpenApiSecurityMatrixTests.O_requisito_vai_so_onde_o_endpoint_exige_autorizacao(String architecture, String database, String authentication, Boolean swagger) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer1\OpenApiSecurityMatrixTests.cs:line 149
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     8, Passed:  1573, Skipped:     0, Total:  1581, Duration: 5 s - TemplateGenerator.Matrix.Tests.dll (net10.0)

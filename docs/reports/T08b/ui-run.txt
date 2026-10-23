@@ -1,0 +1,101 @@
+T08b - verificacao 3: interface do Swagger por cliques (identity + swagger)
+Executado em: 2026-10-23T12:26:59Z (UTC), branch feat/T08b-botao-authorize-no-swagger-e-rotas-auth-manage-no, arvore de trabalho sem commit
+SDK: 10.0.302 | Navegador: Chromium do Playwright, headless, viewport 1400x1000
+
+== 1. Geracao do ZIP pela plataforma (dotnet run --project src/TemplateGenerator.Api, http://localhost:5080)
+$ curl -X POST http://localhost:5080/api/templates -H 'Content-Type: application/json' -d '{"projectName":"Manual.Authorize","architecture":"simple","database":"sqlite","authentication":"identity","swagger":true,"dotnetVersion":"net10.0"}' -o Manual.Authorize.zip
+http=200  curl exit=0
+HTTP/1.1 200 OK
+Content-Type: application/zip
+Content-Disposition: attachment; filename="Manual.Authorize.zip"
+sha256(Manual.Authorize.zip) = 7b15b084c8de525f6a67328a7dc574ce60831757de725d63f6261eae5b02891c  (33404 bytes)
+Plataforma parada: taskkill //PID 38152 //T //F -> SUCCESS, exit=0 (TemplateGenerator.Api.exe)
+
+== 2. Preparo pelo README gerado, em C:\Users\2273129\AppData\Local\Temp\t08b-ui
+$ dotnet restore                                         -> exit=0
+$ dotnet tool restore                                    -> exit=0
+$ dotnet ef database update ... --context AppDbContext          -> exit=0  Applying migration '20260101000000_InitialCreate'. Done.
+$ dotnet ef database update ... --context AppIdentityDbContext  -> exit=0  Applying migration '20260101000100_IdentitySchema'. Done.
+$ dotnet run --project src/Manual.Authorize              -> GET http://localhost:5100/health = 200 {"status":"ok"}
+Nota: houve um ensaio do script antes desta execucao (para corrigir o proprio script, ver capturas.md).
+Antes da execucao oficial o banco foi recriado: app parada, app.db apagado, os dois 'dotnet ef database update' de novo (exit=0, exit=0), app de novo no ar.
+Conferencia antes da execucao oficial: GET /items sem token = 401.
+
+== 3. Execucao do script (fora do repositorio)
+Script: C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08b-qa\swagger-ui-authorize.mjs
+sha256(script) = 5169c01cc3573daa3dd5c44c4a385e776476a5ec078f335d9eea43fdfe063b76
+$ node swagger-ui-authorize.mjs "C:\Users\2273129\Documents\Projects\TemplateGenerator\docs\reports\T08b"
+(o token nunca e impresso: so o comprimento e os 5 primeiros caracteres, o prefixo fixo 'CfDJ8' do Data Protection)
+--- saida ---
+PASS  b. GET /swagger abre a interface :: http=200 url=http://localhost:5100/swagger/index.html
+PASS  b. botao Authorize visivel :: texto="Authorize"
+PASS  b. cadeado em GET /items :: aria-label="authorization button unlocked"
+PASS  b. cadeado em POST /items :: aria-label="authorization button unlocked"
+PASS  b. cadeado em GET /items/{id} :: aria-label="authorization button unlocked"
+PASS  b. cadeado em PUT /items/{id} :: aria-label="authorization button unlocked"
+PASS  b. cadeado em DELETE /items/{id} :: aria-label="authorization button unlocked"
+PASS  b. cadeado em GET /auth/manage/info :: aria-label="authorization button unlocked"
+PASS  b. cadeado em POST /auth/manage/info :: aria-label="authorization button unlocked"
+PASS  b. cadeado em POST /auth/manage/2fa :: aria-label="authorization button unlocked"
+PASS  b. GET /health existe e NAO tem cadeado
+PASS  b. POST /auth/register existe e NAO tem cadeado
+PASS  b. POST /auth/login existe e NAO tem cadeado
+PASS  b. POST /auth/refresh existe e NAO tem cadeado
+CAPTURA 01-swagger-ui-authorize-e-cadeados.png
+      POST /auth/register: status na interface="200", status na rede=200, Authorization enviado=(nenhum)
+PASS  a. POST /auth/register pela interface (sem token) responde 200 :: status=200 email=qa.t08b.1792758420261@exemplo.com
+PASS  a. curl do register nao manda Authorization
+      POST /auth/login: status na interface="200", status na rede=200, Authorization enviado=(nenhum)
+PASS  a. POST /auth/login pela interface (sem token) responde 200 :: status=200
+PASS  a. resposta do login traz accessToken :: tokenType=Bearer accessToken.length=752 prefixo=CfDJ8
+PASS  a. tokens mascarados na tela antes da captura do login
+CAPTURA 00-login-pela-interface-200.png
+      GET /items: status na interface="401 Undocumented", status na rede=401, Authorization enviado=(nenhum)
+PASS  c. GET /items antes de Authorize responde 401 :: status=401
+PASS  c. curl antes de Authorize NAO tem Authorization :: Curl curl -X 'GET' \ 'http://localhost:5100/items' \ -H 'accept: */*'
+PASS  c. a requisicao de rede nao levou Authorization
+CAPTURA 02-get-items-sem-authorize-401.png
+PASS  d. dialogo mostra o esquema Bearer (http, Bearer) :: cabecalho="Bearer (http, Bearer)"
+CAPTURA 03a-dialogo-authorize-token-colado.png (campo do token coberto pela mascara do Playwright)
+PASS  d. dialogo mostra Authorized depois de confirmar
+PASS  d. token nao aparece no dialogo autorizado
+CAPTURA 03b-dialogo-authorize-autorizado.png
+PASS  d. dialogo fechado
+PASS  d. cadeado de GET /items passa a "locked" :: aria-label="authorization button locked"
+      GET /items: status na interface="200", status na rede=200, Authorization enviado=Bearer <token 752 caracteres>
+PASS  e. GET /items depois de Authorize responde 200 :: status=200 corpo=Response body Download [] Response headers content-type: application/json; charset=utf-8 date: Fri,23 Oct 2026 12:27:06 
+PASS  e. curl mostrado contem "Authorization: Bearer <o token do login>"
+PASS  e. curl NAO duplica o prefixo ("Bearer Bearer")
+PASS  e. a requisicao de rede levou exatamente "Bearer <token>"
+PASS  e. token mascarado na tela antes da captura
+CAPTURA 04-get-items-com-authorize-200-curl-bearer.png
+      POST /items: status na interface="201 Undocumented", status na rede=201, Authorization enviado=Bearer <token 752 caracteres>
+PASS  f. POST /items depois de Authorize responde 201 :: status=201 corpo=Response body Download { "id": 1, "title": "Item criado pelo Swagger UI" } Response headers content-type: application/json; charset=utf-8 date: Fri,23 Oct 2026 
+PASS  f. curl do POST /items contem Authorization: Bearer <token>
+CAPTURA 05-post-items-com-authorize-201.png
+      GET /items: status na interface="200", status na rede=200, Authorization enviado=Bearer <token 752 caracteres>
+PASS  f. GET /items de novo responde 200 e lista o item criado :: status=200
+      GET /auth/manage/info: status na interface="200", status na rede=200, Authorization enviado=Bearer <token 752 caracteres>
+PASS  f. GET /auth/manage/info depois de Authorize responde 200 com o e-mail :: status=200 corpo=Response body Download { "email": "qa.t08b.1792758420261@exemplo.com", "isEmailConfirmed": false } Response headers content-type: application/json; charset=utf-
+PASS  f. curl do manage/info contem Authorization: Bearer <token>
+CAPTURA 06-get-auth-manage-info-com-authorize-200.png
+RESULTADO: TODAS AS AFIRMACOES PASSARAM
+--- fim da saida ---
+EXIT CODE: 0
+
+== 4. Encerramento e limpeza
+$ netstat -ano | grep LISTENING | grep -E ":5100 "
+  TCP    127.0.0.1:5100         0.0.0.0:0              LISTENING       34192
+  TCP    [::1]:5100             [::]:0                 LISTENING       34192
+$ taskkill //PID 34192 //T //F
+Manual.Authorize.exe         34192 Console                    1    123,812 K
+SUCCESS: The process with PID 34192 (child process of PID 5352) has been terminated.
+exit=0
+$ netstat -ano | grep LISTENING | grep -E ":(5080|5100) "
+grep exit=1 (1 = nenhuma porta escutando)
+$ tasklist | grep -iE "Manual.Authorize|TemplateGenerator.Api"
+grep exit=1 (1 = nenhum processo)
+$ rm -rf /c/Users/2273129/AppData/Local/Temp/t08b-ui
+rm exit=0
+$ test -e /c/Users/2273129/AppData/Local/Temp/t08b-ui
+test exit=1 (1 = pasta nao existe)
