@@ -1,0 +1,40 @@
+Test run for C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.10)
+[xUnit.net 00:00:00.54]   Discovering: TemplateGenerator.Matrix.Tests
+[xUnit.net 00:00:01.77]   Discovered:  TemplateGenerator.Matrix.Tests
+[xUnit.net 00:00:02.15]   Starting:    TemplateGenerator.Matrix.Tests
+  Passed TemplateGenerator.Matrix.Tests.Layer2.DatabaseBuildMatrixTests.A_combinacao_com_banco_compila_e_o_provider_resolve_no_grafo(architecture: "clean", database: "sqlite", swagger: False) [37 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Sem_token_todo_o_CRUD_responde_401_e_a_saude_continua_publica [9 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Swagger_responde_ou_nao_conforme_a_selecao [570 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Assinatura_invalida_responde_401_RF19 [860 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Token_expirado_responde_401_RF19_sem_folga_de_relogio [66 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Emissor_errado_responde_401_RF19 [372 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Sem_token_todo_o_CRUD_responde_401_e_a_saude_continua_publica [37 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Token_valido_do_provedor_externo_acessa_o_CRUD_protegido [166 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Emissor_errado_responde_401_RF19 [20 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Audiencia_errada_responde_401_RF19 [15 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Swagger_responde_ou_nao_conforme_a_selecao [2 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Assinatura_invalida_responde_401_RF19 [3 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Token_expirado_responde_401_RF19_sem_folga_de_relogio [78 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Audiencia_errada_responde_401_RF19 [7 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.DatabaseBuildMatrixTests.A_combinacao_com_banco_compila_e_o_provider_resolve_no_grafo(architecture: "clean", database: "postgresql", swagger: True) [27 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Token_valido_do_provedor_externo_acessa_o_CRUD_protegido [2 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.DatabaseRuntimeTests.Simple_com_SQLite_migra_pelo_README_e_os_dados_sobrevivem_ao_reinicio [1 m 8 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Simple_com_SQLite_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [1 m 14 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.DatabaseBuildMatrixTests.A_combinacao_com_banco_compila_e_o_provider_resolve_no_grafo(architecture: "simple", database: "sqlite", swagger: True) [13 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.DatabaseBuildMatrixTests.A_combinacao_com_banco_compila_e_o_provider_resolve_no_grafo(architecture: "simple", database: "postgresql", swagger: False) [11 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.DatabaseBuildMatrixTests.O_conjunto_cobre_os_dois_bancos_nas_duas_arquiteturas [17 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.DatabaseRuntimeTests.Clean_com_PostgreSQL_migra_num_database_descartavel_e_persiste_no_reinicio [40 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Clean_com_SQLite_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [47 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Clean_com_PostgreSQL_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [37 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.A_Clean_compila_sobe_e_atende_o_mesmo_CRUD_que_a_Simples [15 m 26 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.Com_swagger_o_projeto_compila_sobe_atende_o_CRUD_e_esquece_tudo_no_reinicio [7 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.Com_swagger_fora_de_Development_nenhuma_rota_de_documentacao_responde [3 s]
+[xUnit.net 00:15:43.90]   Finished:    TemplateGenerator.Matrix.Tests (ID = '1f54fb58e1af225135dd492f0a20fd84a1806fa8dfae512b3640a4d1b39cbe32')
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.Sem_swagger_o_projeto_sobe_igual_e_nenhuma_rota_de_documentacao_responde [3 s]
+
+Test Run Successful.
+Total tests: 28
+     Passed: 28
+ Total time: 15.7434 Minutes

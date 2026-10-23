@@ -119,7 +119,7 @@ public sealed class DatabaseRuntimeTests
 
             // RF-20 em runtime. Os dois roteiros de banco alternam o eixo — SQLite com Swagger,
             // PostgreSQL sem —, como pede a estratégia de testes para toda linha da camada 3.
-            await SwaggerRoutes.AssertAsync(client, swagger, cancellationToken);
+            await SwaggerRoutes.AssertAsync(client, swagger, "none", cancellationToken);
         }
 
         // O reinício: processo novo, mesmo banco. É onde "está escrito que persiste" vira "persiste".

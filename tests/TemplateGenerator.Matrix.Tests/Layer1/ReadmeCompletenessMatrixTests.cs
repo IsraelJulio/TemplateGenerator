@@ -178,10 +178,11 @@ public sealed partial class ReadmeCompletenessMatrixTests
         string authentication,
         bool swagger)
     {
-        // T08: a interface não tem botão *Authorize* (generated-projects.md, "O que jwt
-        // deliberadamente não faz"). Numa combinação autenticada, o *Try it out* do CRUD responde
-        // 401 — e um README que não dissesse isso deixaria a pessoa achando que o token está
-        // errado. Sem autenticação não há o que avisar, e o aviso não pode aparecer.
+        // T08 abriu a subseção para dizer que a interface não tinha botão *Authorize*; T08b
+        // declarou o esquema bearer no documento e a subseção passou a ensinar o botão. Numa
+        // combinação autenticada, o *Try it out* do CRUD responde 401 até a pessoa autorizar — e
+        // um README que não dissesse como deixaria a pessoa achando que o token está errado. Sem
+        // autenticação não há o que avisar, e o aviso não pode aparecer.
         GeneratedPackage package = await GeneratedPackage.GenerateAsync(
             Request(architecture, database, authentication, swagger),
             TestContext.Current.CancellationToken);
@@ -211,9 +212,89 @@ public sealed partial class ReadmeCompletenessMatrixTests
             int next = readme.IndexOf("## Próximos passos", StringComparison.Ordinal);
 
             Assert.InRange(readme.IndexOf(subsection, StringComparison.Ordinal), section, next);
-            Assert.Contains("*Authorize*", readme, StringComparison.Ordinal);
-            Assert.Contains("`401`", readme[section..next], StringComparison.Ordinal);
+
+            string swaggerSection = readme[section..next];
+
+            // T08b: o documento declara o esquema bearer e a interface TEM o botão. A subseção
+            // diz isso, diz o que colar — só o token, sem o prefixo — e diz os dois desfechos do
+            // *Try it out*: `200` depois de autorizar, `401` sem. A frase de T08 ("não tem o
+            // botão") não pode sobreviver: com a guarda da camada 3 invertida, ela seria falsa.
+            Assert.Contains("a interface tem o botão *Authorize*", swaggerSection, StringComparison.Ordinal);
+            Assert.Contains("cole **só o token**", swaggerSection, StringComparison.Ordinal);
+            Assert.Contains("`200`", swaggerSection, StringComparison.Ordinal);
+            Assert.Contains("`401`", swaggerSection, StringComparison.Ordinal);
+            Assert.DoesNotContain("não tem o botão", readme, StringComparison.Ordinal);
+
+            // De onde vem o token, que é o que muda entre as duas autenticações: no Identity, o
+            // `accessToken` do login da própria aplicação, e as rotas `/auth/manage/...` também
+            // têm cadeado; no JWT, o provedor externo, porque a aplicação não emite token.
+            switch (authentication)
+            {
+                case "identity":
+                    Assert.Contains("`accessToken`", swaggerSection, StringComparison.Ordinal);
+                    Assert.Contains("`/auth/manage/...`", swaggerSection, StringComparison.Ordinal);
+                    break;
+                case "jwt":
+                    Assert.Contains("**seu** provedor", swaggerSection, StringComparison.Ordinal);
+                    break;
+                default:
+                    Assert.Fail(
+                        $"authentication = {authentication} tem subseção Swagger + autenticação, e " +
+                        "este teste não sabe de onde vem o token dela. Diga aqui.");
+                    break;
+            }
         }
+    }
+
+    [Fact]
+    public void A_matriz_tem_identity_com_e_sem_Swagger()
+    {
+        // Sanidade do teste abaixo: ele só vale alguma coisa se a matriz tiver Identity nos dois
+        // estados de Swagger. Sem Swagger, a seção de uso da autenticação é a ÚNICA menção a
+        // `/auth/manage/...` no README — é o caso que o reviewer de T08b achou sem guarda.
+        GenerationRequest[] identity =
+            [.. Combinations.Available.Where(request => request.Authentication == "identity")];
+
+        Assert.Contains(identity, request => request.Swagger);
+        Assert.Contains(identity, request => !request.Swagger);
+    }
+
+    [Theory]
+    [MemberData(nameof(AvailableCombinations))]
+    public async Task Com_Identity_o_README_cita_as_rotas_de_gestao_da_conta_como_protegidas(
+        string architecture,
+        string database,
+        string authentication,
+        bool swagger)
+    {
+        // Critério 6 de T08b, na metade que não depende do Swagger: o parágrafo de
+        // `auth/identity/__parts__/ReadmeAuthUsage.md` que diz que `/auth/manage/...` exige token.
+        // Até a rodada 1 da revisão de T08b ele só era cobrado dentro da subseção do Swagger —
+        // apagá-lo deixava a suíte inteira verde nas quatro combinações Identity sem Swagger.
+        GeneratedPackage package = await GeneratedPackage.GenerateAsync(
+            Request(architecture, database, authentication, swagger),
+            TestContext.Current.CancellationToken);
+
+        string readme = package.Read("README.md");
+
+        int usage = readme.IndexOf("## Usar a autenticação", StringComparison.Ordinal);
+        int crud = readme.IndexOf("## Testar o CRUD de `Item`", StringComparison.Ordinal);
+
+        if (authentication != "identity")
+        {
+            Assert.DoesNotContain("/auth/manage/", readme, StringComparison.Ordinal);
+
+            return;
+        }
+
+        Assert.True(usage >= 0 && crud > usage, "Com Identity, o README tem de ter '## Usar a autenticação' antes de '## Testar o CRUD de `Item`'.");
+
+        string section = readme[usage..crud];
+
+        Assert.Contains("`/auth/manage/...`", section, StringComparison.Ordinal);
+        Assert.Contains("POST /auth/manage/2fa", section, StringComparison.Ordinal);
+        Assert.Contains("curl -i http://localhost:5100/auth/manage/info -H 'Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI'", section, StringComparison.Ordinal);
+        Assert.Matches(@"/auth/manage/[\s\S]*respondem `401` sem token", section);
     }
 
     [Theory]

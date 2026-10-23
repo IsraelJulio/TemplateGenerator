@@ -1,0 +1,74 @@
+Test run for C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.10)
+[xUnit.net 00:00:00.41]   Discovering: TemplateGenerator.Matrix.Tests
+[xUnit.net 00:00:01.64]   Discovered:  TemplateGenerator.Matrix.Tests
+[xUnit.net 00:00:02.03]   Starting:    TemplateGenerator.Matrix.Tests
+[xUnit.net 00:00:25.26]     TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Simple_com_SQLite_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [FAIL]
+[xUnit.net 00:00:25.26]       Com authentication = identity, a operação GET /items não exige segurança no documento. O requisito vai só nas operações protegidas: o CRUD de /items e, com Identity, /auth/manage/... (T08b, critério 2).
+[xUnit.net 00:00:25.26]       Stack Trace:
+[xUnit.net 00:00:25.26]         C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\SwaggerRoutes.cs(256,0): at TemplateGenerator.Matrix.Tests.Layer3.SwaggerRoutes.SecurityDeclaration(JsonElement document, String authentication, Action`1 log)
+[xUnit.net 00:00:25.26]         C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\SwaggerRoutes.cs(124,0): at TemplateGenerator.Matrix.Tests.Layer3.SwaggerRoutes.AssertAsync(HttpClient client, Boolean expected, String authentication, CancellationToken cancellationToken, Action`1 log)
+[xUnit.net 00:00:25.26]         C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\IdentityRuntimeTests.cs(295,0): at TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.IdentityPontaAPonta(GenerationRequest request, Boolean swagger, String connectionString)
+[xUnit.net 00:00:25.26]         C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\IdentityRuntimeTests.cs(348,0): at TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.IdentityPontaAPonta(GenerationRequest request, Boolean swagger, String connectionString)
+[xUnit.net 00:00:25.26]         C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\IdentityRuntimeTests.cs(53,0): at TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Simple_com_SQLite_e_Identity_cadastra_loga_renova_e_protege_o_CRUD()
+[xUnit.net 00:00:25.26]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:25.26]       Output:
+[xUnit.net 00:00:25.26]         GET /health (sem Authorization) -> 200 {"status":"ok"}
+[xUnit.net 00:00:25.26]         GET /items (sem Authorization) -> 401
+[xUnit.net 00:00:25.26]         GET /items/1 (sem Authorization) -> 401
+[xUnit.net 00:00:25.26]         POST /items (sem Authorization) -> 401
+[xUnit.net 00:00:25.26]         PUT /items/1 (sem Authorization) -> 401
+[xUnit.net 00:00:25.26]         DELETE /items/1 (sem Authorization) -> 401
+[xUnit.net 00:00:25.26]         POST /auth/register -> 200 ''
+[xUnit.net 00:00:25.26]         POST /auth/login -> 200 tokenType=Bearer accessToken=CfDJ8Mp62aqX… (731 caracteres) expiresIn=3600 refreshToken=CfDJ8Mp62aqX… (731 caracteres)
+[xUnit.net 00:00:25.26]         POST /auth/refresh -> 200 accessToken=CfDJ8Mp62aqX… (688 caracteres) (diferente do anterior)
+[xUnit.net 00:00:25.26]         POST /items (Bearer) -> 201 Location=/items/1
+[xUnit.net 00:00:25.26]         GET /items (Bearer) -> 200 [{"id":1,"title":"Item autenticado"}]
+[xUnit.net 00:00:25.26]         GET /items/1 (Bearer) -> 200
+[xUnit.net 00:00:25.26]         PUT /items/1 (Bearer) -> 204
+[xUnit.net 00:00:25.26]         GET /auth/manage/info (sem Authorization) -> 401
+[xUnit.net 00:00:25.26]         GET /auth/manage/info (Bearer) -> 200
+[xUnit.net 00:00:25.26]         GET /openapi/v1.json (swagger=true) -> 200
+[xUnit.net 00:00:25.26]         /openapi/v1.json (authentication=identity) components.securitySchemes: {       "Bearer": {         "type": "http",         "description": "O accessToken devolvido por POST /auth/login, sem o prefixo 'Bearer '.",         "scheme": "bearer"       }     }
+[xUnit.net 00:00:25.26]           GET /health security: (nenhum)
+[xUnit.net 00:00:25.26]           GET /items security: (nenhum)
+[xUnit.net 00:00:25.29]   Finished:    TemplateGenerator.Matrix.Tests (ID = '1f54fb58e1af225135dd492f0a20fd84a1806fa8dfae512b3640a4d1b39cbe32')
+  Failed TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Simple_com_SQLite_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [23 s]
+  Error Message:
+   Com authentication = identity, a operação GET /items não exige segurança no documento. O requisito vai só nas operações protegidas: o CRUD de /items e, com Identity, /auth/manage/... (T08b, critério 2).
+  Stack Trace:
+     at TemplateGenerator.Matrix.Tests.Layer3.SwaggerRoutes.SecurityDeclaration(JsonElement document, String authentication, Action`1 log) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\SwaggerRoutes.cs:line 256
+   at TemplateGenerator.Matrix.Tests.Layer3.SwaggerRoutes.AssertAsync(HttpClient client, Boolean expected, String authentication, CancellationToken cancellationToken, Action`1 log) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\SwaggerRoutes.cs:line 124
+   at TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.IdentityPontaAPonta(GenerationRequest request, Boolean swagger, String connectionString) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\IdentityRuntimeTests.cs:line 295
+   at TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.IdentityPontaAPonta(GenerationRequest request, Boolean swagger, String connectionString) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\IdentityRuntimeTests.cs:line 348
+   at TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Simple_com_SQLite_e_Identity_cadastra_loga_renova_e_protege_o_CRUD() in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\IdentityRuntimeTests.cs:line 53
+--- End of stack trace from previous location ---
+  Standard Output Messages:
+ GET /health (sem Authorization) -> 200 {"status":"ok"}
+ GET /items (sem Authorization) -> 401
+ GET /items/1 (sem Authorization) -> 401
+ POST /items (sem Authorization) -> 401
+ PUT /items/1 (sem Authorization) -> 401
+ DELETE /items/1 (sem Authorization) -> 401
+ POST /auth/register -> 200 ''
+ POST /auth/login -> 200 tokenType=Bearer accessToken=CfDJ8Mp62aqX… (731 caracteres) expiresIn=3600 refreshToken=CfDJ8Mp62aqX… (731 caracteres)
+ POST /auth/refresh -> 200 accessToken=CfDJ8Mp62aqX… (688 caracteres) (diferente do anterior)
+ POST /items (Bearer) -> 201 Location=/items/1
+ GET /items (Bearer) -> 200 [{"id":1,"title":"Item autenticado"}]
+ GET /items/1 (Bearer) -> 200
+ PUT /items/1 (Bearer) -> 204
+ GET /auth/manage/info (sem Authorization) -> 401
+ GET /auth/manage/info (Bearer) -> 200
+ GET /openapi/v1.json (swagger=true) -> 200
+ /openapi/v1.json (authentication=identity) components.securitySchemes: {       "Bearer": {         "type": "http",         "description": "O accessToken devolvido por POST /auth/login, sem o prefixo 'Bearer '.",         "scheme": "bearer"       }     }
+   GET /health security: (nenhum)
+   GET /items security: (nenhum)
+
+
+
+Test Run Failed.
+Total tests: 1
+     Failed: 1
+ Total time: 26.0948 Seconds
