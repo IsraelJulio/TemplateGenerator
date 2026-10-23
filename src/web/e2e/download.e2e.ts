@@ -11,7 +11,7 @@ import {
   pickSecondOfFirstGroup,
   readCatalog,
   saveZip,
-  treeAfterChange,
+  treeAcross,
   waitForCatalog,
   zipEntries,
 } from './support';
@@ -38,7 +38,7 @@ test('baixa um ZIP de verdade, e o pacote é o que a tela prometeu', async ({ pa
   // A "estrutura prevista" é lida **antes** de gerar: é a promessa que a tela
   // fez à pessoa, e é contra ela que o pacote será conferido. Este teste não
   // troca opção nenhuma, mas digitar o nome já muda a árvore, então ela vem
-  // de `treeAfterChange`, como em qualquer troca (T09b).
+  // de `treeAcross`, como em qualquer troca (T09b).
   const { form, tree: prometido } = await openWithProjectName(page);
 
   await expect(page.getByRole('heading', { name: 'Gerador de projetos .NET' })).toBeVisible();
@@ -140,18 +140,19 @@ test('gera sem mouse: foco visível, escolha por setas e envio pelo teclado', as
  * for.
  *
  * É o teste em que a corrida de T09b apareceu: a árvore era lida logo depois do
- * `toBeChecked()`, que passa antes do render. Agora a árvore de antes da troca é
- * guardada e a nova é esperada a partir dela. É também o sentido 2 da prova de
- * T09b; o sentido 1, o mesmo cenário com a leitura obsoleta, está em
- * `tree-read.e2e.ts`.
+ * `toBeChecked()`, que passa antes do render. Agora a troca acontece dentro de
+ * `treeAcross`, que lê a árvore antes dela e espera a nova assentar. É também o
+ * sentido 2 da prova de T09b; o sentido 1, o mesmo cenário com a leitura
+ * obsoleta, está em `tree-read.e2e.ts`.
  */
 test('a outra arquitetura do catálogo também baixa o que a tela prometeu', async ({
   page,
 }, testInfo) => {
   const { form, tree: antes } = await openWithProjectName(page);
 
-  await pickSecondOfFirstGroup(page, form);
-  const prometido = await treeAfterChange(page, antes);
+  const prometido = await treeAcross(page, () => pickSecondOfFirstGroup(page, form));
+  // A árvore de antes é a mesma que o sentido 1 usa como leitura obsoleta.
+  expect(prometido).not.toEqual(antes);
   expect(prometido.length).toBeGreaterThan(20);
 
   const real = await generateAndOpen(page, form, testInfo);
@@ -214,7 +215,7 @@ test('desabilita na tela o que a API marcou como sem template', async ({ page })
  * O que se afirma é o **manifesto** do ZIP (RF-22) contra as escolhas da tela, e
  * um conjunto de caminhos que vale em qualquer combinação. A comparação
  * árvore × ZIP está nos testes acima e em `zip-structure.spec.ts`; quem
- * quiser fazê-la depois de mudar opções lê a árvore com `treeAfterChange` (T09b).
+ * quiser fazê-la depois de mudar opções lê a árvore com `treeAcross` (T09b).
  */
 test('uma combinação não padrão escolhida pela tela chega inteira ao manifesto do ZIP', async ({
   page,

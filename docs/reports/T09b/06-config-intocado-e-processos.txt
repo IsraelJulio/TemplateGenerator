@@ -1,39 +1,52 @@
 T09b - criterios 6 e 7: playwright.config.ts nao mudou; nada de retry, timeout maior, waitForTimeout ou sleep
-Executado em: 2026-10-23T13:27:46Z (UTC), branch fix/T09b-corrigir-a-corrida-entre-a-troca-de-opcao-e-a-leit, arvore de trabalho sem commit
+Executado em: 2026-10-23T13:56:34Z (UTC), branch fix/T09b-corrigir-a-corrida-entre-a-troca-de-opcao-e-a-leit, arvore de trabalho sem commit sobre 5f3b714
 
-$ git diff --stat -- src/web/playwright.config.ts   (vazio = sem mudanca)
+$ git diff --stat 231aef1 -- src/web/playwright.config.ts   (vazio = igual ao de antes da T09b)
 exit=0
-$ git status --short -- src/web/playwright.config.ts   (vazio = sem mudanca)
+$ git status --short -- src/web/playwright.config.ts   (vazio = sem mudanca na arvore de trabalho)
 exit=0
 $ grep -n "retries" src/web/playwright.config.ts
 27:  retries: 0,
 exit=0
 
-== O que mudou em src/web/
+== O que esta rodada mudou em src/web/ (sobre 5f3b714)
 $ git status --short -- src/web
  M src/web/e2e/download.e2e.ts
  M src/web/e2e/support.ts
-?? src/web/e2e/tree-read.e2e.ts
+ M src/web/e2e/tree-read.e2e.ts
+?? src/web/e2e/tree-settle.e2e.ts
 $ git diff --stat -- src/web
- src/web/e2e/download.e2e.ts |  68 +++++++----------
- src/web/e2e/support.ts      | 179 +++++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 184 insertions(+), 63 deletions(-)
+ src/web/e2e/download.e2e.ts  | 19 +++++-----
+ src/web/e2e/support.ts       | 90 +++++++++++++++++++++++++++++---------------
+ src/web/e2e/tree-read.e2e.ts | 51 ++++++++++++++++---------
+ 3 files changed, 104 insertions(+), 56 deletions(-)
 
-== Linhas ACRESCENTADAS em e2e/ que citam timeout, retries, waitForTimeout ou sleep
-$ git diff -U0 -- src/web/e2e | grep -nE "^\+.*(waitForTimeout|sleep|retries|timeout)"; grep -nE "(waitForTimeout|sleep|retries|timeout)" src/web/e2e/tree-read.e2e.ts   (arquivo novo, fora do git diff)
-151:+ * Usa o timeout padrão do `expect`, sem `waitForTimeout`: o intervalo entre as
-204:+ * Se a árvore não muda, a chamada falha no timeout padrão dizendo qual condição
-268:+  const downloading = page.waitForEvent('download', { timeout: 120_000 });
-59: * esgota o timeout padrão e diz que a árvore lida não é diferente da anterior.
-(as duas linhas de comentario citam o timeout PADRAO e a ausencia de waitForTimeout; a unica
- chamada com timeout, waitForEvent('download', { timeout: 120_000 }), e o mesmo valor que o teste
- "a outra arquitetura" ja usava em HEAD, movido para generateAndOpen. expect.poll em settle()
- nao recebe timeout: usa o padrao do expect, 5000 ms, visto em 03 como 'Timeout 5000ms exceeded'.)
-$ git show HEAD:src/web/e2e/download.e2e.ts | grep -n "120_000"
+== Toda ocorrencia de timeout, retries, waitForTimeout ou sleep em src/web/e2e/
+$ grep -nE "(waitForTimeout|sleep|retries|timeout)" src/web/e2e/*.ts
+src/web/e2e/download.e2e.ts:51:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
+src/web/e2e/download.e2e.ts:129:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
+src/web/e2e/download.e2e.ts:242:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
+src/web/e2e/generation-states.e2e.ts:38:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
+src/web/e2e/generation-states.e2e.ts:85:    const baixando = page.waitForEvent('download', { timeout: 120_000 });
+src/web/e2e/support.ts:85: * Usa o timeout padrão do `expect`, sem `waitForTimeout`: o intervalo entre as
+src/web/e2e/support.ts:168: * Se a troca não muda a árvore, a chamada falha no timeout padrão do `expect`
+src/web/e2e/support.ts:230:  await expect(form).toBeVisible({ timeout: 30_000 });
+src/web/e2e/support.ts:272:  const downloading = page.waitForEvent('download', { timeout: 120_000 });
+src/web/e2e/support.ts:372: * mostra **enquanto** a geração corre, sem `waitForTimeout`.
+src/web/e2e/tree-read.e2e.ts:66: * `treeAcross` recusa essa árvore: esgota o timeout padrão e diz que a leitura
+src/web/e2e/tree-settle.e2e.ts:16: * `expect.poll` do Playwright: o intervalo entre as leituras, o timeout padrão e
+exit=0
+$ git show 231aef1:src/web/e2e/download.e2e.ts | grep -n "120_000"   (os valores de antes da T09b)
 49:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
 132:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
 161:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
 259:  const baixando = page.waitForEvent('download', { timeout: 120_000 });
+(comentarios citam o timeout PADRAO e a ausencia de waitForTimeout. As chamadas com timeout sao
+ os 120_000 do download e os 30_000 de waitForCatalog, ambos ja presentes em 231aef1. expect.poll
+ em settle() nao recebe timeout: usa o padrao do expect, 5000 ms, visto em 03 como
+ 'Timeout 5000ms exceeded'.)
+$ git show 231aef1:src/web/e2e/support.ts | grep -n "30_000"
+104:  await expect(form).toBeVisible({ timeout: 30_000 });
 
 == Processos encerrados: nada escutando em 5080 nem 4200 depois das execucoes
 $ netstat -ano | grep -E ":(5080|4200) .*LISTENING"   (exit 1 = nenhuma linha)

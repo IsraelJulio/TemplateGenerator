@@ -1,18 +1,23 @@
-T09b - criterio 5: a correcao provada nos dois sentidos, dentro da suite
-Executado em: 2026-10-23T13:21:02Z (UTC), branch fix/T09b-corrigir-a-corrida-entre-a-troca-de-opcao-e-a-leit, arvore de trabalho sem commit
+T09b - criterio 5: a correcao provada nos dois sentidos, dentro da suite (rodada 2 da revisao)
+Executado em: 2026-10-23T13:50:52Z (UTC, startTime do relatorio JSON), branch fix/T09b-corrigir-a-corrida-entre-a-troca-de-opcao-e-a-leit,
+arvore de trabalho sem commit sobre 5f3b714. Mesmo codigo da suite completa de 05 (sha256 la).
 Ambiente: Playwright 1.63.0, projetos "desktop" (Desktop Chrome 1440x900) e "celular" (Pixel 7);
 a API .NET (perfil http, :5080) e o ng serve (:4200) sobem pelo webServer do playwright.config.ts.
 
 O cenario e o mesmo nos dois testes (support.ts):
-  openWithProjectName(page)       -> abre, espera o catalogo, digita o nome; devolve a arvore "antes"
+  openWithProjectName(page)       -> abre, espera o catalogo, digita o nome dentro de treeAcross;
+                                     devolve o formulario e a arvore "antes", ja com o nome
   pickSecondOfFirstGroup(page, f) -> foco no 1o radio do 1o grupo, ArrowDown, toBeChecked() do 2o
   generateAndOpen(page, f, info)  -> clica em "Gerar projeto", salva o ZIP e devolve as entradas
 A unica diferenca e qual arvore vai para expectTreeMatchesZip:
 
-  SENTIDO 1 (tree-read.e2e.ts:40, test.fail() declarado logo antes da comparacao):
-      expectTreeMatchesZip(antes, real)                         <- leitura obsoleta: lida ANTES da troca
+  SENTIDO 1 (tree-read.e2e.ts:42, test.fail() declarado logo antes da comparacao):
+      await pickSecondOfFirstGroup(page, form);
+      expectTreeMatchesZip(antes, real);                       <- leitura obsoleta: lida ANTES da troca
   SENTIDO 2 (download.e2e.ts:148, "a outra arquitetura do catalogo..."):
-      expectTreeMatchesZip(await treeAfterChange(page, antes), real)
+      const prometido = await treeAcross(page, () => pickSecondOfFirstGroup(page, form));
+      expect(prometido).not.toEqual(antes);
+      expectTreeMatchesZip(prometido, real);
 
 Como ler a lista do reporter "list": a marca e o status REAL do teste. "x" no sentido 1 quer
 dizer que ele falhou, e como test.fail() declarou que tinha de falhar, o resultado e o esperado e
@@ -20,21 +25,21 @@ conta em "passed". Se a comparacao deixasse de falhar, o Playwright acusaria "Ex
 but passed" e o exit code seria 1 (ver 04-mutacoes.txt, M1).
 
 $ export PATH="/c/Users/2273129/AppData/Local/Microsoft/dotnet:$PATH" DOTNET_ROOT='C:\Users\2273129\AppData\Local\Microsoft\dotnet'
-$ cd src/web && PLAYWRIGHT_JSON_OUTPUT_NAME=proof.json npx playwright test --reporter=list,json -g "sentido 1|a outra arquitetura do cat"
-(linhas "[WebServer]" - log da API .NET e do ng serve - removidas com: grep -v '^\[WebServer\]')
+$ cd src/web && PLAYWRIGHT_JSON_OUTPUT_NAME="/c/Users/2273129/AppData/Local/Temp/claude/c--Users-2273129-Documents-Projects-TemplateGenerator/318d2cf1-dde3-4bfe-96a2-838beef3a510/scratchpad/t09b/proof2.json" npx playwright test --reporter=list,json -g "sentido 1|a outra arquitetura do cat"
+(linhas "[WebServer]" - log da API .NET e do ng serve que o Playwright sobe - removidas com: grep -v '^\[WebServer\]')
 
 Running 4 tests using 1 worker
 
-  ok 1 [desktop] › e2e\download.e2e.ts:148:5 › a outra arquitetura do catálogo também baixa o que a tela prometeu (1.8s)
-  x  2 [desktop] › e2e\tree-read.e2e.ts:40:5 › T09b, sentido 1: a árvore lida antes da troca diverge do ZIP da outra arquitetura (falha de propósito) (1.3s)
-  ok 3 [celular] › e2e\download.e2e.ts:148:5 › a outra arquitetura do catálogo também baixa o que a tela prometeu (1.8s)
-  x  4 [celular] › e2e\tree-read.e2e.ts:40:5 › T09b, sentido 1: a árvore lida antes da troca diverge do ZIP da outra arquitetura (falha de propósito) (1.4s)
+  ok 1 [desktop] › e2e\download.e2e.ts:148:5 › a outra arquitetura do catálogo também baixa o que a tela prometeu (2.4s)
+  x  2 [desktop] › e2e\tree-read.e2e.ts:42:5 › T09b, sentido 1: a árvore lida antes da troca diverge do ZIP da outra arquitetura (falha de propósito) (1.6s)
+  ok 3 [celular] › e2e\download.e2e.ts:148:5 › a outra arquitetura do catálogo também baixa o que a tela prometeu (3.6s)
+  x  4 [celular] › e2e\tree-read.e2e.ts:42:5 › T09b, sentido 1: a árvore lida antes da troca diverge do ZIP da outra arquitetura (falha de propósito) (1.5s)
 
-  4 passed (17.9s)
+  4 passed (22.6s)
 exit=0
 
 == Status por teste e erro registrado, extraidos do relatorio JSON da mesma execucao
-$ node extract.js proof.json   (le suites[].specs[].tests[].results[]: expectedStatus, status, errors[0].message)
+$ node extract.js proof2.json
 --- [desktop] download.e2e.ts > a outra arquitetura do catálogo também baixa o que a tela prometeu
     expectedStatus=passed  status=passed  outcome=expected
 --- [celular] download.e2e.ts > a outra arquitetura do catálogo também baixa o que a tela prometeu
@@ -103,17 +108,17 @@ $ node extract.js proof.json   (le suites[].specs[].tests[].results[]: expectedS
     | +   ],
     |   }
     | 
-    |    at support.ts:152
+    |    at support.ts:185
     | 
-    |   150 |     { sobrando, faltando },
-    |   151 |     'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
-    | > 152 |   ).toEqual({ sobrando: [], faltando: [] });
+    |   183 |     { sobrando, faltando },
+    |   184 |     'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
+    | > 185 |   ).toEqual({ sobrando: [], faltando: [] });
     |       |     ^
-    |   153 | }
-    |   154 |
-    |   155 | /** O pacote aberto de verdade: bytes descomprimidos, por caminho. */
-    |     at expectTreeMatchesZip (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:152:5)
-    |     at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\tree-read.e2e.ts:49:23
+    |   186 | }
+    |   187 |
+    |   188 | /** O pacote aberto de verdade: bytes descomprimidos, por caminho. */
+    |     at expectTreeMatchesZip (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:185:5)
+    |     at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\tree-read.e2e.ts:51:23
 --- [celular] tree-read.e2e.ts > T09b, sentido 1: a árvore lida antes da troca diverge do ZIP da outra arquitetura (falha de propósito)
     expectedStatus=failed  status=failed  outcome=expected
     | Error: A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.
@@ -178,16 +183,39 @@ $ node extract.js proof.json   (le suites[].specs[].tests[].results[]: expectedS
     | +   ],
     |   }
     | 
-    |    at support.ts:152
+    |    at support.ts:185
     | 
-    |   150 |     { sobrando, faltando },
-    |   151 |     'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
-    | > 152 |   ).toEqual({ sobrando: [], faltando: [] });
+    |   183 |     { sobrando, faltando },
+    |   184 |     'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
+    | > 185 |   ).toEqual({ sobrando: [], faltando: [] });
     |       |     ^
-    |   153 | }
-    |   154 |
-    |   155 | /** O pacote aberto de verdade: bytes descomprimidos, por caminho. */
-    |     at expectTreeMatchesZip (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:152:5)
-    |     at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\tree-read.e2e.ts:49:23
-stats: {"startTime":"2026-10-23T13:21:02.663Z","duration":17942.231,"expected":4,"skipped":0,"unexpected":0,"flaky":0}
+    |   186 | }
+    |   187 |
+    |   188 | /** O pacote aberto de verdade: bytes descomprimidos, por caminho. */
+    |     at expectTreeMatchesZip (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:185:5)
+    |     at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\tree-read.e2e.ts:51:23
+stats: {"startTime":"2026-10-23T13:50:52.394Z","duration":22563.118,"expected":4,"skipped":0,"unexpected":0,"flaky":0}
 exit=0
+
+== Fonte integral de extract.js (scratchpad da sessao; reproduzida aqui porque o scratchpad some)
+const fs = require('fs');
+const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const strip = (s) => s.replace(/\u001b\[[0-9;]*m/g, '');
+const walk = (suite, out) => {
+  for (const spec of suite.specs ?? []) {
+    for (const t of spec.tests) {
+      for (const r of t.results) {
+        out.push({ file: spec.file, title: spec.title, project: t.projectName, expectedStatus: t.expectedStatus, status: r.status, outcome: t.status, error: r.errors?.[0]?.message });
+      }
+    }
+  }
+  for (const s of suite.suites ?? []) walk(s, out);
+  return out;
+};
+const rows = report.suites.flatMap((s) => walk(s, []));
+for (const row of rows) {
+  console.log(`--- [${row.project}] ${row.file} > ${row.title}`);
+  console.log(`    expectedStatus=${row.expectedStatus}  status=${row.status}  outcome=${row.outcome}`);
+  if (row.error) console.log(strip(row.error).split('\n').map((l) => '    | ' + l).join('\n'));
+}
+console.log(`stats: ${JSON.stringify(report.stats)}`);

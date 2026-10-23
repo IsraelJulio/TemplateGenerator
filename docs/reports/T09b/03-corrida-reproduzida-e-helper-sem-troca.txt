@@ -1,41 +1,43 @@
 T09b - criterios 1, 2 e 5: a corrida de T04 reproduzida de forma deterministica, e o helper sem troca
-Concluido em: 2026-10-23T13:19:38Z (UTC), branch fix/T09b-corrigir-a-corrida-entre-a-troca-de-opcao-e-a-leit, arvore de trabalho sem commit
+(rodada 2 da revisao: o mesmo roteiro da rodada 1, com o helper novo treeAcross)
+Iniciado em: 2026-10-23T13:51:36Z (UTC), branch fix/T09b-corrigir-a-corrida-entre-a-troca-de-opcao-e-a-leit, arvore de trabalho sem commit sobre 5f3b714
 Prova FORA da suite: o arquivo abaixo foi copiado para src/web/e2e/ so durante esta execucao e
 apagado logo depois (nao esta no repositorio). Fonte integral no fim deste arquivo.
 
 O que cada teste mostra
-- "repro: helper ANTIGO ..." usa o treeOnScreen() de HEAD, copiado sem mudanca. Para o relogio da
-  pagina (page.clock.pauseAt) entre o foco e a seta: sem setTimeout nem requestAnimationFrame, o
-  render que o Angular sem zone.js agenda fica pendente. toBeChecked() passa, a guarda length>20
-  passa, a leitura pega a arvore da arquitetura ANTERIOR, o relogio e solto, o ZIP e o da nova, e a
-  comparacao falha com a mesma assinatura observada em T04 (criterio 1). Isto confirma por
-  execucao o mecanismo do architect (criterio 2): a diferenca para T04 e so que aqui a ordem dos
-  eventos e forcada, em vez de depender da sorte.
+- "repro: helper ANTIGO ..." usa o treeOnScreen() de 231aef1, copiado sem mudanca (conferido por
+  diff contra git show 231aef1:src/web/e2e/support.ts, linhas 43-60, salvo o "export"). Para o
+  relogio da pagina (page.clock.pauseAt) entre o foco e a seta: sem setTimeout nem
+  requestAnimationFrame, o render que o Angular sem zone.js agenda fica pendente. toBeChecked()
+  passa, a guarda length>20 passa, a leitura pega a arvore da arquitetura ANTERIOR, o relogio e
+  solto, o ZIP e o da nova, e a comparacao falha com a mesma assinatura observada em T04
+  (criterio 1). Isto confirma por execucao o mecanismo do architect (criterio 2).
   ESPERADO: FALHAR, nos dois projetos.
-- "repro: helper NOVO ..." e o mesmo cenario com treeAfterChange(page, antes), iniciado ainda com o
-  render parado. ESPERADO: PASSAR, nos dois projetos.
-- "helper sem troca ..." chama treeAfterChange com previous igual ao que a tela ja mostra.
+- "repro: helper NOVO ..." e o mesmo render parado com treeAcross: a leitura de antes acontece
+  com o render ainda parado (arvore velha), a troca e soltar o relogio, e o helper devolve a
+  arvore nova, que bate com o ZIP. ESPERADO: PASSAR, nos dois projetos.
+- "helper sem troca ..." chama treeAcross com uma troca que nao muda a arvore.
   ESPERADO: FALHAR no timeout PADRAO do expect (5000 ms; nenhum timeout passado), dizendo qual
   condicao faltou ("diferente da anterior: NAO") e mostrando a arvore lida.
 
 O exit 1 abaixo e o resultado esperado: 4 falhas planejadas (2 testes x 2 projetos) e 2 sucessos.
 
 $ export PATH="/c/Users/2273129/AppData/Local/Microsoft/dotnet:$PATH" DOTNET_ROOT='C:\Users\2273129\AppData\Local\Microsoft\dotnet'
-$ cp <scratchpad>/zz-t09b-scratch.e2e.ts src/web/e2e/
+$ cp /c/Users/2273129/AppData/Local/Temp/claude/c--Users-2273129-Documents-Projects-TemplateGenerator/318d2cf1-dde3-4bfe-96a2-838beef3a510/scratchpad/t09b/zz-t09b-scratch.e2e.ts src/web/e2e/
 $ cd src/web && npx playwright test e2e/zz-t09b-scratch.e2e.ts
 (linhas "[WebServer]" - log da API .NET e do ng serve - removidas com: grep -v '^\[WebServer\]')
 
 Running 6 tests using 1 worker
 
-  x  1 [desktop] › e2e\zz-t09b-scratch.e2e.ts:35:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior (2.3s)
-  ok 2 [desktop] › e2e\zz-t09b-scratch.e2e.ts:51:5 › repro: helper NOVO no mesmo render atrasado espera a arvore nova (1.6s)
-  x  3 [desktop] › e2e\zz-t09b-scratch.e2e.ts:68:5 › helper sem troca: treeAfterChange com previous igual ao estado atual (6.1s)
-  x  4 [celular] › e2e\zz-t09b-scratch.e2e.ts:35:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior (2.2s)
-  ok 5 [celular] › e2e\zz-t09b-scratch.e2e.ts:51:5 › repro: helper NOVO no mesmo render atrasado espera a arvore nova (1.7s)
-  x  6 [celular] › e2e\zz-t09b-scratch.e2e.ts:68:5 › helper sem troca: treeAfterChange com previous igual ao estado atual (6.2s)
+  x  1 [desktop] › e2e\zz-t09b-scratch.e2e.ts:34:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior (2.6s)
+  ok 2 [desktop] › e2e\zz-t09b-scratch.e2e.ts:51:5 › repro: helper NOVO no mesmo render atrasado espera a arvore nova (2.0s)
+  x  3 [desktop] › e2e\zz-t09b-scratch.e2e.ts:66:5 › helper sem troca: treeAcross com uma troca que nao muda a arvore (6.4s)
+  x  4 [celular] › e2e\zz-t09b-scratch.e2e.ts:34:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior (3.3s)
+  ok 5 [celular] › e2e\zz-t09b-scratch.e2e.ts:51:5 › repro: helper NOVO no mesmo render atrasado espera a arvore nova (2.3s)
+  x  6 [celular] › e2e\zz-t09b-scratch.e2e.ts:66:5 › helper sem troca: treeAcross com uma troca que nao muda a arvore (6.4s)
 
 
-  1) [desktop] › e2e\zz-t09b-scratch.e2e.ts:35:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior 
+  1) [desktop] › e2e\zz-t09b-scratch.e2e.ts:34:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior 
 
     Error: A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.
 
@@ -99,17 +101,17 @@ Running 6 tests using 1 worker
     +   ],
       }
 
-       at support.ts:152
+       at support.ts:185
 
-      150 |     { sobrando, faltando },
-      151 |     'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
-    > 152 |   ).toEqual({ sobrando: [], faltando: [] });
+      183 |     { sobrando, faltando },
+      184 |     'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
+    > 185 |   ).toEqual({ sobrando: [], faltando: [] });
           |     ^
-      153 | }
-      154 |
-      155 | /** O pacote aberto de verdade: bytes descomprimidos, por caminho. */
-        at expectTreeMatchesZip (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:152:5)
-        at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\zz-t09b-scratch.e2e.ts:47:23
+      186 | }
+      187 |
+      188 | /** O pacote aberto de verdade: bytes descomprimidos, por caminho. */
+        at expectTreeMatchesZip (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:185:5)
+        at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\zz-t09b-scratch.e2e.ts:46:23
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results\zz-t09b-scratch.e2e.ts-rep-87e7d-ore-da-arquitetura-anterior-desktop\test-failed-1.png
@@ -125,7 +127,7 @@ Running 6 tests using 1 worker
 
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-  2) [desktop] › e2e\zz-t09b-scratch.e2e.ts:68:5 › helper sem troca: treeAfterChange com previous igual ao estado atual 
+  2) [desktop] › e2e\zz-t09b-scratch.e2e.ts:66:5 › helper sem troca: treeAcross com uma troca que nao muda a arvore 
 
     Error: a árvore da tela não assentou numa leitura nova depois da troca
 
@@ -177,34 +179,35 @@ Running 6 tests using 1 worker
     Call Log:
     - Timeout 5000ms exceeded while waiting on the predicate
 
-       at support.ts:104
+       at support.ts:113
 
-      102 |       { message },
-      103 |     )
-    > 104 |     .toBe(SETTLED);
+      111 |       { message },
+      112 |     )
+    > 113 |     .toBe(SETTLED);
           |      ^
-      105 |   return last!;
-      106 | }
-      107 |
-        at settle (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:104:6)
-        at treeAfterChange (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:136:10)
-        at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\zz-t09b-scratch.e2e.ts:70:24
+      114 |   return last!;
+      115 | }
+      116 |
+        at settle (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:113:6)
+        at settleAfterChange (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:151:10)
+        at treeAcross (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:175:10)
+        at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\zz-t09b-scratch.e2e.ts:68:3
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results\zz-t09b-scratch.e2e.ts-hel-1ab58-vious-igual-ao-estado-atual-desktop\test-failed-1.png
+    test-results\zz-t09b-scratch.e2e.ts-hel-605fd-troca-que-nao-muda-a-arvore-desktop\test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: test-results\zz-t09b-scratch.e2e.ts-hel-1ab58-vious-igual-ao-estado-atual-desktop\error-context.md
+    Error Context: test-results\zz-t09b-scratch.e2e.ts-hel-605fd-troca-que-nao-muda-a-arvore-desktop\error-context.md
 
     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
-    test-results\zz-t09b-scratch.e2e.ts-hel-1ab58-vious-igual-ao-estado-atual-desktop\trace.zip
+    test-results\zz-t09b-scratch.e2e.ts-hel-605fd-troca-que-nao-muda-a-arvore-desktop\trace.zip
     Usage:
 
-        npx playwright show-trace test-results\zz-t09b-scratch.e2e.ts-hel-1ab58-vious-igual-ao-estado-atual-desktop\trace.zip
+        npx playwright show-trace test-results\zz-t09b-scratch.e2e.ts-hel-605fd-troca-que-nao-muda-a-arvore-desktop\trace.zip
 
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-  3) [celular] › e2e\zz-t09b-scratch.e2e.ts:35:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior 
+  3) [celular] › e2e\zz-t09b-scratch.e2e.ts:34:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior 
 
     Error: A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.
 
@@ -268,17 +271,17 @@ Running 6 tests using 1 worker
     +   ],
       }
 
-       at support.ts:152
+       at support.ts:185
 
-      150 |     { sobrando, faltando },
-      151 |     'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
-    > 152 |   ).toEqual({ sobrando: [], faltando: [] });
+      183 |     { sobrando, faltando },
+      184 |     'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
+    > 185 |   ).toEqual({ sobrando: [], faltando: [] });
           |     ^
-      153 | }
-      154 |
-      155 | /** O pacote aberto de verdade: bytes descomprimidos, por caminho. */
-        at expectTreeMatchesZip (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:152:5)
-        at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\zz-t09b-scratch.e2e.ts:47:23
+      186 | }
+      187 |
+      188 | /** O pacote aberto de verdade: bytes descomprimidos, por caminho. */
+        at expectTreeMatchesZip (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:185:5)
+        at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\zz-t09b-scratch.e2e.ts:46:23
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results\zz-t09b-scratch.e2e.ts-rep-87e7d-ore-da-arquitetura-anterior-celular\test-failed-1.png
@@ -294,7 +297,7 @@ Running 6 tests using 1 worker
 
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-  4) [celular] › e2e\zz-t09b-scratch.e2e.ts:68:5 › helper sem troca: treeAfterChange com previous igual ao estado atual 
+  4) [celular] › e2e\zz-t09b-scratch.e2e.ts:66:5 › helper sem troca: treeAcross com uma troca que nao muda a arvore 
 
     Error: a árvore da tela não assentou numa leitura nova depois da troca
 
@@ -346,55 +349,55 @@ Running 6 tests using 1 worker
     Call Log:
     - Timeout 5000ms exceeded while waiting on the predicate
 
-       at support.ts:104
+       at support.ts:113
 
-      102 |       { message },
-      103 |     )
-    > 104 |     .toBe(SETTLED);
+      111 |       { message },
+      112 |     )
+    > 113 |     .toBe(SETTLED);
           |      ^
-      105 |   return last!;
-      106 | }
-      107 |
-        at settle (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:104:6)
-        at treeAfterChange (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:136:10)
-        at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\zz-t09b-scratch.e2e.ts:70:24
+      114 |   return last!;
+      115 | }
+      116 |
+        at settle (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:113:6)
+        at settleAfterChange (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:151:10)
+        at treeAcross (C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\support.ts:175:10)
+        at C:\Users\2273129\Documents\Projects\TemplateGenerator\src\web\e2e\zz-t09b-scratch.e2e.ts:68:3
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results\zz-t09b-scratch.e2e.ts-hel-1ab58-vious-igual-ao-estado-atual-celular\test-failed-1.png
+    test-results\zz-t09b-scratch.e2e.ts-hel-605fd-troca-que-nao-muda-a-arvore-celular\test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: test-results\zz-t09b-scratch.e2e.ts-hel-1ab58-vious-igual-ao-estado-atual-celular\error-context.md
+    Error Context: test-results\zz-t09b-scratch.e2e.ts-hel-605fd-troca-que-nao-muda-a-arvore-celular\error-context.md
 
     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
-    test-results\zz-t09b-scratch.e2e.ts-hel-1ab58-vious-igual-ao-estado-atual-celular\trace.zip
+    test-results\zz-t09b-scratch.e2e.ts-hel-605fd-troca-que-nao-muda-a-arvore-celular\trace.zip
     Usage:
 
-        npx playwright show-trace test-results\zz-t09b-scratch.e2e.ts-hel-1ab58-vious-igual-ao-estado-atual-celular\trace.zip
+        npx playwright show-trace test-results\zz-t09b-scratch.e2e.ts-hel-605fd-troca-que-nao-muda-a-arvore-celular\trace.zip
 
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
   4 failed
-    [desktop] › e2e\zz-t09b-scratch.e2e.ts:35:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior 
-    [desktop] › e2e\zz-t09b-scratch.e2e.ts:68:5 › helper sem troca: treeAfterChange com previous igual ao estado atual 
-    [celular] › e2e\zz-t09b-scratch.e2e.ts:35:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior 
-    [celular] › e2e\zz-t09b-scratch.e2e.ts:68:5 › helper sem troca: treeAfterChange com previous igual ao estado atual 
-  2 passed (34.0s)
+    [desktop] › e2e\zz-t09b-scratch.e2e.ts:34:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior 
+    [desktop] › e2e\zz-t09b-scratch.e2e.ts:66:5 › helper sem troca: treeAcross com uma troca que nao muda a arvore 
+    [celular] › e2e\zz-t09b-scratch.e2e.ts:34:5 › repro: helper ANTIGO com o render atrasado le a arvore da arquitetura anterior 
+    [celular] › e2e\zz-t09b-scratch.e2e.ts:66:5 › helper sem troca: treeAcross com uma troca que nao muda a arvore 
+  2 passed (38.1s)
 exit=1
-$ rm src/web/e2e/zz-t09b-scratch.e2e.ts
+$ rm e2e/zz-t09b-scratch.e2e.ts
 
-== Fonte integral de zz-t09b-scratch.e2e.ts
-// PROVA FORA DA SUITE (T09b). Copiado para e2e/ so durante a execucao e apagado em seguida.
+== Fonte integral de zz-t09b-scratch.e2e.ts (rodada 2)
+// PROVA FORA DA SUITE (T09b, rodada 2). Copiado para e2e/ so durante a execucao e apagado em seguida.
 import { Page, expect, test } from '@playwright/test';
 import {
   expectTreeMatchesZip,
   generateAndOpen,
   openWithProjectName,
   pickSecondOfFirstGroup,
-  stableTree,
-  treeAfterChange,
+  treeAcross,
 } from './support';
 
-// O helper ANTIGO, copiado sem mudanca de `git show HEAD:src/web/e2e/support.ts`.
+// O helper ANTIGO, copiado sem mudanca de `git show 231aef1:src/web/e2e/support.ts`.
 async function treeOnScreen(page: Page): Promise<string[]> {
   const lines = await page.locator('.tree .tree__line').all();
   const stack: string[] = [];
@@ -432,17 +435,16 @@ test('repro: helper ANTIGO com o render atrasado le a arvore da arquitetura ante
   expectTreeMatchesZip(prometido, real);
 });
 
-// O mesmo cenario com o helper NOVO: passa.
+// O mesmo render atrasado com o helper NOVO: treeAcross le a arvore ainda velha
+// (render parado), a troca que falta e soltar o relogio, e ele devolve a nova. Passa.
 test('repro: helper NOVO no mesmo render atrasado espera a arvore nova', async ({ page }, testInfo) => {
   await page.clock.install();
-  const { form, tree: antes } = await openWithProjectName(page);
+  const { form } = await openWithProjectName(page);
 
   await page.clock.pauseAt(Date.now() + 1_000);
   await pickSecondOfFirstGroup(page, form);
 
-  const pendente = treeAfterChange(page, antes); // comeca a ler com o render ainda parado
-  await page.clock.resume();
-  const prometido = await pendente;
+  const prometido = await treeAcross(page, () => page.clock.resume());
 
   const real = await generateAndOpen(page, form, testInfo);
   expectTreeMatchesZip(prometido, real);
@@ -450,7 +452,7 @@ test('repro: helper NOVO no mesmo render atrasado espera a arvore nova', async (
 
 // Prova adicional: sem troca nenhuma, o helper NAO passa. Esgota o timeout
 // padrao do expect e diz qual condicao faltou. Tem de FALHAR.
-test('helper sem troca: treeAfterChange com previous igual ao estado atual', async ({ page }) => {
-  const { tree: atual } = await openWithProjectName(page);
-  await treeAfterChange(page, atual);
+test('helper sem troca: treeAcross com uma troca que nao muda a arvore', async ({ page }) => {
+  await openWithProjectName(page);
+  await treeAcross(page, async () => {});
 });
