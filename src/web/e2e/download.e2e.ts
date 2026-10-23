@@ -279,7 +279,7 @@ test('uma combinação não padrão escolhida pela tela chega inteira ao manifes
   expect(csprojs.some((path) => path.startsWith('tests/'))).toBe(true);
   for (const path of csprojs) {
     expect(path.split('/').at(-1), path).toMatch(
-      new RegExp(`^${PROJECT_NAME.replace(/\./g, '\.')}`),
+      new RegExp(`^${PROJECT_NAME.replace(/\./g, '\\.')}`),
     );
   }
   expect(real.filter((path) => path.includes('__ProjectName__'))).toEqual([]);
