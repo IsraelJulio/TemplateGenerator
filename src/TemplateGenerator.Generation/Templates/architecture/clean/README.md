@@ -89,6 +89,7 @@ curl http://localhost:5100/health
 ```
 
 Resposta: `{"status":"ok"}`.
+__ReadmeAuthUsage__
 
 ## Testar o CRUD de `Item`
 __ReadmeCrudAuth__

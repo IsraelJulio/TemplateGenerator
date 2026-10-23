@@ -45,7 +45,7 @@ public sealed class DatabaseRuntimeTests
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
 
         await using DatabaseRuntime runtime = await DatabaseRuntime.ExtractAsync(
-            new GenerationRequest(ProjectName, "simple", "sqlite", "none", false, "net10.0"),
+            new GenerationRequest(ProjectName, "simple", "sqlite", "none", true, "net10.0"),
             cancellationToken);
 
         // Os comandos do banco do README, na ordem escrita, incluindo `dotnet tool restore` e
@@ -53,7 +53,7 @@ public sealed class DatabaseRuntimeTests
         await runtime.RunReadmeMigrationStepsAsync(cancellationToken);
         await runtime.BuildAsync(cancellationToken);
 
-        await SaudeCrudEReinicio(runtime, cancellationToken);
+        await SaudeCrudEReinicio(runtime, swagger: true, cancellationToken);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class DatabaseRuntimeTests
         await runtime.RunReadmeMigrationStepsAsync(cancellationToken);
         await runtime.BuildAsync(cancellationToken);
 
-        await SaudeCrudEReinicio(runtime, cancellationToken);
+        await SaudeCrudEReinicio(runtime, swagger: false, cancellationToken);
     }
 
     /// <summary>
@@ -92,6 +92,7 @@ public sealed class DatabaseRuntimeTests
     /// </summary>
     private static async Task SaudeCrudEReinicio(
         DatabaseRuntime runtime,
+        bool swagger,
         CancellationToken cancellationToken)
     {
         await runtime.StartAsync(cancellationToken);
@@ -115,6 +116,10 @@ public sealed class DatabaseRuntimeTests
             }
 
             await AssertUnicoItem(client, title, cancellationToken);
+
+            // RF-20 em runtime. Os dois roteiros de banco alternam o eixo — SQLite com Swagger,
+            // PostgreSQL sem —, como pede a estratégia de testes para toda linha da camada 3.
+            await SwaggerRoutes.AssertAsync(client, swagger, cancellationToken);
         }
 
         // O reinício: processo novo, mesmo banco. É onde "está escrito que persiste" vira "persiste".

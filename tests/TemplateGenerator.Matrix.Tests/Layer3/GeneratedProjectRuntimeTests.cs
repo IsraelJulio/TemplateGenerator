@@ -68,18 +68,34 @@ public sealed class GeneratedProjectRuntimeTests
         await CorpoInvalidoNaoViraErroDeServidor(client, cancellationToken);
 
         // RF-20 na parte observável: com Swagger marcado, documento e interface respondem em
-        // Development.
-        using (HttpResponseMessage document = await client.GetAsync("openapi/v1.json", cancellationToken))
-        {
-            Assert.Equal(HttpStatusCode.OK, document.StatusCode);
-        }
-
-        using (HttpResponseMessage ui = await client.GetAsync("swagger/index.html", cancellationToken))
-        {
-            Assert.Equal(HttpStatusCode.OK, ui.StatusCode);
-        }
+        // Development — e o documento é o nativo, não o do Swashbuckle (ADR-0001).
+        await SwaggerRoutes.AssertAsync(client, expected: true, cancellationToken);
 
         await OsDadosSomemNoReinicio(project, cancellationToken);
+    }
+
+    [Fact]
+    public async Task Com_swagger_fora_de_Development_nenhuma_rota_de_documentacao_responde()
+    {
+        // A outra metade de "habilitados por padrão só em Development" (ADR-0001, RF-20, critério
+        // 1 de T08). Até T08 só o lado de dentro estava provado: todo roteiro da camada 3 sobe em
+        // Development, e um `if (app.Environment.IsDevelopment())` apagado do fragmento passaria
+        // por todos eles sem um arrepio. Aqui o MESMO pacote com Swagger marcado sobe em
+        // Production e tem de se comportar como o pacote sem Swagger.
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+
+        await using GeneratedProject project = await GeneratedProject.BuildAsync(
+            new GenerationRequest(ProjectName, "simple", "none", "none", true, "net10.0"),
+            cancellationToken);
+
+        await project.StartAsync("Production", cancellationToken);
+
+        using HttpClient client = project.Client();
+
+        // A aplicação está no ar e atendendo — o 404 abaixo não é de um processo que não subiu.
+        await SaudeEhPublica(client, cancellationToken);
+
+        await SwaggerRoutes.AssertAsync(client, expected: false, cancellationToken);
     }
 
     [Fact]
@@ -100,18 +116,8 @@ public sealed class GeneratedProjectRuntimeTests
         await CorpoInvalidoNaoViraErroDeServidor(client, cancellationToken);
 
         // A contraparte do teste acima e o fecho de RF-20: a opção desmarcada não deixa rota para
-        // trás. As duas rotas são verificadas porque ADR-0001 traz dois pacotes — o documento é
-        // nativo do .NET 10 e a interface é do Swashbuckle; conferir só uma deixaria a outra
-        // passar.
-        foreach (string route in (string[])["openapi/v1.json", "swagger", "swagger/index.html"])
-        {
-            using HttpResponseMessage response = await client.GetAsync(route, cancellationToken);
-
-            Assert.True(
-                response.StatusCode == HttpStatusCode.NotFound,
-                $"Com swagger desmarcado, '/{route}' respondeu {(int)response.StatusCode} em vez " +
-                "de 404 (RF-20, ADR-0001).");
-        }
+        // trás — nem o documento nativo, nem a interface do Swashbuckle.
+        await SwaggerRoutes.AssertAsync(client, expected: false, cancellationToken);
     }
 
     [Fact]

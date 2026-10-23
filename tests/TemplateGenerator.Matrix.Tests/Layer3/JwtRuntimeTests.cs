@@ -207,15 +207,9 @@ public abstract class JwtRuntimeTests(JwtRuntimeFixture fixture)
 
         using HttpClient anonimo = _fixture.Client();
 
-        using HttpResponseMessage openapi = await anonimo.GetAsync(
-            "openapi/v1.json",
-            cancellationToken);
-
-        Log($"GET /openapi/v1.json (swagger={_fixture.Swagger}) -> {(int)openapi.StatusCode}");
-
-        Assert.Equal(
-            _fixture.Swagger ? HttpStatusCode.OK : HttpStatusCode.NotFound,
-            openapi.StatusCode);
+        // Sem token: o documento e a interface são públicos em Development, como o README diz na
+        // seção "Swagger e autenticação".
+        await SwaggerRoutes.AssertAsync(anonimo, _fixture.Swagger, cancellationToken, Log);
     }
 
     /// <summary>

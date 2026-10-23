@@ -8,7 +8,7 @@
   },
   "project": "TemplateGenerator",
   "templateVersion": "1.0.0",
-  "updatedAt": "2026-09-25",
+  "updatedAt": "2026-10-23",
   "states": ["pending", "in_progress", "blocked", "done"],
   "tasks": [
     {
@@ -318,10 +318,11 @@
     },
     {
       "id": "T08",
+      "startedAt": "2026-10-23",
       "pullRequest": null,
       "order": 8,
       "title": "Swagger opcional e documentacao final dos ZIPs",
-      "state": "pending",
+      "state": "in_progress",
       "dependsOn": ["T07"],
       "roles": ["template-engineer", "qa"],
       "skills": ["dotnet-templates", "verify-mvp"],
@@ -329,7 +330,8 @@
         "docs/decisions/adr-0001-swagger.md",
         "docs/architecture/generated-projects.md",
         "docs/product/requirements.md",
-        "docs/decisions/adr-0011-contribuicao-por-marcador.md"
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md",
+        "docs/decisions/adr-0015-contribuicao-le-eixo-anterior.md"
       ],
       "objective": "Fechar o eixo Swagger conforme ADR-0001 e finalizar o README de cada combinacao.",
       "acceptanceCriteria": [
@@ -344,7 +346,7 @@
         "Executar os comandos do README das combinacoes da camada 3, do zero."
       ],
       "blockers": [],
-      "report": null
+      "report": "docs/reports/T08.md"
     },
     {
       "id": "T09",

@@ -28,6 +28,20 @@ Verificado em 2026-09-14, ao instalar a disciplina de contexto:
 | Claude Code | 2.1.270 (extensão VS Code) | suporta `permissions.deny` com regras `Read(...)`; **não** existe `.claudeignore` |
 | `codex` CLI | **não instalado nesta máquina** | o item `codex doctor` do checklist de paridade de [`interop.md`](interop.md) não pode ser verificado aqui — ele fica pendente, não cumprido |
 
+Verificado em 2026-10-23, ao abrir T08:
+
+| Ferramenta | Estado | Consequência |
+|---|---|---|
+| .NET SDK de sistema | **10.0.402** em `C:\Program Files\dotnet` — o 10.0.302 **sumiu** da instalação de sistema | o `global.json` da raiz (`latestPatch`) não aceita a faixa 4xx e `dotnet` recusa o repositório com "A compatible .NET SDK was not found" |
+| .NET SDK 10.0.302 | reinstalado **por usuário**, com o `dotnet-install.ps1` oficial, em `%LOCALAPPDATA%\Microsoft\dotnet` | antes de qualquer `dotnet` do repositório, ponha essa pasta à frente do `PATH` e defina `DOTNET_ROOT` para ela. Em Bash: `export PATH="/c/Users/<usuário>/AppData/Local/Microsoft/dotnet:$PATH" DOTNET_ROOT='C:\Users\<usuário>\AppData\Local\Microsoft\dotnet'`. Confirme com `dotnet --version` → `10.0.302` |
+
+A fixação não foi afrouxada: trocar o `rollForward` ou subir a versão é decisão de tarefa própria,
+não efeito colateral de uma máquina que mudou. Os projetos **gerados** usam `latestFeature` e
+rodariam com o 10.0.402 de qualquer forma.
+
+A credencial do PostgreSQL continua **fora** de arquivo: os testes a leem de `PGPASSWORD`, definida
+só na linha de comando de quem roda.
+
 ## Sem containers
 
 **Não há Docker neste ambiente e não deve haver dependência de container.** PostgreSQL roda nativo;

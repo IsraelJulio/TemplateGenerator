@@ -9,3 +9,5 @@ Com a aplicação em execução no ambiente `Development`:
 O documento é gerado pelo `Microsoft.AspNetCore.OpenApi`, nativo do .NET 10, e a interface vem do
 `Swashbuckle.AspNetCore`, que aqui entra **apenas pela UI**. Fora de `Development` nenhum dos dois
 é exposto.
+
+__ReadmeSwaggerAuth__
