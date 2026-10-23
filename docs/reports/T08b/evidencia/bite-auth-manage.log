@@ -1,0 +1,11 @@
+$ (parágrafo de /auth/manage apagado de auth/identity/__parts__/ReadmeAuthUsage.md) dotnet test tests/TemplateGenerator.Matrix.Tests --no-build --filter "FullyQualifiedName~ReadmeCompletenessMatrixTests"
+      1 Failed!  - Failed:     8, Passed:   185, Skipped:     0, Total:   193, Duration: 2 s - TemplateGenerator.Matrix.Tests.dll (net10.0)
+      1 [xUnit.net 00:00:03.68]     ReadmeCompletenessMatrixTests.Com_Identity_o_README_cita_as_rotas_de_gestao_da_conta_como_protegidas(architecture: "simple", database: "postgresql", authentication: "identity", swagger: False) [FAIL]
+      1 [xUnit.net 00:00:03.70]     ReadmeCompletenessMatrixTests.Com_Identity_o_README_cita_as_rotas_de_gestao_da_conta_como_protegidas(architecture: "simple", database: "sqlite", authentication: "identity", swagger: True) [FAIL]
+      1 [xUnit.net 00:00:03.76]     ReadmeCompletenessMatrixTests.Com_Identity_o_README_cita_as_rotas_de_gestao_da_conta_como_protegidas(architecture: "clean", database: "postgresql", authentication: "identity", swagger: False) [FAIL]
+      1 [xUnit.net 00:00:03.79]     ReadmeCompletenessMatrixTests.Com_Identity_o_README_cita_as_rotas_de_gestao_da_conta_como_protegidas(architecture: "simple", database: "sqlite", authentication: "identity", swagger: False) [FAIL]
+      1 [xUnit.net 00:00:03.83]     ReadmeCompletenessMatrixTests.Com_Identity_o_README_cita_as_rotas_de_gestao_da_conta_como_protegidas(architecture: "clean", database: "sqlite", authentication: "identity", swagger: True) [FAIL]
+      1 [xUnit.net 00:00:03.87]     ReadmeCompletenessMatrixTests.Com_Identity_o_README_cita_as_rotas_de_gestao_da_conta_como_protegidas(architecture: "simple", database: "postgresql", authentication: "identity", swagger: True) [FAIL]
+      1 [xUnit.net 00:00:03.93]     ReadmeCompletenessMatrixTests.Com_Identity_o_README_cita_as_rotas_de_gestao_da_conta_como_protegidas(architecture: "clean", database: "postgresql", authentication: "identity", swagger: True) [FAIL]
+      1 [xUnit.net 00:00:03.96]     ReadmeCompletenessMatrixTests.Com_Identity_o_README_cita_as_rotas_de_gestao_da_conta_como_protegidas(architecture: "clean", database: "sqlite", authentication: "identity", swagger: False) [FAIL]
+exit code: 1

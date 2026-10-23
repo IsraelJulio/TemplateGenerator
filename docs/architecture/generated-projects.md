@@ -567,8 +567,16 @@ Não há condicional em template.
 | README explica o botão, a origem do token, o que colar e o `200`/`401` | 1 | `ReadmeCompletenessMatrixTests` |
 
 **Repetição deliberada:** as duas contribuições `OpenApiSecurity.cs` repetem cerca de 30 linhas e
-diferem só em `BearerFormat`, `Description` e comentário. Um marcador para `bearerFormat` foi
-recusado: marcador carrega um fato de outro eixo, não um pedaço de código.
+diferem só em `BearerFormat`, `Description` e comentário. A repetição vem do item 3 de ADR-0015:
+`identity` e `jwt` são o **mesmo eixo** e um não lê o outro, e nenhum eixo anterior (`common`,
+`architecture`, `database`) deve saber de OpenAPI para hospedar a parte comum. Juntar exigiria um
+marcador num eixo que não tem nada a ver com o assunto.
+
+**O filtro do requisito é exato para o pacote entregue, não para qualquer extensão dele.** Ele olha
+`IAuthorizeData` sem `IAllowAnonymous`, que é o que `RequireAuthorization()` e `MapIdentityApi`
+põem. Quem estender o projeto com uma `FallbackPolicy` ou com
+`RequireAuthorization(policy => …)` baseado só em requisito pode ter rota protegida sem cadeado no
+documento. O comentário do template diz qual metadado é lido.
 
 ## README gerado
 

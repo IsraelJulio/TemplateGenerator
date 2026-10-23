@@ -4,7 +4,7 @@ Combinação `simple + sqlite + identity + swagger = true`, projeto `Manual.Auth
 `POST http://localhost:5080/api/templates` e preparada **só** pelos comandos do README gerado. A
 interface foi usada em Chromium (Playwright, headless). Cada clique foi feito na tela, sem chamada
 HTTP por fora. O script afirma o status e falha com código ≠ 0 se algo divergir: **exit code 0,
-38 PASS e 0 FAIL**. O comando, a saída completa e o exit code estão em [`ui-run.txt`](ui-run.txt).
+37 linhas `PASS` e nenhuma `FAIL`**. O comando, a saída completa e o exit code estão em [`ui-run.txt`](ui-run.txt).
 
 O token aparece só na tela e só mascarado: o script troca o texto renderizado por
 `CfDJ8M...[mascarado, 752 caracteres]`, e faz isso **depois** de afirmar o valor real. No campo
