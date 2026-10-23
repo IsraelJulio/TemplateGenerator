@@ -1,0 +1,20 @@
+$ powershell.exe -NoProfile -ExecutionPolicy Bypass -File 'C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\scripts\rerun-c2-crud.ps1'
+PSVersion: 5.1.26100.9444
+--- bloco powershell do TOKEN (README, como esta)
+TOKEN length=731
+--- bloco powershell do CRUD (README, como esta)
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100     59   0     32 100     27   2601   2195                              0100     59   0     32 100     27   2312   1951                              0100     59   0     32 100     27   2056   1734                              0
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+Date: Fri, 23 Oct 2026 08:04:00 GMT
+Server: Kestrel
+Location: /items/2
+Transfer-Encoding: chunked
+
+{"id":2,"title":"Primeiro item"}  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100     34   0     34   0      0   5465      0                              0100     34   0     34   0      0   4580      0                              0100     34   0     34   0      0   3953      0                              0
+[{"id":2,"title":"Primeiro item"}]
+[exit=0]

@@ -1,0 +1,5 @@
+$ dotnet restore
+  Determining projects to restore...
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c5\src\Manual.Cinco\Manual.Cinco.csproj (in 309 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c5\tests\Manual.Cinco.Tests\Manual.Cinco.Tests.csproj (in 342 ms).
+[exit=0]

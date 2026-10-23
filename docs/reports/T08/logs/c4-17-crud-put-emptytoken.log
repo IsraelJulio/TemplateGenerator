@@ -1,0 +1,12 @@
+$ curl -i -X PUT http://localhost:5100/items/1 -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"title":"Item renomeado"}'
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    191   0    165 100     26  13799   2174                              0100    191   0    165 100     26  10706   1687                              0100    191   0    165 100     26   8912   1404                              0
+HTTP/1.1 401 Unauthorized
+Content-Type: application/problem+json
+Date: Fri, 23 Oct 2026 07:32:53 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+WWW-Authenticate: Bearer
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-f2780c32918e380b5f805abaa1342185-fe10543ccca1d65e-00"}[exit=0]

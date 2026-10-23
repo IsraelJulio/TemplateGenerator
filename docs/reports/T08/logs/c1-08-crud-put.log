@@ -1,0 +1,9 @@
+$ curl -i -X PUT http://localhost:5100/items/1 -H 'Content-Type: application/json' -d '{"title":"Item renomeado"}'
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100     26   0      0 100     26      0   2105                              0100     26   0      0 100     26      0   1693                              0100     26   0      0 100     26      0   1420                              0
+HTTP/1.1 204 No Content
+Date: Fri, 23 Oct 2026 07:23:07 GMT
+Server: Kestrel
+
+[exit=0]

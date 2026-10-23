@@ -55,6 +55,13 @@ public sealed class DatabaseBuildMatrixTests
             ["postgresql"] = ("Npgsql.EntityFrameworkCore.PostgreSQL", "10.0.3"),
         };
 
+    /// <summary>Os dois pacotes de ADR-0001, com a versão exata que o fragmento declara.</summary>
+    private static readonly (string Name, string Version)[] _swaggerPackages =
+    [
+        ("Microsoft.AspNetCore.OpenApi", "10.0.12"),
+        ("Swashbuckle.AspNetCore", "10.2.3"),
+    ];
+
     /// <summary>
     /// O conjunto pairwise das combinações com banco: banco × arquitetura, com swagger alternado.
     /// </summary>
@@ -140,6 +147,78 @@ public sealed class DatabaseBuildMatrixTests
             resolved,
             $"{architecture}/{database}: '{providerName}/{providerVersion}' não aparece resolvido " +
             $"em '{assets}'. O restore não trouxe o provider que o '.csproj' declara.");
+
+        SwaggerResolvesOnlyWhenSelected(runtime.Root, architecture, database, swagger);
+    }
+
+    /// <summary>
+    /// A parte <strong>transitiva</strong> de RF-20, que ADR-0011 atribui nominalmente a esta
+    /// camada: com <c>swagger = false</c>, nenhum projeto de <c>src/</c> tem os pacotes de Swagger no
+    /// grafo de restore — nem declarados, nem arrastados por outro pacote. Com <c>true</c>, o
+    /// projeto Web API tem os dois, na versão exata.
+    /// </summary>
+    /// <remarks>
+    /// A camada 1 já prova o lado <em>declarado</em>, lendo o <c>.csproj</c>. O que ela não vê, e
+    /// ADR-0011 diz com todas as letras, é um pacote legítimo passando a depender de Swashbuckle:
+    /// isso só aparece em <c>obj/project.assets.json</c>, que só existe depois do restore. O nome é
+    /// comparado por <strong>prefixo</strong> (<c>Swashbuckle.AspNetCore</c> casa
+    /// <c>Swashbuckle.AspNetCore.SwaggerUI</c>, que é o que de fato serve a interface), para que um
+    /// subpacote arrastado sozinho também derrube o teste.
+    /// </remarks>
+    private static void SwaggerResolvesOnlyWhenSelected(
+        string root,
+        string architecture,
+        string database,
+        bool swagger)
+    {
+        string[] assetsFiles = Directory
+            .EnumerateFiles(Path.Combine(root, "src"), "project.assets.json", SearchOption.AllDirectories)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        // Sanidade (ADR-0011): sem nenhum grafo para ler, "nenhum Swashbuckle" seria verdade por
+        // vacuidade. A Simples tem um projeto em `src/`; a Clean, quatro.
+        int expectedProjects = string.Equals(architecture, "clean", StringComparison.Ordinal) ? 4 : 1;
+
+        Assert.True(
+            assetsFiles.Length == expectedProjects,
+            $"{architecture}/{database}: esperava {expectedProjects} 'project.assets.json' sob " +
+            $"'src/', achei {assetsFiles.Length}. Sem o grafo de cada projeto, a prova transitiva " +
+            "de RF-20 não tem o que ler.");
+
+        foreach (string assets in assetsFiles)
+        {
+            using JsonDocument document = JsonDocument.Parse(File.ReadAllText(assets));
+
+            string[] libraries = [.. document.RootElement
+                .GetProperty("libraries")
+                .EnumerateObject()
+                .Select(library => library.Name)];
+
+            string[] swaggerLibraries = [.. libraries.Where(library => _swaggerPackages.Any(
+                package => library.StartsWith(package.Name, StringComparison.OrdinalIgnoreCase)))];
+
+            bool isWebApi = File.Exists(Path.Combine(
+                Path.GetDirectoryName(Path.GetDirectoryName(assets)!)!,
+                "Program.cs"));
+
+            // Com Swagger marcado, os pacotes entram no Web API e em nenhum outro: na Clean,
+            // Domain, Application e Infrastructure não dependem do Api, logo não podem herdá-los.
+            if (!swagger || !isWebApi)
+            {
+                Assert.True(
+                    swaggerLibraries.Length == 0,
+                    $"{architecture}/{database} (swagger={swagger}): o grafo de '{assets}' " +
+                    $"resolveu {string.Join(", ", swaggerLibraries)} (RF-20, ADR-0011).");
+
+                continue;
+            }
+
+            Assert.All(_swaggerPackages, package => Assert.True(
+                libraries.Contains($"{package.Name}/{package.Version}", StringComparer.Ordinal),
+                $"{architecture}/{database}: '{package.Name}/{package.Version}' não aparece " +
+                $"resolvido no grafo do projeto Web API ('{assets}')."));
+        }
     }
 
     /// <summary>

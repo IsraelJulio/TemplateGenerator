@@ -1,0 +1,3 @@
+$ TOKEN=$(curl -s -X POST http://localhost:5100/auth/login ... | sed -n 's/.*"accessToken":...\1/p')  (linha do README, literal)
+TOKEN length=731
+[exit=0]

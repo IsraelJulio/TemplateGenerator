@@ -1,0 +1,4 @@
+$ curl -s -w '\nHTTP %{http_code}\n' -X POST http://localhost:5100/items -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"title":"Antes do reinicio"}'
+{"id":2,"title":"Antes do reinicio"}
+HTTP 201
+[exit=0]

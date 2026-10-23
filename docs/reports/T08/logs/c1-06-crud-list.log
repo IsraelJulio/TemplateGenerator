@@ -1,0 +1,5 @@
+$ curl http://localhost:5100/items
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100     34   0     34   0      0   1680      0                              0100     34   0     34   0      0   1417      0                              0100     34   0     34   0      0   1263      0                              0
+[{"id":1,"title":"Primeiro item"}][exit=0]

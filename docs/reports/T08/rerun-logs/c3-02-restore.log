@@ -1,0 +1,8 @@
+$ dotnet restore
+  Determining projects to restore...
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c3\src\Manual.Tres.Application\Manual.Tres.Application.csproj (in 175 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c3\src\Manual.Tres.Domain\Manual.Tres.Domain.csproj (in 159 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c3\src\Manual.Tres.Infrastructure\Manual.Tres.Infrastructure.csproj (in 415 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c3\tests\Manual.Tres.Tests\Manual.Tres.Tests.csproj (in 436 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c3\src\Manual.Tres.Api\Manual.Tres.Api.csproj (in 493 ms).
+[exit=0]

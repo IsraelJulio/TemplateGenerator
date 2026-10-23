@@ -1,0 +1,5 @@
+$ for p in /openapi/v1.json /swagger/index.html /items; do echo "$p sem token -> $(curl -s -o /dev/null -w '%{http_code}' http://localhost:5100$p)"; done
+/openapi/v1.json sem token -> 200
+/swagger/index.html sem token -> 200
+/items sem token -> 401
+[exit=0]

@@ -1,0 +1,12 @@
+$ curl -i -X POST http://localhost:5100/items -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"title":"Primeiro item"}'
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100     57   0     32 100     25    558    436                              0100     57   0     32 100     25    527    412                              0100     57   0     32 100     25    505    395                              0
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+Date: Fri, 23 Oct 2026 07:26:03 GMT
+Server: Kestrel
+Location: /items/1
+Transfer-Encoding: chunked
+
+{"id":1,"title":"Primeiro item"}[exit=0]

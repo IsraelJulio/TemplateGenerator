@@ -1,0 +1,5 @@
+$ curl -i -X POST http://localhost:5100/auth/refresh -H 'Content-Type: application/json' -d '{"refreshToken":"<COLE_O_REFRESH_TOKEN_AQUI = refreshToken do login, 731 chars>"}'
+HTTP/1.1 200 OK
+"tokenType":"Bearer"
+"expiresIn":3600
+[exit=0]

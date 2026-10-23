@@ -1,0 +1,5 @@
+$ dotnet tool restore
+Tool 'dotnet-ef' (version '10.0.12') was restored. Available commands: dotnet-ef
+
+Restore was successful.
+[exit=0]

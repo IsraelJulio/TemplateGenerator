@@ -1,0 +1,9 @@
+$ ASPNETCORE_ENVIRONMENT=Production ASPNETCORE_URLS=http://localhost:5100 dotnet run --project src/Manual.Tres.Api --no-launch-profile
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5100
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c3\src\Manual.Tres.Api

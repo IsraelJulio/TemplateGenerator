@@ -1,0 +1,3 @@
+$ TOKEN=$(curl -s -X POST http://localhost:5100/auth/login -H 'Content-Type: application/json' -d '{"email":"pessoa@exemplo.com","password":"Senha!123"}' | sed -n 's/.*"accessToken":"\([^"]*\)".*/\1/p')
+TOKEN length=731
+[exit=0]

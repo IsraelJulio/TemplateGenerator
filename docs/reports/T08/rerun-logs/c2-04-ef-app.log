@@ -1,0 +1,237 @@
+$ dotnet ef database update --project src/Manual.Dois --startup-project src/Manual.Dois --context AppDbContext
+Build started...
+Build succeeded.
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10401]
+      An 'IServiceProvider' was created for internal use by Entity Framework.
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10403]
+      Entity Framework Core 10.0.12 initialized 'AppDbContext' using provider 'Microsoft.EntityFrameworkCore.Sqlite:10.0.12' with options: None
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (13ms).
+dbug: Microsoft.EntityFrameworkCore.Migrations[20400]
+      Migrating using database 'main' on server 'app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server 'app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20004]
+      An error occurred using the connection to database 'main' on server 'app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 'main' on server 'app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database 'main' on server 'app.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server 'app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c2\src\Manual.Dois\app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteNonQuery'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteNonQuery' (4ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteNonQuery' (9ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      PRAGMA journal_mode = 'wal';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (17ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      PRAGMA journal_mode = 'wal';
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c2\src\Manual.Dois\app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server 'app.db' (1ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server 'app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c2\src\Manual.Dois\app.db'.
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteScalar'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteScalar' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteScalar' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsLock' AND "type" = 'table';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsLock' AND "type" = 'table';
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteNonQuery'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE IF NOT EXISTS "__EFMigrationsLock" (
+          "Id" INTEGER NOT NULL CONSTRAINT "PK___EFMigrationsLock" PRIMARY KEY,
+          "Timestamp" TEXT NOT NULL
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE IF NOT EXISTS "__EFMigrationsLock" (
+          "Id" INTEGER NOT NULL CONSTRAINT "PK___EFMigrationsLock" PRIMARY KEY,
+          "Timestamp" TEXT NOT NULL
+      );
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteScalar'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteScalar' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteScalar' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT OR IGNORE INTO "__EFMigrationsLock"("Id", "Timestamp") VALUES(1, '2026-10-23 08:02:50.092444+00:00');
+      SELECT changes();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT OR IGNORE INTO "__EFMigrationsLock"("Id", "Timestamp") VALUES(1, '2026-10-23 08:02:50.092444+00:00');
+      SELECT changes();
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20209]
+      Beginning transaction with isolation level 'Unspecified'.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20200]
+      Began transaction with isolation level 'Serializable'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteNonQuery'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+          "MigrationId" TEXT NOT NULL CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY,
+          "ProductVersion" TEXT NOT NULL
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+          "MigrationId" TEXT NOT NULL CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY,
+          "ProductVersion" TEXT NOT NULL
+      );
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20210]
+      Committing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20202]
+      Committed transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20204]
+      Disposing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20209]
+      Beginning transaction with isolation level 'Unspecified'.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20200]
+      Began transaction with isolation level 'Serializable'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server 'app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c2\src\Manual.Dois\app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 'main' on server 'app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database 'main' on server 'app.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteScalar'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteScalar' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteScalar' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsHistory' AND "type" = 'table';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsHistory' AND "type" = 'table';
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteReader'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteReader' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteReader' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "MigrationId", "ProductVersion"
+      FROM "__EFMigrationsHistory"
+      ORDER BY "MigrationId";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "MigrationId", "ProductVersion"
+      FROM "__EFMigrationsHistory"
+      ORDER BY "MigrationId";
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20301]
+      Closing data reader to 'main' on server 'C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c2\src\Manual.Dois\app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20300]
+      A data reader for 'main' on server 'C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c2\src\Manual.Dois\app.db' is being disposed after spending 1ms reading results.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260101000000_InitialCreate'.
+Applying migration '20260101000000_InitialCreate'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteNonQuery'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "Items" (
+          "Id" INTEGER NOT NULL CONSTRAINT "PK_Items" PRIMARY KEY AUTOINCREMENT,
+          "Title" TEXT NOT NULL
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "Items" (
+          "Id" INTEGER NOT NULL CONSTRAINT "PK_Items" PRIMARY KEY AUTOINCREMENT,
+          "Title" TEXT NOT NULL
+      );
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteNonQuery'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260101000000_InitialCreate', '10.0.12');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260101000000_InitialCreate', '10.0.12');
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20210]
+      Committing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20202]
+      Committed transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20204]
+      Disposing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteScalar'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteScalar' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteScalar' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DELETE FROM "__EFMigrationsLock";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DELETE FROM "__EFMigrationsLock";
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\rerun\c2\src\Manual.Dois\app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server 'app.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10407]
+      'AppDbContext' disposed.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 'main' on server 'app.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database 'main' on server 'app.db' (0ms).
+Done.
+[exit=0]

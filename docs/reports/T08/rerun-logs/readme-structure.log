@@ -1,0 +1,79 @@
+===== c2
+SECOES ##: ['Pré-requisitos', 'Estrutura', 'Instalação', 'Banco de dados', 'Autenticação', 'Executar', 'Verificar a saúde', 'Usar a autenticação', 'Testar o CRUD de `Item`', 'Testes automatizados', 'Próximos passos']
+BLOCOS bash na ordem (linha | secao | 1a linha):
+    18 | Pré-requisitos | dotnet --version
+    43 | Instalação | dotnet restore
+    69 | Aplicar a migração | dotnet tool restore
+    75 | Aplicar a migração | dotnet ef database update --project src/Manual.Dois --startup-project src/Manual.Dois --co
+   124 | Criar as tabelas de identidade | dotnet ef database update --project src/Manual.Dois --startup-project src/Manual.Dois --co
+   152 | Executar | dotnet run --project src/Manual.Dois
+   163 | Verificar a saúde | curl http://localhost:5100/health
+   176 | Cadastrar, entrar e renovar | curl -i -X POST http://localhost:5100/auth/register -H 'Content-Type: application/json' -d
+   207 | Cadastrar, entrar e renovar | curl -i -X POST http://localhost:5100/auth/refresh -H 'Content-Type: application/json' -d 
+   227 | Sem token, o CRUD responde 401 | curl -i http://localhost:5100/items
+   243 | Testar o CRUD de `Item` | TOKEN=$(curl -s -X POST http://localhost:5100/auth/login -H 'Content-Type: application/jso
+   265 | Testar o CRUD de `Item` | curl -i -X POST http://localhost:5100/items -H 'Content-Type: application/json' -H "Author
+   309 | Testes automatizados | dotnet test
+VIOLACOES (localhost:5100 antes do bloco dotnet run): nenhuma
+  ref **Executar** -> OK
+  ref **Testar o CRUD** -> NAO EXISTE
+  ref **Usar a autenticação** -> OK
+===== c3
+SECOES ##: ['Pré-requisitos', 'Estrutura', 'Instalação', 'Banco de dados', 'Autenticação', 'Executar', 'Verificar a saúde', 'Usar a autenticação', 'Testar o CRUD de `Item`', 'Testes automatizados', 'Swagger', 'Próximos passos']
+BLOCOS bash na ordem (linha | secao | 1a linha):
+    18 | Pré-requisitos | dotnet --version
+    74 | Instalação | dotnet restore
+    96 | 1. Configurar a conexão | export ConnectionStrings__Default="Host=localhost;Port=5432;Database=Manual.Tres;Username=
+   121 | 2. Aplicar a migração | dotnet tool restore
+   127 | 2. Aplicar a migração | dotnet ef database update --project src/Manual.Tres.Infrastructure --startup-project src/M
+   177 | Criar as tabelas de identidade | dotnet ef database update --project src/Manual.Tres.Infrastructure --startup-project src/M
+   205 | Executar | dotnet run --project src/Manual.Tres.Api
+   216 | Verificar a saúde | curl http://localhost:5100/health
+   229 | Cadastrar, entrar e renovar | curl -i -X POST http://localhost:5100/auth/register -H 'Content-Type: application/json' -d
+   260 | Cadastrar, entrar e renovar | curl -i -X POST http://localhost:5100/auth/refresh -H 'Content-Type: application/json' -d 
+   280 | Sem token, o CRUD responde 401 | curl -i http://localhost:5100/items
+   296 | Testar o CRUD de `Item` | TOKEN=$(curl -s -X POST http://localhost:5100/auth/login -H 'Content-Type: application/jso
+   318 | Testar o CRUD de `Item` | curl -i -X POST http://localhost:5100/items -H 'Content-Type: application/json' -H "Author
+   362 | Testes automatizados | dotnet test
+VIOLACOES (localhost:5100 antes do bloco dotnet run): nenhuma
+  ref **Executar** -> OK
+  ref **Testar o CRUD** -> NAO EXISTE
+  ref **Usar a autenticação** -> OK
+===== c4
+SECOES ##: ['Pré-requisitos', 'Estrutura', 'Instalação', 'Banco de dados', 'Autenticação', 'Executar', 'Verificar a saúde', 'Usar a autenticação', 'Testar o CRUD de `Item`', 'Testes automatizados', 'Próximos passos']
+BLOCOS bash na ordem (linha | secao | 1a linha):
+    18 | Pré-requisitos | dotnet --version
+    72 | Instalação | dotnet restore
+    98 | Aplicar a migração | dotnet tool restore
+   104 | Aplicar a migração | dotnet ef database update --project src/Manual.Quatro.Infrastructure --startup-project src
+   161 | 1. Apontar `Authority` e `Audience` para o seu provedor | export Jwt__Authority="https://seu-provedor.exemplo/realms/sua-organizacao"
+   180 | 1. Apontar `Authority` e `Audience` para o seu provedor | curl -s "$Jwt__Authority/.well-known/openid-configuration"
+   216 | Executar | dotnet run --project src/Manual.Quatro.Api
+   227 | Verificar a saúde | curl http://localhost:5100/health
+   240 | Sem token, o CRUD responde 401 | curl -i http://localhost:5100/health
+   262 | Testar o CRUD de `Item` | TOKEN=$(curl -s -X POST "$Jwt__Authority/protocol/openid-connect/token" -H 'Content-Type: 
+   277 | Testar o CRUD de `Item` | TOKEN=COLE_O_TOKEN_AQUI
+   300 | Testar o CRUD de `Item` | curl -i -X POST http://localhost:5100/items -H 'Content-Type: application/json' -H "Author
+   344 | Testes automatizados | dotnet test
+VIOLACOES (localhost:5100 antes do bloco dotnet run): nenhuma
+  ref **Autenticação** -> OK
+  ref **Executar** -> OK
+  ref **Testar o CRUD de `Item`** -> OK
+===== c5
+SECOES ##: ['Pré-requisitos', 'Estrutura', 'Instalação', 'Banco de dados', 'Autenticação', 'Executar', 'Verificar a saúde', 'Usar a autenticação', 'Testar o CRUD de `Item`', 'Testes automatizados', 'Swagger', 'Próximos passos']
+BLOCOS bash na ordem (linha | secao | 1a linha):
+    18 | Pré-requisitos | dotnet --version
+    42 | Instalação | dotnet restore
+    89 | 1. Apontar `Authority` e `Audience` para o seu provedor | export Jwt__Authority="https://seu-provedor.exemplo/realms/sua-organizacao"
+   108 | 1. Apontar `Authority` e `Audience` para o seu provedor | curl -s "$Jwt__Authority/.well-known/openid-configuration"
+   144 | Executar | dotnet run --project src/Manual.Cinco
+   155 | Verificar a saúde | curl http://localhost:5100/health
+   168 | Sem token, o CRUD responde 401 | curl -i http://localhost:5100/health
+   190 | Testar o CRUD de `Item` | TOKEN=$(curl -s -X POST "$Jwt__Authority/protocol/openid-connect/token" -H 'Content-Type: 
+   205 | Testar o CRUD de `Item` | TOKEN=COLE_O_TOKEN_AQUI
+   228 | Testar o CRUD de `Item` | curl -i -X POST http://localhost:5100/items -H 'Content-Type: application/json' -H "Author
+   272 | Testes automatizados | dotnet test
+VIOLACOES (localhost:5100 antes do bloco dotnet run): nenhuma
+  ref **Autenticação** -> OK
+  ref **Executar** -> OK
+  ref **Testar o CRUD de `Item`** -> OK

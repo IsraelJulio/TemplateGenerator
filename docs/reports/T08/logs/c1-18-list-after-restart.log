@@ -1,0 +1,4 @@
+$ curl -s -w '\nHTTP %{http_code}\n' http://localhost:5100/items
+[]
+HTTP 200
+[exit=0]

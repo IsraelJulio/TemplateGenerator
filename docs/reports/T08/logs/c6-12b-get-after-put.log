@@ -1,0 +1,2 @@
+$ curl -s http://localhost:5100/items/1
+{"id":1,"title":"Item renomeado"}[exit=0]

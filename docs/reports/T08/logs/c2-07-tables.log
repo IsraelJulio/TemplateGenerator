@@ -1,0 +1,3 @@
+$ python -I -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); print(sorted(r[0] for r in c.execute(\"select name from sqlite_master where type='table'\")))" src/Manual.Dois/app.db
+['AspNetRoleClaims', 'AspNetRoles', 'AspNetUserClaims', 'AspNetUserLogins', 'AspNetUserRoles', 'AspNetUserTokens', 'AspNetUsers', 'Items', '__EFMigrationsHistory', '__EFMigrationsLock', 'sqlite_sequence']
+[exit=0]

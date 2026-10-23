@@ -1,0 +1,4 @@
+$ curl -s -w '\nHTTP %{http_code}\n' http://localhost:5100/items/1
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.5","title":"Not Found","status":404,"traceId":"00-029314f1422621147f0978e5ec6d32a9-43ba8c8330f09d23-00"}
+HTTP 404
+[exit=0]

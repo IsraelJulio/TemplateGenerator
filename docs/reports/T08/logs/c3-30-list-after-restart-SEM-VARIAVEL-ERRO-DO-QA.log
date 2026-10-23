@@ -1,0 +1,4 @@
+$ curl -s -w '\nHTTP %{http_code}\n' http://localhost:5100/items -H "Authorization: Bearer $TOKEN"
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-0f66fee3ff04b1e03f1c8dd56cb2d2ef-845997ec59283f7b-00"}
+HTTP 401
+[exit=0]

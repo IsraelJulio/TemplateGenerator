@@ -188,7 +188,15 @@ internal sealed class GeneratedProject : IAsyncDisposable
     /// Sobe a aplicação e espera <c>GET /health</c> responder. Cada chamada é um processo novo —
     /// é assim que o reinício de RF-16 é exercitado.
     /// </summary>
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken) =>
+        StartAsync("Development", cancellationToken);
+
+    /// <summary>
+    /// Sobe a aplicação num ambiente escolhido. <c>Development</c> é o do
+    /// <c>launchSettings.json</c> e o do README; outro valor existe para provar o que o pacote faz
+    /// <strong>fora</strong> dele — em T08, que o Swagger some (ADR-0001: "só em Development").
+    /// </summary>
+    public async Task StartAsync(string environment, CancellationToken cancellationToken)
     {
         await StopAsync();
 
@@ -201,7 +209,7 @@ internal sealed class GeneratedProject : IAsyncDisposable
         };
 
         start.Environment["ASPNETCORE_URLS"] = BaseAddress.ToString().TrimEnd('/');
-        start.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
+        start.Environment["ASPNETCORE_ENVIRONMENT"] = environment;
 
         StringBuilder log = new();
 

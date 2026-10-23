@@ -81,19 +81,5 @@ A tolerância de relógio está zerada na composição da aplicação, de propó
 biblioteca aceitaria um token vencido havia até cinco minutos. Quem precisar de folga para relógios
 dessincronizados ajusta `ClockSkew` em `Program.cs`.
 
-### 3. Sem token, o CRUD responde 401
-
-Estes comandos falam com a aplicação **já no ar**: suba-a primeiro, com o passo **Executar** logo
-adiante, e use outro terminal. `GET /health` continua **público** em qualquer combinação; o CRUD de
-`Item`, não:
-
-```bash
-curl -i http://localhost:5100/health
-curl -i http://localhost:5100/items
-```
-
-A primeira chamada responde `200`; a segunda, `401`. **Qualquer token válido serve** na segunda: não
-há papel, não há claim exigida e não há dono de registro — quem apresenta um token que passa nas
-quatro conferências enxerga e altera os mesmos itens que todo mundo.
-
-Pegar o token no seu provedor e usá-lo é o assunto da seção **Testar o CRUD de `Item`**, adiante.
+A conferência com a aplicação no ar — `/health` público, CRUD `401` sem token — está na seção
+**Usar a autenticação**, logo depois de **Executar**: são chamadas HTTP, e precisam dela de pé.

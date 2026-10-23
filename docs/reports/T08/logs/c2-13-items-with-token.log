@@ -1,0 +1,15 @@
+$ curl -i http://localhost:5100/items -H 'Authorization: Bearer <token redigido>'
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100      2   0      2   0      0     53      0                              0
+100      2   0      2   0      0     51      0                              0
+100      2   0      2   0      0     49      0                              0
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Fri, 23 Oct 2026 07:25:44 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+[][exit=0]

@@ -517,6 +517,27 @@ Ver [ADR-0001](../decisions/adr-0001-swagger.md). Quando `swagger = true`:
 Quando `swagger = false`, nem o documento, nem a UI, nem as duas dependências aparecem no
 `.csproj` (RF-20).
 
+### O que foi fixado em T08
+
+**Onde cada metade de RF-20 é provada**, completando a divisão que
+[ADR-0011](../decisions/adr-0011-contribuicao-por-marcador.md) prescreveu:
+
+| Afirmação | Camada | Teste |
+|---|---|---|
+| Pacotes declarados ⇔ opção marcada, versão exata | 1, nas 32 | `PackageReferenceMatrixTests` |
+| Nenhum pacote de Swagger **transitivo** com a opção desmarcada; os dois resolvidos no Web API com ela marcada | 2 | `DatabaseBuildMatrixTests`, lendo `obj/project.assets.json` de cada projeto de `src/` |
+| Documento nativo e interface respondem; `/swagger/v1/swagger.json` (o gerador do próprio Swashbuckle) **não** | 3, todas as linhas | `SwaggerRoutes` |
+| Com a opção marcada, **fora de Development** nenhuma rota de documentação responde | 3 | `Com_swagger_fora_de_Development_nenhuma_rota_de_documentacao_responde` |
+
+**A lacuna do botão *Authorize* continua aberta, mas deixou de ser silenciosa.** Com
+`authentication ≠ none` e `swagger = true`, o README ganha a subseção `### Swagger e autenticação`,
+contribuída por `auth/identity` e `auth/jwt` pelo marcador `__ReadmeSwaggerAuth__`, que
+`swagger/enabled` lê para trás ([ADR-0015](../decisions/adr-0015-contribuicao-le-eixo-anterior.md)).
+Ela diz o que a pessoa vai ver: documento e interface públicos em Development, as rotas de `/items`
+listadas, e o *Try it out* delas respondendo `401`, porque o documento não declara esquema de
+segurança. Fechar a lacuna — declarar o esquema *bearer* no documento — é a mesma contribuição
+cruzada, em `Program.cs`, e precisa de critério de aceite próprio; T08 não o tinha.
+
 ## README gerado
 
 Precisa cobrir, para aquela combinação exata: pré-requisitos, instalação, configuração,
@@ -531,6 +552,14 @@ mecanismo de template não consegue exprimir no README é problema do mecanismo,
 **A camada 3 executa os comandos na ordem em que estão escritos**, `dotnet tool restore` e
 `dotnet ef database update` incluídos, antes de subir a aplicação. Ordem errada no README é falha de
 teste, não detalhe de redação.
+
+**Nenhuma chamada à aplicação antes de `## Executar`** — decidido em T08. Até ali, `identity` e
+`jwt` punham os `curl` de cadastro, login e `401` dentro de `## Autenticação`, antes de a aplicação
+subir, com um aviso de "suba-a primeiro". Executados na ordem escrita, falhavam. Agora a seção de
+configuração (`__ReadmeSetup__`) só traz o que se faz com a aplicação parada, e as chamadas HTTP de
+autenticação vão para `## Usar a autenticação` (`__ReadmeAuthUsage__`), entre `## Verificar a saúde`
+e `## Testar o CRUD de Item`. A camada 1 afirma a regra nas 32: `localhost:5100` não aparece antes de
+`## Executar` (`ReadmeCompletenessMatrixTests`).
 
 ## A frase da tela
 

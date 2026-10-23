@@ -1,0 +1,2 @@
+$ TOKEN=$(curl -s -X POST "$Jwt__Authority/protocol/openid-connect/token" ... -d 'grant_type=client_credentials&client_id=SEU_CLIENT_ID&client_secret=SEU_SEGREDO&audience=sua-api' | sed ...)  (literal do README)
+TOKEN length=0; curl isolado contra o token_endpoint: exit=6 (6 = host nao resolvido) -> falha esperada

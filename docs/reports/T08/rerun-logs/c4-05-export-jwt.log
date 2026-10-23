@@ -1,0 +1,3 @@
+$ export Jwt__Authority="https://seu-provedor.exemplo/realms/sua-organizacao"
+$ export Jwt__Audience="sua-api"
+[exit=0]

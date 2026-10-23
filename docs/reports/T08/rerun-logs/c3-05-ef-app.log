@@ -1,0 +1,198 @@
+$ dotnet ef database update --project src/Manual.Tres.Infrastructure --startup-project src/Manual.Tres.Api --context AppDbContext
+Build started...
+Build succeeded.
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10401]
+      An 'IServiceProvider' was created for internal use by Entity Framework.
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10403]
+      Entity Framework Core 10.0.4 initialized 'AppDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL:10.0.3+5e912bf071068a44e5abbdab497b313ba99d3ee1' with options: None
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (34ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+fail: Microsoft.EntityFrameworkCore.Database.Connection[20004]
+      An error occurred using the connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+An error occurred using the connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Migrations[20400]
+      Migrating using database 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20004]
+      An error occurred using the connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'postgres' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'postgres' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteNonQuery'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteNonQuery' (5ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteNonQuery' (10ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE DATABASE t08_rerun_3;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (471ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE DATABASE t08_rerun_3;
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'postgres' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'postgres' on server 'tcp://localhost:5432' (2ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 'postgres' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database 'postgres' on server 'tcp://localhost:5432' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteNonQuery'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT 1
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 't08_rerun_3' on server 'tcp://localhost:5432' (1ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20209]
+      Beginning transaction with isolation level 'Unspecified'.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20200]
+      Began transaction with isolation level 'ReadCommitted'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteNonQuery'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+          "MigrationId" character varying(150) NOT NULL,
+          "ProductVersion" character varying(32) NOT NULL,
+          CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+          "MigrationId" character varying(150) NOT NULL,
+          "ProductVersion" character varying(32) NOT NULL,
+          CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+      );
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20210]
+      Committing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20202]
+      Committed transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20204]
+      Disposing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20209]
+      Beginning transaction with isolation level 'Unspecified'.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20200]
+      Began transaction with isolation level 'ReadCommitted'.
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteNonQuery'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteReader'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteReader' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteReader' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "MigrationId", "ProductVersion"
+      FROM "__EFMigrationsHistory"
+      ORDER BY "MigrationId";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "MigrationId", "ProductVersion"
+      FROM "__EFMigrationsHistory"
+      ORDER BY "MigrationId";
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20301]
+      Closing data reader to 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20300]
+      A data reader for 't08_rerun_3' on server 'tcp://localhost:5432' is being disposed after spending 2ms reading results.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260101000000_InitialCreate'.
+Applying migration '20260101000000_InitialCreate'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteNonQuery'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "Items" (
+          "Id" integer GENERATED BY DEFAULT AS IDENTITY,
+          "Title" character varying(200) NOT NULL,
+          CONSTRAINT "PK_Items" PRIMARY KEY ("Id")
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "Items" (
+          "Id" integer GENERATED BY DEFAULT AS IDENTITY,
+          "Title" character varying(200) NOT NULL,
+          CONSTRAINT "PK_Items" PRIMARY KEY ("Id")
+      );
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteNonQuery'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260101000000_InitialCreate', '10.0.4');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260101000000_InitialCreate', '10.0.4');
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20210]
+      Committing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20202]
+      Committed transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20204]
+      Disposing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 't08_rerun_3' on server 'tcp://localhost:5432' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10407]
+      'AppDbContext' disposed.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 't08_rerun_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database 't08_rerun_3' on server 'tcp://localhost:5432' (0ms).
+Done.
+[exit=0]

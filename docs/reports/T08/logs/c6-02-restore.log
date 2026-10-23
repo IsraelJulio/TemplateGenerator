@@ -1,0 +1,8 @@
+$ dotnet restore
+  Determining projects to restore...
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c6\src\Manual.Seis.Application\Manual.Seis.Application.csproj (in 278 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c6\src\Manual.Seis.Domain\Manual.Seis.Domain.csproj (in 281 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c6\src\Manual.Seis.Infrastructure\Manual.Seis.Infrastructure.csproj (in 690 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c6\tests\Manual.Seis.Tests\Manual.Seis.Tests.csproj (in 757 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c6\src\Manual.Seis.Api\Manual.Seis.Api.csproj (in 841 ms).
+[exit=0]

@@ -1,0 +1,165 @@
+$ dotnet run --project src/Manual.Seis.Api
+Using launch settings from src\Manual.Seis.Api\Properties\launchSettings.json...
+Building...
+dbug: Microsoft.Extensions.Hosting.Internal.Host[1]
+      Hosting starting
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5100
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c6\src\Manual.Seis.Api
+dbug: Microsoft.Extensions.Hosting.Internal.Host[2]
+      Hosting started
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost:5100/health - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /health'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'HealthResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /health'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost:5100/health - 200 - application/json;+charset=utf-8 262.8476ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost:5100/items - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /items/'
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10401]
+      An 'IServiceProvider' was created for internal use by Entity Framework.
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10403]
+      Entity Framework Core 10.0.4 initialized 'AppDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL:10.0.3+5e912bf071068a44e5abbdab497b313ba99d3ee1' with options: None
+dbug: Microsoft.EntityFrameworkCore.Query[10111]
+      Compiling query expression: 
+      'DbSet<Item>()
+          .AsNoTracking()
+          .OrderBy(item => item.Id)'
+dbug: Microsoft.EntityFrameworkCore.Query[10107]
+      Generated query execution expression: 
+      'queryContext => SingleQueryingEnumerable.Create<Item>(
+          relationalQueryContext: (RelationalQueryContext)queryContext, 
+          relationalCommandResolver: parameters => [LIFTABLE Constant: RelationalCommandCache.QueryExpression(
+              Projection Mapping:
+                  EmptyProjectionMember -> Dictionary<IPropertyBase, int> { [Property: Item.Id (int) Required PK AfterSave:Throw ValueGenerated.OnAdd, 0], [Property: Item.Title (string) Required MaxLength(200), 1] }
+              SELECT i.Id, i.Title
+              FROM Items AS i
+              ORDER BY i.Id ASC) | Resolver: c => new RelationalCommandCache(
+              c.Dependencies.MemoryCache, 
+              c.RelationalDependencies.QuerySqlGeneratorFactory, 
+              c.RelationalDependencies.RelationalParameterBasedSqlProcessorFactory, 
+              Projection Mapping:
+                  EmptyProjectionMember -> Dictionary<IPropertyBase, int> { [Property: Item.Id (int) Required PK AfterSave:Throw ValueGenerated.OnAdd, 0], [Property: Item.Title (string) Required MaxLength(200), 1] }
+              SELECT i.Id, i.Title
+              FROM Items AS i
+              ORDER BY i.Id ASC, 
+              False, 
+              Parameter
+          )].GetRelationalCommandTemplate(parameters), 
+          readerColumns: null, 
+          shaper: (queryContext, dataReader, resultContext, resultCoordinator) => 
+          {
+              Item entity;
+              entity = 
+              {
+                  MaterializationContext materializationContext1;
+                  IEntityType entityType1;
+                  Item instance1;
+                  materializationContext1 = new MaterializationContext(
+                      [LIFTABLE Constant: ValueBuffer | Resolver: _ => (object)ValueBuffer.Empty], 
+                      queryContext.Context
+                  );
+                  instance1 = default(Item);
+                  (object)dataReader.GetInt32(0) != null ? 
+                  {
+                      ISnapshot shadowSnapshot1;
+                      shadowSnapshot1 = [LIFTABLE Constant: Snapshot | Resolver: _ => Snapshot.Empty];
+                      entityType1 = [LIFTABLE Constant: EntityType: Item | Resolver: namelessParameter{0} => namelessParameter{0}.Dependencies.Model.FindEntityType("Manual.Seis.Domain.Items.Item")];
+                      instance1 = switch (entityType1)
+                      {
+                          case [LIFTABLE Constant: EntityType: Item | Resolver: namelessParameter{1} => namelessParameter{1}.Dependencies.Model.FindEntityType("Manual.Seis.Domain.Items.Item")]: 
+                              {
+                                  return 
+                                  {
+                                      Item instance;
+                                      instance = new Item();
+                                      instance.<Id>k__BackingField = dataReader.GetInt32(0);
+                                      instance.<Title>k__BackingField = dataReader.GetString(1);
+                                      (instance is IInjectableService) ? ((IInjectableService)instance).Injected(
+                                          context: materializationContext1.Context, 
+                                          entity: instance, 
+                                          queryTrackingBehavior: NoTracking, 
+                                          structuralType: [LIFTABLE Constant: EntityType: Item | Resolver: namelessParameter{2} => namelessParameter{2}.Dependencies.Model.FindEntityType("Manual.Seis.Domain.Items.Item")]) : default(void);
+                                      return instance;
+                                  }}
+                          default: 
+                              default(Item)
+                      }
+                      ;
+                      return instance1;
+                  } : 
+                  {
+                      object[] keyValues1;
+                      keyValues1 = new object[]{ (object)dataReader.GetInt32(0) };
+                      return ShapedQueryCompilingExpressionVisitor.CreateNullKeyValueInNoTrackingQuery(
+                          entityType: [LIFTABLE Constant: EntityType: Item | Resolver: namelessParameter{3} => namelessParameter{3}.Dependencies.Model.FindEntityType("Manual.Seis.Domain.Items.Item")], 
+                          properties: [LIFTABLE Constant: List<RuntimeProperty> { Property: Item.Id (int) Required PK AfterSave:Throw ValueGenerated.OnAdd } | Resolver: c => c.Dependencies.Model.FindEntityType("Manual.Seis.Domain.Items.Item").FindPrimaryKey().Properties], 
+                          keyValues: keyValues1);
+                  };
+                  return instance1;
+              };
+              return entity;
+          }, 
+          contextType: Manual.Seis.Infrastructure.Persistence.AppDbContext, 
+          standAloneStateManager: False, 
+          detailedErrorsEnabled: False, 
+          threadSafetyChecksEnabled: True)'
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (36ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 't08_manual_6' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 't08_manual_6' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteReader'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteReader' (3ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteReader' (9ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT i."Id", i."Title"
+      FROM "Items" AS i
+      ORDER BY i."Id"
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (28ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT i."Id", i."Title"
+      FROM "Items" AS i
+      ORDER BY i."Id"
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20301]
+      Closing data reader to 't08_manual_6' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20300]
+      A data reader for 't08_manual_6' on server 'tcp://localhost:5432' is being disposed after spending 52ms reading results.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 't08_manual_6' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 't08_manual_6' on server 'tcp://localhost:5432' (4ms).
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'List`1' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /items/'
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10407]
+      'AppDbContext' disposed.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 't08_manual_6' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database 't08_manual_6' on server 'tcp://localhost:5432' (1ms).
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost:5100/items - 200 - application/json;+charset=utf-8 2341.9859ms

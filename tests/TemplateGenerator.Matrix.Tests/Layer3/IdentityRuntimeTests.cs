@@ -269,16 +269,9 @@ public sealed class IdentityRuntimeTests
         }
 
         // --- RF-20 em runtime: Swagger presente ou ausente conforme a seleção. ---
-        using (HttpResponseMessage openapi = await anonimo.GetAsync(
-            "openapi/v1.json",
-            cancellationToken))
-        {
-            Log($"GET /openapi/v1.json (swagger={swagger}) -> {(int)openapi.StatusCode}");
-
-            Assert.Equal(
-                swagger ? HttpStatusCode.OK : HttpStatusCode.NotFound,
-                openapi.StatusCode);
-        }
+        // Sem token: o documento e a interface são públicos em Development, como o README diz na
+        // seção "Swagger e autenticação".
+        await SwaggerRoutes.AssertAsync(anonimo, swagger, cancellationToken, Log);
 
         // --- Reinício: o usuário cadastrado e o item continuam no banco. ---
         await runtime.StopAsync();

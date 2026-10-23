@@ -1,0 +1,12 @@
+$ curl -i -X POST http://localhost:5100/items -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"title":"Primeiro item"}'
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    190   0    165 100     25  13420   2033                              0100    190   0    165 100     25  10894   1650                              0100    190   0    165 100     25   9369   1419                              0
+HTTP/1.1 401 Unauthorized
+Content-Type: application/problem+json
+Date: Fri, 23 Oct 2026 07:34:53 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+WWW-Authenticate: Bearer
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-055498ebb453d8ba0eaa9b3f510deb1d-f7ca7cb94ca6641c-00"}[exit=0]

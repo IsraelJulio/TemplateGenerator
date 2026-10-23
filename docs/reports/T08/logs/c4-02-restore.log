@@ -1,0 +1,8 @@
+$ dotnet restore
+  Determining projects to restore...
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c4\src\Manual.Quatro.Domain\Manual.Quatro.Domain.csproj (in 180 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c4\src\Manual.Quatro.Application\Manual.Quatro.Application.csproj (in 191 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c4\src\Manual.Quatro.Infrastructure\Manual.Quatro.Infrastructure.csproj (in 501 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c4\tests\Manual.Quatro.Tests\Manual.Quatro.Tests.csproj (in 531 ms).
+  Restored C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c4\src\Manual.Quatro.Api\Manual.Quatro.Api.csproj (in 613 ms).
+[exit=0]
