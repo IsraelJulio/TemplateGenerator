@@ -1,12 +1,39 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
+import { TemplateConstraint } from '../../core/catalog/template-options.model';
 import {
   CATALOG_FIXTURE,
   IMPLEMENTED_CATALOG_FIXTURE,
+  SNAPSHOT_CATALOG,
   UNAVAILABLE_REASON,
 } from '../../testing/catalog.fixture';
 import { Configurator } from './configurator';
+
+/*
+ * Rótulos, descrições e mensagens são lidos do snapshot do catálogo, nunca
+ * escritos aqui: um spec que afirmasse uma frase copiada continuaria verde com
+ * a tela mostrando outra coisa, se a cópia e o payload divergissem.
+ */
+
+/** O primeiro par `(campo, valor)` de um lado da restrição. */
+function firstMatch(side: TemplateConstraint['when']): { field: string; value: string } {
+  const [field, accepted] = Object.entries(side)[0];
+  const [value] = accepted as readonly string[];
+  return { field, value };
+}
+
+/** A restrição do catálogo, o valor que a dispara e um valor que a satisfaz. */
+const [CONSTRAINT] = SNAPSHOT_CATALOG.constraints;
+const TRIGGER = firstMatch(CONSTRAINT.when);
+const SATISFIER = firstMatch(CONSTRAINT.requires);
+
+/** Todo texto de explicação que o catálogo manda: de campo e de opção. */
+const DESCRIPTIONS = Object.values(SNAPSHOT_CATALOG.fields).flatMap((field) => [
+  ...(field.description ? [field.description] : []),
+  ...(field.values ?? []).flatMap((option) => (option.description ? [option.description] : [])),
+]);
 
 describe('Configurator', () => {
   let fixture: ComponentFixture<Configurator>;
@@ -82,57 +109,82 @@ describe('Configurator', () => {
       node.textContent?.trim(),
     );
 
-    expect(legends).toEqual(['Arquitetura', 'Banco', 'Autenticação', 'Swagger', 'Versão .NET']);
+    expect(legends).toEqual(Object.values(SNAPSHOT_CATALOG.fields).map((field) => field.label));
     expect(element().querySelector('input[type="text"]')).not.toBeNull();
   });
 
   it('aplica os padrões do catálogo aos controles', async () => {
     await serveCatalog();
 
-    expect(radio('architecture', 'simple').checked).toBe(true);
-    expect(radio('database', 'none').checked).toBe(true);
-    expect(element().querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked).toBe(true);
+    for (const [key, field] of Object.entries(SNAPSHOT_CATALOG.fields)) {
+      if (field.type === 'boolean') {
+        const toggle = element().querySelector<HTMLInputElement>(`input[data-field="${key}"]`);
+        expect(toggle?.checked, key).toBe(field.default);
+      } else {
+        expect(radio(key, String(field.default)).checked, key).toBe(true);
+      }
+    }
   });
 
   it('desabilita a opção que a restrição do catálogo impede, com o motivo visível', async () => {
     await serveCatalog(IMPLEMENTED_CATALOG_FIXTURE);
 
-    const identity = radio('authentication', 'identity');
-    expect(identity.disabled).toBe(true);
-    expect(element().textContent).toContain(
-      'O Identity nativo precisa de um banco para persistir os usuários.',
-    );
+    const recusado = radio(TRIGGER.field, TRIGGER.value);
+    expect(recusado.disabled).toBe(true);
+    expect(element().textContent).toContain(CONSTRAINT.message);
   });
 
   it('liga o motivo ao controle desabilitado por aria-describedby', async () => {
     await serveCatalog(IMPLEMENTED_CATALOG_FIXTURE);
 
-    const identity = radio('authentication', 'identity');
-    const id = identity.getAttribute('aria-describedby');
+    const id = radio(TRIGGER.field, TRIGGER.value).getAttribute('aria-describedby');
 
     expect(id).not.toBeNull();
-    expect(element().querySelector(`[id="${id}"]`)?.textContent).toContain(
-      'O Identity nativo precisa de um banco',
-    );
+    expect(element().querySelector(`[id="${id}"]`)?.textContent).toContain(CONSTRAINT.message);
   });
 
   it('libera a opção quando a seleção passa a satisfazer a restrição', async () => {
     await serveCatalog(IMPLEMENTED_CATALOG_FIXTURE);
 
-    const sqlite = radio('database', 'sqlite');
-    sqlite.click();
+    radio(SATISFIER.field, SATISFIER.value).click();
     await settle();
 
-    expect(radio('authentication', 'identity').disabled).toBe(false);
+    expect(radio(TRIGGER.field, TRIGGER.value).disabled).toBe(false);
   });
 
   it('mostra a explicação de cada opção sem tirar a pessoa do fluxo', async () => {
     await serveCatalog();
 
-    const texto = element().textContent ?? '';
-    expect(texto).toContain('Um projeto Web API.');
-    expect(texto).toContain('Api, Application, Domain e Infrastructure.');
-    expect(texto).toContain('Arquivo local, sem serviço externo.');
+    const form = element().querySelector('form')!.textContent ?? '';
+    expect(DESCRIPTIONS.length).toBeGreaterThan(0);
+    for (const description of DESCRIPTIONS) {
+      expect(form).toContain(description);
+    }
+  });
+
+  it('não renderiza explicação vazia na opção que o catálogo manda sem description', async () => {
+    // `dotnetVersion` chega hoje com um valor só e sem `description`. O teste
+    // não nomeia o campo: procura no snapshot toda opção nessa situação.
+    await serveCatalog();
+
+    const semDescricao = Object.entries(SNAPSHOT_CATALOG.fields).flatMap(([key, field]) =>
+      (field.values ?? [])
+        .filter((option) => option.description === undefined)
+        .map((option) => ({ key, option })),
+    );
+    expect(semDescricao.length, 'o snapshot não tem mais opção sem description').toBeGreaterThan(0);
+
+    for (const { key, option } of semDescricao) {
+      const label = radio(key, option.value).closest('label')!;
+      expect(label.querySelector('.option__label')?.textContent?.trim()).toBe(option.label);
+      expect(label.querySelector('.option__description')).toBeNull();
+    }
+    expect(element().textContent).not.toContain('undefined');
+
+    // O resumo também: a linha do campo mostra o rótulo do valor e nenhuma
+    // explicação inventada.
+    const resumo = element().querySelector('tg-config-summary')!;
+    expect(resumo.textContent).not.toContain('undefined');
   });
 
   it('diz que o catálogo está indisponível em vez de mostrar tela vazia', async () => {
@@ -211,6 +263,85 @@ describe('Configurator', () => {
     await settle();
   });
 
+  it('dois envios no mesmo instante geram uma chamada e um download só (RF-07)', async () => {
+    // O caso que o botão desabilitado sozinho não cobre: o segundo clique chega
+    // antes de a tela redesenhar o botão. Quem barra é a guarda do `submit()`.
+    await serveCatalog();
+    const downloads = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    try {
+      const input = element().querySelector<HTMLInputElement>('input[type="text"]')!;
+      input.value = 'Acme.Billing.Api';
+      input.dispatchEvent(new Event('input'));
+      await settle();
+
+      const button = element().querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      button.click();
+      button.click();
+      element().querySelector('form')?.dispatchEvent(new Event('submit'));
+      await settle();
+
+      const requests = http.match('/api/templates');
+      expect(requests).toHaveLength(1);
+
+      requests[0].flush(new Blob(['zip']), {
+        headers: { 'Content-Disposition': 'attachment; filename="Acme.Billing.Api.zip"' },
+      });
+      await settle();
+
+      expect(downloads).toHaveBeenCalledTimes(1);
+      http.expectNone('/api/templates');
+    } finally {
+      downloads.mockRestore();
+    }
+  });
+
+  it('põe no campo do nome a recusa que o servidor endereçou a ele (RF-06)', async () => {
+    // A tela aceitou o nome; o servidor, que é soberano, recusou. A mensagem
+    // dele tem de cair inline no campo, e não só no aviso geral.
+    await serveCatalog();
+    const request = await submitWith('Acme.Billing.Api');
+
+    const mensagem = 'Mensagem do servidor para o nome.';
+    request.flush(
+      new Blob([
+        JSON.stringify({
+          title: 'Configuração inválida',
+          status: 400,
+          errors: { projectName: [mensagem] },
+        }),
+      ]),
+      { status: 400, statusText: 'Bad Request' },
+    );
+    await settle();
+
+    const input = element().querySelector<HTMLInputElement>('input[type="text"]')!;
+    const bloco = input.closest('.field')!;
+    expect(bloco.querySelector('.field__error')?.textContent).toContain(mensagem);
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    expect(input.getAttribute('aria-describedby')).toContain(`${input.id}-error`);
+    expect(input.value).toBe('Acme.Billing.Api');
+  });
+
+  it('não descarta a recusa endereçada a uma chave que a tela não renderiza', async () => {
+    await serveCatalog();
+    const request = await submitWith();
+
+    const mensagem = 'Mensagem para uma chave desconhecida.';
+    request.flush(
+      new Blob([
+        JSON.stringify({
+          title: 'Configuração inválida',
+          status: 400,
+          errors: { inexistente: [mensagem] },
+        }),
+      ]),
+      { status: 400, statusText: 'Bad Request' },
+    );
+    await settle();
+
+    expect(element().querySelector('.notice--error')?.textContent).toContain(mensagem);
+  });
+
   it('anuncia o download concluído com o nome do arquivo', async () => {
     await serveCatalog();
     const request = await submitWith();
@@ -233,7 +364,7 @@ describe('Configurator', () => {
 
     radio('database', 'postgresql').click();
     await settle();
-    radio('authentication', 'identity').click();
+    radio(TRIGGER.field, TRIGGER.value).click();
     await settle();
 
     const request = await submitWith('Acme.Billing.Api');
@@ -250,7 +381,7 @@ describe('Configurator', () => {
     await settle();
 
     expect(radio('database', 'postgresql').checked).toBe(true);
-    expect(radio('authentication', 'identity').checked).toBe(true);
+    expect(radio(TRIGGER.field, TRIGGER.value).checked).toBe(true);
     expect(element().querySelector<HTMLInputElement>('input[type="text"]')?.value).toBe(
       'Acme.Billing.Api',
     );
@@ -350,8 +481,14 @@ describe('Configurator', () => {
     const resumo = element().querySelector('tg-config-summary')!;
     const texto = resumo.textContent ?? '';
 
-    expect(texto).toContain('Arquitetura');
-    expect(texto).toContain('Simples');
+    for (const field of Object.values(SNAPSHOT_CATALOG.fields)) {
+      expect(texto).toContain(field.label);
+      const chosen = field.values?.find((option) => option.value === field.default);
+      if (chosen) {
+        expect(texto).toContain(chosen.label);
+      }
+    }
+    expect(texto).not.toContain('undefined');
     expect(texto).toContain('Acme.Billing.Api.sln');
     expect(texto).toContain('README.md');
   });

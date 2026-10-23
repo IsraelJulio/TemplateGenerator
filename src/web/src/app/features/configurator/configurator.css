@@ -47,7 +47,8 @@
    min-content da coluna única no celular é a árvore inteira: nomes `nowrap` de
    caminho longo. Sem `min-width: 0` aqui, a trilha cresce até caber a árvore e
    empurra a página na horizontal (medido: 495 px de conteúdo numa tela de
-   320 px, escondido pelo `overflow-x: hidden` do body). Com ele, a árvore rola
+   320 px, na época escondido por um `overflow-x: hidden` no body, que saiu em
+   T09 — hoje o transbordo é medido, não escondido). Com ele, a árvore rola
    dentro do próprio quadro, que é o que `.tree { overflow-x: auto }` pede.
    O `<fieldset>` entra na mesma regra: o valor de fábrica dele é
    `min-inline-size: min-content`, com o mesmo efeito. */
@@ -214,8 +215,8 @@
   color: var(--ink-soft);
 }
 
-/* A caixa do grupo de opções e a da opção solitária (o switch do Swagger) são a
-   mesma moldura. Tem de vir depois de `.option`: o `border` recompõe a borda
+/* A caixa do grupo de opções e a da opção solitária (o interruptor de um campo
+   booleano) são a mesma moldura. Tem de vir depois de `.option`: o `border` recompõe a borda
    esquerda que `.option` deixa transparente para a faixa de seleção. */
 .options,
 .option--switch {
