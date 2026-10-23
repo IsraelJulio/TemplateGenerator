@@ -95,6 +95,20 @@ internal static class SwaggerRoutes
                     $"O documento OpenAPI não descreve '{path}'. O gerador nativo não enxergou os " +
                     "endpoints da aplicação (ADR-0001).");
             }
+
+            // O README de `swagger + auth` afirma que a interface não tem botão *Authorize*
+            // "porque o documento OpenAPI desta combinação não declara esquema de segurança".
+            // Esta é a guarda dessa frase: no dia em que alguém declarar o esquema bearer, o
+            // teste cai e manda reescrever a subseção "Swagger e autenticação" junto.
+            bool declaresSecurity =
+                json.RootElement.TryGetProperty("security", out _) ||
+                (json.RootElement.TryGetProperty("components", out JsonElement components) &&
+                    components.TryGetProperty("securitySchemes", out _));
+
+            Assert.False(
+                declaresSecurity,
+                "O documento OpenAPI passou a declarar esquema de segurança. O README de " +
+                "'swagger + auth' diz o contrário (subseção 'Swagger e autenticação'): atualize-o.");
         }
 
         using (HttpResponseMessage ui = await client.GetAsync("swagger/index.html", cancellationToken))

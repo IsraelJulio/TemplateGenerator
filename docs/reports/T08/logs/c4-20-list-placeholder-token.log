@@ -1,0 +1,12 @@
+$ curl -i http://localhost:5100/items -H "Authorization: Bearer $TOKEN"
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    165   0    165   0      0   3158      0                              0100    165   0    165   0      0   3011      0                              0100    165   0    165   0      0   2870      0                              0
+HTTP/1.1 401 Unauthorized
+Content-Type: application/problem+json
+Date: Fri, 23 Oct 2026 07:33:12 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+WWW-Authenticate: Bearer error="invalid_token"
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-a74742319b4dfa509670bc21d793fb8a-6ae03c087b9d4578-00"}[exit=0]

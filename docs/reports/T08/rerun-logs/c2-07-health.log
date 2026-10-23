@@ -1,0 +1,5 @@
+$ curl http://localhost:5100/health
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100     15   0     15   0      0    951      0                              0100     15   0     15   0      0    807      0                              0100     15   0     15   0      0    711      0                              0
+{"status":"ok"}[exit=0]

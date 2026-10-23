@@ -1,0 +1,6 @@
+$ curl -i -X POST http://localhost:5100/auth/refresh -H 'Content-Type: application/json' -d '{"refreshToken":"$RT"}' | grep -E 'HTTP/1.1|tokenType' | sed -E 's/"(access|refresh)Token":"[^"]*"/"\1Token":"<omitido>"/g'
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    187   0    165 100     22   1896    252                              0100    187   0    165 100     22   1812    241                              0100    187   0    165 100     22   1740    232                              0
+HTTP/1.1 401 Unauthorized
+[exit=0]

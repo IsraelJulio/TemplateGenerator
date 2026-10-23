@@ -15,7 +15,7 @@ namespace TemplateGenerator.Matrix.Tests.Layer1;
 /// Até T08 o README era cobrado por pedaços, cada um pelo eixo que o escreveu: o passo de banco em
 /// T05, o de Identity em T06, o de JWT em T07. Nada afirmava o documento <em>inteiro</em>, e uma
 /// seção que sumisse de uma combinação que nenhum desses testes olhasse passaria sem ruído. Esta
-/// classe é essa afirmação, nas 32 menos a indisponível.
+/// classe é essa afirmação, nas 32 combinações disponíveis.
 /// </para>
 /// <para>
 /// <strong>A ordem é parte da prova.</strong> A camada 3 executa os comandos na ordem escrita

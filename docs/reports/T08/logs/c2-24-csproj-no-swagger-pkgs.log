@@ -1,0 +1,4 @@
+$ grep -ciE 'Swashbuckle|Microsoft.AspNetCore.OpenApi' src/Manual.Dois/Manual.Dois.csproj; grep -ciE 'swagger|openapi' src/Manual.Dois/Program.cs
+0
+0
+[exit=1]

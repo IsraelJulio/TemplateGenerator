@@ -1,0 +1,3 @@
+$ PGPASSWORD=*** psql -h localhost -U postgres -d postgres -c "DROP DATABASE t08_rerun_3 WITH (FORCE);"
+DROP DATABASE
+[exit=0]

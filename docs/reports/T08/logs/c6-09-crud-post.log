@@ -1,0 +1,5 @@
+$ curl -i -X POST http://localhost:5100/items -H 'Content-Type: application/json' -d '{"title":"Primeiro item"}' 2>&1 | grep -E 'HTTP/1.1|Location|^\{'
+HTTP/1.1 201 Created
+Location: /items/1
+{"id":1,"title":"Primeiro item"}
+[exit=0]

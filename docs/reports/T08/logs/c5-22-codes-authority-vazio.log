@@ -1,0 +1,7 @@
+$ env | grep -c '^Jwt__' ; for p in /health /items /openapi/v1.json /swagger/index.html; do echo "$p -> $(curl -s -o /dev/null -w '%{http_code}' http://localhost:5100$p)"; done
+0
+/health -> 200
+/items -> 401
+/openapi/v1.json -> 200
+/swagger/index.html -> 200
+[exit=0]

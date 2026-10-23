@@ -1,0 +1,3 @@
+$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' http://localhost:5100/items/1 -H "Authorization: Bearer $TOKEN"
+HTTP 404
+[exit=0]

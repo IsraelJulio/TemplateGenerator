@@ -1,0 +1,6 @@
+$ curl -i -X POST http://localhost:5100/auth/login -H 'Content-Type: application/json' -d '{"email":"pessoa@exemplo.com","password":"Senha!123"}' | head -1
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100   1589   0   1536 100     53   4328    149                              0100   1589   0   1536 100     53   4289    148                              0100   1589   0   1536 100     53   4257    146                              0
+HTTP/1.1 200 OK
+[exit=0]

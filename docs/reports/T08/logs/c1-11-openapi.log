@@ -1,0 +1,4 @@
+$ curl -s -o /c/Users/2273129/AppData/Local/Temp/claude/c--Users-2273129-Documents-Projects-TemplateGenerator/318d2cf1-dde3-4bfe-96a2-838beef3a510/scratchpad/t08-manual/logs/c1-openapi-dev.json -w 'HTTP %{http_code}\n' http://localhost:5100/openapi/v1.json; python -I -c "import json,sys; d=json.load(open(sys.argv[1])); print('openapi', d.get('openapi'), 'paths', sorted(d['paths']), 'securitySchemes' in d.get('components',{}))" /c/Users/2273129/AppData/Local/Temp/claude/c--Users-2273129-Documents-Projects-TemplateGenerator/318d2cf1-dde3-4bfe-96a2-838beef3a510/scratchpad/t08-manual/logs/c1-openapi-dev.json
+HTTP 200
+openapi 3.1.1 paths ['/health', '/items', '/items/{id}'] False
+[exit=0]

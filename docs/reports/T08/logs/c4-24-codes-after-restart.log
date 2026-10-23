@@ -1,0 +1,8 @@
+$ for p in /health /items /openapi/v1.json /swagger /swagger/index.html /swagger/v1/swagger.json; do echo "$p -> $(curl -s -o /dev/null -w '%{http_code}' http://localhost:5100$p)"; done
+/health -> 200
+/items -> 401
+/openapi/v1.json -> 404
+/swagger -> 404
+/swagger/index.html -> 404
+/swagger/v1/swagger.json -> 404
+[exit=0]

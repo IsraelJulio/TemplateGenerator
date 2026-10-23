@@ -331,7 +331,8 @@
         "docs/architecture/generated-projects.md",
         "docs/product/requirements.md",
         "docs/decisions/adr-0011-contribuicao-por-marcador.md",
-        "docs/decisions/adr-0015-contribuicao-le-eixo-anterior.md"
+        "docs/decisions/adr-0015-contribuicao-le-eixo-anterior.md",
+        "docs/quality/test-strategy.md"
       ],
       "objective": "Fechar o eixo Swagger conforme ADR-0001 e finalizar o README de cada combinacao.",
       "acceptanceCriteria": [

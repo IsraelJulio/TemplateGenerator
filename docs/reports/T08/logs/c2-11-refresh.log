@@ -1,0 +1,15 @@
+$ curl -i -X POST http://localhost:5100/auth/refresh -H 'Content-Type: application/json' -d '{"refreshToken":"<token redigido>"}'
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100   2200   0   1450 100    750  27511  14229                              0
+100   2200   0   1450 100    750  26602  13759                              0
+100   2200   0   1450 100    750  25906  13399                              0
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Fri, 23 Oct 2026 07:25:42 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{"tokenType":"Bearer","accessToken":"<token redigido>","expiresIn":3600,"refreshToken":"<token redigido>"}[exit=0]

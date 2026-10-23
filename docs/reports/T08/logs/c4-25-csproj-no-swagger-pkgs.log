@@ -1,0 +1,7 @@
+$ grep -ciE 'Swashbuckle|Microsoft.AspNetCore.OpenApi' src/*/*.csproj; grep -ciE 'swagger|openapi' src/Manual.Quatro.Api/Program.cs
+src/Manual.Quatro.Api/Manual.Quatro.Api.csproj:0
+src/Manual.Quatro.Application/Manual.Quatro.Application.csproj:0
+src/Manual.Quatro.Domain/Manual.Quatro.Domain.csproj:0
+src/Manual.Quatro.Infrastructure/Manual.Quatro.Infrastructure.csproj:0
+0
+[exit=1]

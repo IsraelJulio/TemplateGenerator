@@ -1,0 +1,12 @@
+$ curl -i -X DELETE http://localhost:5100/items/1 -H "Authorization: Bearer $TOKEN"
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    165   0    165   0      0  17925      0                              0100    165   0    165   0      0  13915      0                              0100    165   0    165   0      0  11697      0                              0
+HTTP/1.1 401 Unauthorized
+Content-Type: application/problem+json
+Date: Fri, 23 Oct 2026 07:32:53 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+WWW-Authenticate: Bearer
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-2549c2cfe7890991c29067febb16af9b-7e72235a95095de0-00"}[exit=0]

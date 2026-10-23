@@ -1,0 +1,5 @@
+$ curl http://localhost:5100/items/1 -H "Authorization: Bearer $TOKEN"
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    165   0    165   0      0  17491      0                              0100    165   0    165   0      0  14104      0                              0100    165   0    165   0      0  11865      0                              0
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-bbc54dd4163fc2c19a804493ee1130a6-6e13d6c1dac5ab41-00"}[exit=0]

@@ -1,0 +1,4 @@
+$ curl -s -w '\nHTTP %{http_code}\n' http://localhost:5100/swagger/index.js | grep -oE '"url":"[^"]*"|HTTP [0-9]+'
+"url":"/openapi/v1.json"
+HTTP 200
+[exit=0]

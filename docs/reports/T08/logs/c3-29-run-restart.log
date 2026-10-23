@@ -1,0 +1,457 @@
+$ dotnet run --project src/Manual.Tres.Api
+Using launch settings from src\Manual.Tres.Api\Properties\launchSettings.json...
+Building...
+info: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[63]
+      User profile is available. Using 'C:\Users\2273129\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+dbug: Microsoft.Extensions.Hosting.Internal.Host[1]
+      Hosting starting
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5100
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\c3\src\Manual.Tres.Api
+dbug: Microsoft.Extensions.Hosting.Internal.Host[2]
+      Hosting started
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost:5100/health - - -
+dbug: Microsoft.Extensions.DependencyInjection.IdentityServiceCollectionExtensions+CompositeIdentityHandler[9]
+      AuthenticationScheme: Identity.BearerAndApplication was not authenticated.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /health'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'HealthResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /health'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost:5100/health - 200 - application/json;+charset=utf-8 70.7317ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost:5100/auth/login - application/json 53
+dbug: Microsoft.Extensions.DependencyInjection.IdentityServiceCollectionExtensions+CompositeIdentityHandler[9]
+      AuthenticationScheme: Identity.BearerAndApplication was not authenticated.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: POST /auth/login'
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10401]
+      An 'IServiceProvider' was created for internal use by Entity Framework.
+dbug: Microsoft.EntityFrameworkCore.Model[10601]
+      The index {'UserId'} was not created on entity type 'IdentityUserRole<string>' as the properties are already covered by the index {'UserId', 'RoleId'}.
+dbug: Microsoft.EntityFrameworkCore.Model[10601]
+      The index {'UserId'} was not created on entity type 'IdentityUserToken<string>' as the properties are already covered by the index {'UserId', 'LoginProvider', 'Name'}.
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10403]
+      Entity Framework Core 10.0.4 initialized 'AppIdentityDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL:10.0.3+5e912bf071068a44e5abbdab497b313ba99d3ee1' with options: None
+dbug: Microsoft.EntityFrameworkCore.Query[10111]
+      Compiling query expression: 
+      'DbSet<AppUser>()
+          .FirstOrDefault(u => u.NormalizedUserName == @normalizedUserName)'
+dbug: Microsoft.EntityFrameworkCore.Query[10107]
+      Generated query execution expression: 
+      'queryContext => ShapedQueryCompilingExpressionVisitor.SingleOrDefaultAsync<AppUser>(
+          asyncEnumerable: SingleQueryingEnumerable.Create<AppUser>(
+              relationalQueryContext: (RelationalQueryContext)queryContext, 
+              relationalCommandResolver: parameters => [LIFTABLE Constant: RelationalCommandCache.QueryExpression(
+                  Projection Mapping:
+                      EmptyProjectionMember -> Dictionary<IPropertyBase, int> { [Property: AppUser.Id (string) Required PK AfterSave:Throw, 0], [Property: AppUser.AccessFailedCount (int) Required, 1], [Property: AppUser.ConcurrencyStamp (string) Concurrency, 2], [Property: AppUser.Email (string) MaxLength(256), 3], [Property: AppUser.EmailConfirmed (bool) Required, 4], [Property: AppUser.LockoutEnabled (bool) Required, 5], [Property: AppUser.LockoutEnd (DateTimeOffset?), 6], [Property: AppUser.NormalizedEmail (string) Index MaxLength(256), 7], [Property: AppUser.NormalizedUserName (string) Index MaxLength(256), 8], [Property: AppUser.PasswordHash (string), 9], [Property: AppUser.PhoneNumber (string), 10], [Property: AppUser.PhoneNumberConfirmed (bool) Required, 11], [Property: AppUser.SecurityStamp (string), 12], [Property: AppUser.TwoFactorEnabled (bool) Required, 13], [Property: AppUser.UserName (string) MaxLength(256), 14] }
+                  SELECT TOP(1) a.Id, a.AccessFailedCount, a.ConcurrencyStamp, a.Email, a.EmailConfirmed, a.LockoutEnabled, a.LockoutEnd, a.NormalizedEmail, a.NormalizedUserName, a.PasswordHash, a.PhoneNumber, a.PhoneNumberConfirmed, a.SecurityStamp, a.TwoFactorEnabled, a.UserName
+                  FROM AspNetUsers AS a
+                  WHERE a.NormalizedUserName == @normalizedUserName) | Resolver: c => new RelationalCommandCache(
+                  c.Dependencies.MemoryCache, 
+                  c.RelationalDependencies.QuerySqlGeneratorFactory, 
+                  c.RelationalDependencies.RelationalParameterBasedSqlProcessorFactory, 
+                  Projection Mapping:
+                      EmptyProjectionMember -> Dictionary<IPropertyBase, int> { [Property: AppUser.Id (string) Required PK AfterSave:Throw, 0], [Property: AppUser.AccessFailedCount (int) Required, 1], [Property: AppUser.ConcurrencyStamp (string) Concurrency, 2], [Property: AppUser.Email (string) MaxLength(256), 3], [Property: AppUser.EmailConfirmed (bool) Required, 4], [Property: AppUser.LockoutEnabled (bool) Required, 5], [Property: AppUser.LockoutEnd (DateTimeOffset?), 6], [Property: AppUser.NormalizedEmail (string) Index MaxLength(256), 7], [Property: AppUser.NormalizedUserName (string) Index MaxLength(256), 8], [Property: AppUser.PasswordHash (string), 9], [Property: AppUser.PhoneNumber (string), 10], [Property: AppUser.PhoneNumberConfirmed (bool) Required, 11], [Property: AppUser.SecurityStamp (string), 12], [Property: AppUser.TwoFactorEnabled (bool) Required, 13], [Property: AppUser.UserName (string) MaxLength(256), 14] }
+                  SELECT TOP(1) a.Id, a.AccessFailedCount, a.ConcurrencyStamp, a.Email, a.EmailConfirmed, a.LockoutEnabled, a.LockoutEnd, a.NormalizedEmail, a.NormalizedUserName, a.PasswordHash, a.PhoneNumber, a.PhoneNumberConfirmed, a.SecurityStamp, a.TwoFactorEnabled, a.UserName
+                  FROM AspNetUsers AS a
+                  WHERE a.NormalizedUserName == @normalizedUserName, 
+                  False, 
+                  Parameter
+              )].GetRelationalCommandTemplate(parameters), 
+              readerColumns: null, 
+              shaper: (queryContext, dataReader, resultContext, resultCoordinator) => 
+              {
+                  AppUser entity;
+                  entity = 
+                  {
+                      MaterializationContext materializationContext1;
+                      IEntityType entityType1;
+                      AppUser instance1;
+                      InternalEntityEntry entry1;
+                      bool hasNullKey1;
+                      materializationContext1 = new MaterializationContext(
+                          [LIFTABLE Constant: ValueBuffer | Resolver: _ => (object)ValueBuffer.Empty], 
+                          queryContext.Context
+                      );
+                      instance1 = default(AppUser);
+                      entry1 = queryContext.TryGetEntry(
+                          key: [LIFTABLE Constant: Key: AppUser.Id PK | Resolver: c => c.Dependencies.Model.FindEntityType("Manual.Tres.Infrastructure.Persistence.Identity.AppUser").FindPrimaryKey()], 
+                          keyValues: new object[]{ (object)dataReader.GetString(0) }, 
+                          throwOnNullKey: True, 
+                          hasNullKey: hasNullKey1);
+                      !(hasNullKey1) ? entry1 != default(InternalEntityEntry) ? 
+                      {
+                          entityType1 = entry1.EntityType;
+                          return instance1 = (AppUser)entry1.Entity;
+                      } : 
+                      {
+                          ISnapshot shadowSnapshot1;
+                          shadowSnapshot1 = [LIFTABLE Constant: Snapshot | Resolver: _ => Snapshot.Empty];
+                          entityType1 = [LIFTABLE Constant: EntityType: AppUser | Resolver: namelessParameter{0} => namelessParameter{0}.Dependencies.Model.FindEntityType("Manual.Tres.Infrastructure.Persistence.Identity.AppUser")];
+                          instance1 = switch (entityType1)
+                          {
+                              case [LIFTABLE Constant: EntityType: AppUser | Resolver: namelessParameter{1} => namelessParameter{1}.Dependencies.Model.FindEntityType("Manual.Tres.Infrastructure.Persistence.Identity.AppUser")]: 
+                                  {
+                                      return 
+                                      {
+                                          AppUser instance;
+                                          instance = new AppUser();
+                                          instance.<Id>k__BackingField = dataReader.GetString(0);
+                                          instance.<AccessFailedCount>k__BackingField = dataReader.GetInt32(1);
+                                          instance.<ConcurrencyStamp>k__BackingField = dataReader.IsDBNull(2) ? default(string) : dataReader.GetString(2);
+                                          instance.<Email>k__BackingField = dataReader.IsDBNull(3) ? default(string) : dataReader.GetString(3);
+                                          instance.<EmailConfirmed>k__BackingField = dataReader.GetBoolean(4);
+                                          instance.<LockoutEnabled>k__BackingField = dataReader.GetBoolean(5);
+                                          instance.<LockoutEnd>k__BackingField = dataReader.IsDBNull(6) ? default(DateTimeOffset?) : (DateTimeOffset?)dataReader.GetFieldValue<DateTimeOffset>(6);
+                                          instance.<NormalizedEmail>k__BackingField = dataReader.IsDBNull(7) ? default(string) : dataReader.GetString(7);
+                                          instance.<NormalizedUserName>k__BackingField = dataReader.IsDBNull(8) ? default(string) : dataReader.GetString(8);
+                                          instance.<PasswordHash>k__BackingField = dataReader.IsDBNull(9) ? default(string) : dataReader.GetString(9);
+                                          instance.<PhoneNumber>k__BackingField = dataReader.IsDBNull(10) ? default(string) : dataReader.GetString(10);
+                                          instance.<PhoneNumberConfirmed>k__BackingField = dataReader.GetBoolean(11);
+                                          instance.<SecurityStamp>k__BackingField = dataReader.IsDBNull(12) ? default(string) : dataReader.GetString(12);
+                                          instance.<TwoFactorEnabled>k__BackingField = dataReader.GetBoolean(13);
+                                          instance.<UserName>k__BackingField = dataReader.IsDBNull(14) ? default(string) : dataReader.GetString(14);
+                                          (instance is IInjectableService) ? ((IInjectableService)instance).Injected(
+                                              context: materializationContext1.Context, 
+                                              entity: instance, 
+                                              queryTrackingBehavior: TrackAll, 
+                                              structuralType: [LIFTABLE Constant: EntityType: AppUser | Resolver: namelessParameter{2} => namelessParameter{2}.Dependencies.Model.FindEntityType("Manual.Tres.Infrastructure.Persistence.Identity.AppUser")]) : default(void);
+                                          return instance;
+                                      }}
+                              default: 
+                                  default(AppUser)
+                          }
+                          ;
+                          entry1 = entityType1 == default(IEntityType) ? default(InternalEntityEntry) : queryContext.StartTracking(
+                              entityType: entityType1, 
+                              entity: instance1, 
+                              snapshot: shadowSnapshot1);
+                          return instance1;
+                      } : default(void);
+                      return instance1;
+                  };
+                  return entity;
+              }, 
+              contextType: Manual.Tres.Infrastructure.Persistence.Identity.AppIdentityDbContext, 
+              standAloneStateManager: False, 
+              detailedErrorsEnabled: False, 
+              threadSafetyChecksEnabled: True), 
+          cancellationToken: queryContext.CancellationToken)'
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (29ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteReader'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteReader' (2ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteReader' (10ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[@normalizedUserName='?'], CommandType='Text', CommandTimeout='30']
+      SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+      FROM "AspNetUsers" AS a
+      WHERE a."NormalizedUserName" = @normalizedUserName
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (55ms) [Parameters=[@normalizedUserName='?'], CommandType='Text', CommandTimeout='30']
+      SELECT a."Id", a."AccessFailedCount", a."ConcurrencyStamp", a."Email", a."EmailConfirmed", a."LockoutEnabled", a."LockoutEnd", a."NormalizedEmail", a."NormalizedUserName", a."PasswordHash", a."PhoneNumber", a."PhoneNumberConfirmed", a."SecurityStamp", a."TwoFactorEnabled", a."UserName"
+      FROM "AspNetUsers" AS a
+      WHERE a."NormalizedUserName" = @normalizedUserName
+      LIMIT 1
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10806]
+      Context 'AppIdentityDbContext' started tracking 'AppUser' entity. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see key values.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20301]
+      Closing data reader to 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20300]
+      A data reader for 't08_manual_3' on server 'tcp://localhost:5432' is being disposed after spending 71ms reading results.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 't08_manual_3' on server 'tcp://localhost:5432' (3ms).
+dbug: Microsoft.EntityFrameworkCore.Query[10111]
+      Compiling query expression: 
+      'DbSet<IdentityUserClaim<string>>()
+          .Where(uc => uc.UserId.Equals(@user_Id))
+          .Select(c => c.ToClaim())'
+dbug: Microsoft.EntityFrameworkCore.Query[10107]
+      Generated query execution expression: 
+      'queryContext => SingleQueryingEnumerable.Create<Claim>(
+          relationalQueryContext: (RelationalQueryContext)queryContext, 
+          relationalCommandResolver: parameters => [LIFTABLE Constant: RelationalCommandCache.QueryExpression(
+              Client Projections:
+                  0 -> Dictionary<IPropertyBase, int> { [Property: IdentityUserClaim<string>.Id (int) Required PK AfterSave:Throw ValueGenerated.OnAdd, 0], [Property: IdentityUserClaim<string>.ClaimType (string), 1], [Property: IdentityUserClaim<string>.ClaimValue (string), 2], [Property: IdentityUserClaim<string>.UserId (string) Required FK Index, 3] }
+              SELECT a.Id, a.ClaimType, a.ClaimValue, a.UserId
+              FROM AspNetUserClaims AS a
+              WHERE a.UserId == @user_Id) | Resolver: c => new RelationalCommandCache(
+              c.Dependencies.MemoryCache, 
+              c.RelationalDependencies.QuerySqlGeneratorFactory, 
+              c.RelationalDependencies.RelationalParameterBasedSqlProcessorFactory, 
+              Client Projections:
+                  0 -> Dictionary<IPropertyBase, int> { [Property: IdentityUserClaim<string>.Id (int) Required PK AfterSave:Throw ValueGenerated.OnAdd, 0], [Property: IdentityUserClaim<string>.ClaimType (string), 1], [Property: IdentityUserClaim<string>.ClaimValue (string), 2], [Property: IdentityUserClaim<string>.UserId (string) Required FK Index, 3] }
+              SELECT a.Id, a.ClaimType, a.ClaimValue, a.UserId
+              FROM AspNetUserClaims AS a
+              WHERE a.UserId == @user_Id, 
+              False, 
+              Parameter
+          )].GetRelationalCommandTemplate(parameters), 
+          readerColumns: null, 
+          shaper: (queryContext, dataReader, resultContext, resultCoordinator) => 
+          {
+              IdentityUserClaim<string> entity;
+              entity = 
+              {
+                  MaterializationContext materializationContext1;
+                  IEntityType entityType1;
+                  IdentityUserClaim<string> instance1;
+                  InternalEntityEntry entry1;
+                  bool hasNullKey1;
+                  materializationContext1 = new MaterializationContext(
+                      [LIFTABLE Constant: ValueBuffer | Resolver: _ => (object)ValueBuffer.Empty], 
+                      queryContext.Context
+                  );
+                  instance1 = default(IdentityUserClaim<string>);
+                  entry1 = queryContext.TryGetEntry(
+                      key: [LIFTABLE Constant: Key: IdentityUserClaim<string>.Id PK | Resolver: c => c.Dependencies.Model.FindEntityType("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>").FindPrimaryKey()], 
+                      keyValues: new object[]{ (object)dataReader.GetInt32(0) }, 
+                      throwOnNullKey: True, 
+                      hasNullKey: hasNullKey1);
+                  !(hasNullKey1) ? entry1 != default(InternalEntityEntry) ? 
+                  {
+                      entityType1 = entry1.EntityType;
+                      return instance1 = (IdentityUserClaim<string>)entry1.Entity;
+                  } : 
+                  {
+                      ISnapshot shadowSnapshot1;
+                      shadowSnapshot1 = [LIFTABLE Constant: Snapshot | Resolver: _ => Snapshot.Empty];
+                      entityType1 = [LIFTABLE Constant: EntityType: IdentityUserClaim<string> | Resolver: namelessParameter{0} => namelessParameter{0}.Dependencies.Model.FindEntityType("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>")];
+                      instance1 = switch (entityType1)
+                      {
+                          case [LIFTABLE Constant: EntityType: IdentityUserClaim<string> | Resolver: namelessParameter{1} => namelessParameter{1}.Dependencies.Model.FindEntityType("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>")]: 
+                              {
+                                  return 
+                                  {
+                                      IdentityUserClaim<string> instance;
+                                      instance = new IdentityUserClaim<string>();
+                                      instance.<Id>k__BackingField = dataReader.GetInt32(0);
+                                      instance.<ClaimType>k__BackingField = dataReader.IsDBNull(1) ? default(string) : dataReader.GetString(1);
+                                      instance.<ClaimValue>k__BackingField = dataReader.IsDBNull(2) ? default(string) : dataReader.GetString(2);
+                                      instance.<UserId>k__BackingField = dataReader.GetString(3);
+                                      (instance is IInjectableService) ? ((IInjectableService)instance).Injected(
+                                          context: materializationContext1.Context, 
+                                          entity: instance, 
+                                          queryTrackingBehavior: TrackAll, 
+                                          structuralType: [LIFTABLE Constant: EntityType: IdentityUserClaim<string> | Resolver: namelessParameter{2} => namelessParameter{2}.Dependencies.Model.FindEntityType("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>")]) : default(void);
+                                      return instance;
+                                  }}
+                          default: 
+                              default(IdentityUserClaim<string>)
+                      }
+                      ;
+                      entry1 = entityType1 == default(IEntityType) ? default(InternalEntityEntry) : queryContext.StartTracking(
+                          entityType: entityType1, 
+                          entity: instance1, 
+                          snapshot: shadowSnapshot1);
+                      return instance1;
+                  } : default(void);
+                  return instance1;
+              };
+              return entity.ToClaim();
+          }, 
+          contextType: Manual.Tres.Infrastructure.Persistence.Identity.AppIdentityDbContext, 
+          standAloneStateManager: False, 
+          detailedErrorsEnabled: False, 
+          threadSafetyChecksEnabled: True)'
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteReader'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteReader' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteReader' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[@user_Id='?'], CommandType='Text', CommandTimeout='30']
+      SELECT a."Id", a."ClaimType", a."ClaimValue", a."UserId"
+      FROM "AspNetUserClaims" AS a
+      WHERE a."UserId" = @user_Id
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@user_Id='?'], CommandType='Text', CommandTimeout='30']
+      SELECT a."Id", a."ClaimType", a."ClaimValue", a."UserId"
+      FROM "AspNetUserClaims" AS a
+      WHERE a."UserId" = @user_Id
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20301]
+      Closing data reader to 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20300]
+      A data reader for 't08_manual_3' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 't08_manual_3' on server 'tcp://localhost:5432' (0ms).
+info: Microsoft.AspNetCore.Authentication.BearerToken.BearerTokenHandler[1]
+      AuthenticationScheme: Identity.Bearer signed in.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: POST /auth/login'
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10407]
+      'AppIdentityDbContext' disposed.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database 't08_manual_3' on server 'tcp://localhost:5432' (1ms).
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost:5100/auth/login - 200 - application/json;+charset=utf-8 1584.9049ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost:5100/items - - -
+dbug: Microsoft.Extensions.DependencyInjection.IdentityServiceCollectionExtensions+CompositeIdentityHandler[8]
+      AuthenticationScheme: Identity.BearerAndApplication was successfully authenticated.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /items/'
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10403]
+      Entity Framework Core 10.0.4 initialized 'AppDbContext' using provider 'Npgsql.EntityFrameworkCore.PostgreSQL:10.0.3+5e912bf071068a44e5abbdab497b313ba99d3ee1' with options: None
+dbug: Microsoft.EntityFrameworkCore.Query[10111]
+      Compiling query expression: 
+      'DbSet<Item>()
+          .AsNoTracking()
+          .OrderBy(item => item.Id)'
+dbug: Microsoft.EntityFrameworkCore.Query[10107]
+      Generated query execution expression: 
+      'queryContext => SingleQueryingEnumerable.Create<Item>(
+          relationalQueryContext: (RelationalQueryContext)queryContext, 
+          relationalCommandResolver: parameters => [LIFTABLE Constant: RelationalCommandCache.QueryExpression(
+              Projection Mapping:
+                  EmptyProjectionMember -> Dictionary<IPropertyBase, int> { [Property: Item.Id (int) Required PK AfterSave:Throw ValueGenerated.OnAdd, 0], [Property: Item.Title (string) Required MaxLength(200), 1] }
+              SELECT i.Id, i.Title
+              FROM Items AS i
+              ORDER BY i.Id ASC) | Resolver: c => new RelationalCommandCache(
+              c.Dependencies.MemoryCache, 
+              c.RelationalDependencies.QuerySqlGeneratorFactory, 
+              c.RelationalDependencies.RelationalParameterBasedSqlProcessorFactory, 
+              Projection Mapping:
+                  EmptyProjectionMember -> Dictionary<IPropertyBase, int> { [Property: Item.Id (int) Required PK AfterSave:Throw ValueGenerated.OnAdd, 0], [Property: Item.Title (string) Required MaxLength(200), 1] }
+              SELECT i.Id, i.Title
+              FROM Items AS i
+              ORDER BY i.Id ASC, 
+              False, 
+              Parameter
+          )].GetRelationalCommandTemplate(parameters), 
+          readerColumns: null, 
+          shaper: (queryContext, dataReader, resultContext, resultCoordinator) => 
+          {
+              Item entity;
+              entity = 
+              {
+                  MaterializationContext materializationContext1;
+                  IEntityType entityType1;
+                  Item instance1;
+                  materializationContext1 = new MaterializationContext(
+                      [LIFTABLE Constant: ValueBuffer | Resolver: _ => (object)ValueBuffer.Empty], 
+                      queryContext.Context
+                  );
+                  instance1 = default(Item);
+                  (object)dataReader.GetInt32(0) != null ? 
+                  {
+                      ISnapshot shadowSnapshot1;
+                      shadowSnapshot1 = [LIFTABLE Constant: Snapshot | Resolver: _ => Snapshot.Empty];
+                      entityType1 = [LIFTABLE Constant: EntityType: Item | Resolver: namelessParameter{0} => namelessParameter{0}.Dependencies.Model.FindEntityType("Manual.Tres.Domain.Items.Item")];
+                      instance1 = switch (entityType1)
+                      {
+                          case [LIFTABLE Constant: EntityType: Item | Resolver: namelessParameter{1} => namelessParameter{1}.Dependencies.Model.FindEntityType("Manual.Tres.Domain.Items.Item")]: 
+                              {
+                                  return 
+                                  {
+                                      Item instance;
+                                      instance = new Item();
+                                      instance.<Id>k__BackingField = dataReader.GetInt32(0);
+                                      instance.<Title>k__BackingField = dataReader.GetString(1);
+                                      (instance is IInjectableService) ? ((IInjectableService)instance).Injected(
+                                          context: materializationContext1.Context, 
+                                          entity: instance, 
+                                          queryTrackingBehavior: NoTracking, 
+                                          structuralType: [LIFTABLE Constant: EntityType: Item | Resolver: namelessParameter{2} => namelessParameter{2}.Dependencies.Model.FindEntityType("Manual.Tres.Domain.Items.Item")]) : default(void);
+                                      return instance;
+                                  }}
+                          default: 
+                              default(Item)
+                      }
+                      ;
+                      return instance1;
+                  } : 
+                  {
+                      object[] keyValues1;
+                      keyValues1 = new object[]{ (object)dataReader.GetInt32(0) };
+                      return ShapedQueryCompilingExpressionVisitor.CreateNullKeyValueInNoTrackingQuery(
+                          entityType: [LIFTABLE Constant: EntityType: Item | Resolver: namelessParameter{3} => namelessParameter{3}.Dependencies.Model.FindEntityType("Manual.Tres.Domain.Items.Item")], 
+                          properties: [LIFTABLE Constant: List<RuntimeProperty> { Property: Item.Id (int) Required PK AfterSave:Throw ValueGenerated.OnAdd } | Resolver: c => c.Dependencies.Model.FindEntityType("Manual.Tres.Domain.Items.Item").FindPrimaryKey().Properties], 
+                          keyValues: keyValues1);
+                  };
+                  return instance1;
+              };
+              return entity;
+          }, 
+          contextType: Manual.Tres.Infrastructure.Persistence.AppDbContext, 
+          standAloneStateManager: False, 
+          detailedErrorsEnabled: False, 
+          threadSafetyChecksEnabled: True)'
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20103]
+      Creating DbCommand for 'ExecuteReader'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20104]
+      Created DbCommand for 'ExecuteReader' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20106]
+      Initialized DbCommand for 'ExecuteReader' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20100]
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT i."Id", i."Title"
+      FROM "Items" AS i
+      ORDER BY i."Id"
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT i."Id", i."Title"
+      FROM "Items" AS i
+      ORDER BY i."Id"
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20301]
+      Closing data reader to 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Command[20300]
+      A data reader for 't08_manual_3' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 't08_manual_3' on server 'tcp://localhost:5432' (0ms).
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'List`1' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /items/'
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10407]
+      'AppDbContext' disposed.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 't08_manual_3' on server 'tcp://localhost:5432'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database 't08_manual_3' on server 'tcp://localhost:5432' (0ms).
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost:5100/items - 200 - application/json;+charset=utf-8 118.9062ms

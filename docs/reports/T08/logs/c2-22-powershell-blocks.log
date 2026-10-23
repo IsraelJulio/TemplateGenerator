@@ -1,0 +1,37 @@
+$ powershell.exe -NoProfile -ExecutionPolicy Bypass -File 'C:\Users\2273129\AppData\Local\Temp\claude\c--Users-2273129-Documents-Projects-TemplateGenerator\318d2cf1-dde3-4bfe-96a2-838beef3a510\scratchpad\t08-manual\scripts\c2-readme-blocks.ps1'
+PSVersion: 5.1.26100.9444
+--- bloco powershell: Autenticacao (register/login)
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    330   0    275 100     55   3609    721                              0100    330   0    275 100     55   3527    705                              0100    330   0    275 100     55   3479    695                              0
+HTTP/1.1 400 Bad Request
+Content-Type: application/problem+json
+Date: Fri, 23 Oct 2026 07:26:25 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"DuplicateUserName":["Username 'pessoa@exemplo.com' is already taken."]},"traceId":"00-bb3b87c586ac870f3f6ea28514d953b2-6782c5f889780dc5-00"}
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100   1591   0   1536 100     55  23782    851                              0100   1591   0   1536 100     55  23337    835                              0100   1591   0   1536 100     55  22944    821                              0
+HTTP/1.1 200 OK
+--- bloco powershell: TOKEN
+TOKEN length=731
+--- bloco powershell: CRUD
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100     59   0     32 100     27   3474   2931                              0100     59   0     32 100     27   2964   2501                              0100     59   0     32 100     27   2637   2225                              0
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+Date: Fri, 23 Oct 2026 07:26:25 GMT
+Server: Kestrel
+Location: /items/2
+Transfer-Encoding: chunked
+
+{"id":2,"title":"Primeiro item"}
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100     34   0     34   0      0   5042      0                              0100     34   0     34   0      0   4236      0                              0100     34   0     34   0      0   3667      0                              0
+[{"id":2,"title":"Primeiro item"}]
+exit(last curl)=0
+[exit=0]

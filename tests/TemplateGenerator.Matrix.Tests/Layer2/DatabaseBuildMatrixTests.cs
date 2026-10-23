@@ -153,7 +153,7 @@ public sealed class DatabaseBuildMatrixTests
 
     /// <summary>
     /// A parte <strong>transitiva</strong> de RF-20, que ADR-0011 atribui nominalmente a esta
-    /// camada: com <c>swagger = false</c>, nenhum projeto do pacote tem os pacotes de Swagger no
+    /// camada: com <c>swagger = false</c>, nenhum projeto de <c>src/</c> tem os pacotes de Swagger no
     /// grafo de restore — nem declarados, nem arrastados por outro pacote. Com <c>true</c>, o
     /// projeto Web API tem os dois, na versão exata.
     /// </summary>

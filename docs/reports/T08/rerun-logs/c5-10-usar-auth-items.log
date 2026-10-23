@@ -1,0 +1,12 @@
+$ curl -i http://localhost:5100/items
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    165   0    165   0      0   3923      0                              0100    165   0    165   0      0   3668      0                              0100    165   0    165   0      0   3442      0                              0
+HTTP/1.1 401 Unauthorized
+Content-Type: application/problem+json
+Date: Fri, 23 Oct 2026 08:08:06 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+WWW-Authenticate: Bearer
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-53c5f1a77248e105d5b91aa8621c7092-75b9103fd74e9ec6-00"}[exit=0]

@@ -1,0 +1,9 @@
+$ curl -i -X PUT http://localhost:5100/items/1 -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"title":"Item renomeado"}'
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100     26   0      0 100     26      0    994                              0100     26   0      0 100     26      0    893                              0100     26   0      0 100     26      0    812                              0
+HTTP/1.1 204 No Content
+Date: Fri, 23 Oct 2026 08:05:49 GMT
+Server: Kestrel
+
+[exit=0]
