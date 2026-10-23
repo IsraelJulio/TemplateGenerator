@@ -268,10 +268,36 @@ public sealed class IdentityRuntimeTests
             Assert.Equal(HttpStatusCode.NoContent, replaced.StatusCode);
         }
 
+        // --- A gestão da conta é protegida, como o README diz em "Usar a autenticação" (T08b). ---
+        // É também o que dá sentido ao cadeado de `/auth/manage/...` no documento OpenAPI: sem
+        // token, 401; com o `accessToken`, 200 e o e-mail da conta do token.
+        using (HttpResponseMessage manage = await anonimo.GetAsync("auth/manage/info", cancellationToken))
+        {
+            Log($"GET /auth/manage/info (sem Authorization) -> {(int)manage.StatusCode}");
+
+            Assert.Equal(HttpStatusCode.Unauthorized, manage.StatusCode);
+        }
+
+        using (HttpResponseMessage manage = await autenticado.GetAsync("auth/manage/info", cancellationToken))
+        {
+            string body = await manage.Content.ReadAsStringAsync(cancellationToken);
+
+            Log($"GET /auth/manage/info (Bearer) -> {(int)manage.StatusCode}");
+
+            Assert.Equal(HttpStatusCode.OK, manage.StatusCode);
+            Assert.Contains(Email, body, StringComparison.Ordinal);
+        }
+
         // --- RF-20 em runtime: Swagger presente ou ausente conforme a seleção. ---
         // Sem token: o documento e a interface são públicos em Development, como o README diz na
-        // seção "Swagger e autenticação".
-        await SwaggerRoutes.AssertAsync(anonimo, swagger, cancellationToken, Log);
+        // seção "Swagger e autenticação". Com Swagger, o documento declara o esquema bearer e o
+        // requisito só nas operações protegidas (T08b).
+        await SwaggerRoutes.AssertAsync(
+            anonimo,
+            swagger,
+            request.Authentication,
+            cancellationToken,
+            Log);
 
         // --- Reinício: o usuário cadastrado e o item continuam no banco. ---
         await runtime.StopAsync();

@@ -65,3 +65,12 @@ curl -i http://localhost:5100/items -H 'Authorization: Bearer COLE_O_ACCESS_TOKE
 A primeira chamada responde `401`; a segunda, `200`. **Qualquer token válido serve**: não há papel,
 não há claim exigida e não há dono de registro — quem está autenticado enxerga e altera os mesmos
 itens que todo mundo.
+
+A gestão da conta também é protegida. As rotas de `/auth/manage/...` — `GET` e
+`POST /auth/manage/info`, que leem e alteram o e-mail e a senha da conta do token, e
+`POST /auth/manage/2fa`, da autenticação em dois fatores — respondem `401` sem token, como o CRUD.
+Com ele, a leitura devolve `200` e o e-mail da conta:
+
+```bash
+curl -i http://localhost:5100/auth/manage/info -H 'Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI'
+```

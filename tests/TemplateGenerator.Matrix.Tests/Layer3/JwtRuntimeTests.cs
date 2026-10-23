@@ -208,8 +208,9 @@ public abstract class JwtRuntimeTests(JwtRuntimeFixture fixture)
         using HttpClient anonimo = _fixture.Client();
 
         // Sem token: o documento e a interface são públicos em Development, como o README diz na
-        // seção "Swagger e autenticação".
-        await SwaggerRoutes.AssertAsync(anonimo, _fixture.Swagger, cancellationToken, Log);
+        // seção "Swagger e autenticação". Com Swagger, o documento declara o esquema bearer com
+        // formato JWT e o requisito só no CRUD (T08b).
+        await SwaggerRoutes.AssertAsync(anonimo, _fixture.Swagger, "jwt", cancellationToken, Log);
     }
 
     /// <summary>

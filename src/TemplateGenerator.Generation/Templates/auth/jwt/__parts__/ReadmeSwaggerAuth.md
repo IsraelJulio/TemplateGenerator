@@ -1,10 +1,17 @@
 ### Swagger e autenticação
 
 O documento e a interface são **públicos** em `Development`, como `GET /health`: abrir
-`/swagger` não pede token, mesmo com `Jwt:Authority` vazio. O CRUD de `Item`, não — e a interface
-**não tem o botão *Authorize***, porque o documento OpenAPI desta combinação não declara esquema
-de segurança. As rotas de `/items` aparecem na interface, com contrato e exemplos, mas o *Try it
-out* delas responde `401`: a interface não tem como mandar o cabeçalho `Authorization`.
+`/swagger` não pede token, mesmo com `Jwt:Authority` vazio. As rotas do CRUD de `/items` exigem
+token e aparecem com um cadeado, e a interface tem o botão *Authorize*, porque o documento OpenAPI
+desta combinação declara o esquema de segurança `bearer`, com formato `JWT`. Para usá-lo:
 
-Use a interface para ler o contrato e faça as chamadas autenticadas pelos comandos de **Testar o
-CRUD de `Item`**, com o token do seu provedor.
+1. Peça um token ao **seu** provedor, como na seção **Testar o CRUD de `Item`**. Esta aplicação não
+   emite token nenhum, e a interface não tem onde pedi-lo.
+2. Clique em *Authorize*, cole **só o token** — sem a palavra `Bearer`, que a interface acrescenta
+   sozinha — e confirme.
+
+Daí em diante, o *Try it out* das rotas com cadeado manda o cabeçalho
+`Authorization: Bearer <token>`: com um token que passe nas quatro conferências da seção
+**Autenticação**, `GET /items` responde `200`. Sem passar por *Authorize*, com `Jwt:Authority`
+vazio, ou com assinatura, emissor, audiência ou validade errados, as mesmas rotas respondem `401`.
+`GET /health` não tem cadeado e funciona sem token.

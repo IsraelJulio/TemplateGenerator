@@ -25,6 +25,10 @@ namespace TemplateGenerator.Matrix.Tests.Layer3;
 ///   <c>/items</c> — o gerador nativo enxergou os endpoints, e não devolveu um esqueleto vazio;
 ///   </description></item>
 ///   <item><description>
+///   o documento declara o esquema <em>bearer</em> se e somente se há autenticação, e o requisito
+///   vai só nas operações protegidas (T08b) — ver <c>SecurityDeclaration</c>;
+///   </description></item>
+///   <item><description>
 ///   <c>/swagger/index.html</c> é HTML — a interface do Swashbuckle subiu;
 ///   </description></item>
 ///   <item><description>
@@ -45,13 +49,30 @@ internal static class SwaggerRoutes
         ["openapi/v1.json", "swagger", "swagger/index.html"];
 
     /// <summary>
+    /// As chaves de um <em>path item</em> que são operação. As outras (<c>parameters</c>,
+    /// <c>summary</c>…) descrevem o caminho, e não pedem nem dispensam token.
+    /// </summary>
+    private static readonly string[] _httpMethods =
+        ["get", "put", "post", "delete", "options", "head", "patch", "trace"];
+
+    /// <summary>
     /// Confere as rotas de documentação de uma aplicação em execução contra
     /// <paramref name="expected"/>: <see langword="true"/> = documento e interface servidos;
     /// <see langword="false"/> = nenhuma rota de documentação.
     /// </summary>
+    /// <param name="client">Cliente <strong>sem</strong> token: a documentação é pública.</param>
+    /// <param name="expected">Se a combinação marcou Swagger.</param>
+    /// <param name="authentication">
+    /// O valor de <c>authentication</c> da combinação. Com Swagger, ele decide o que o documento
+    /// declara de segurança (T08b): esquema <em>bearer</em> se e somente se for diferente de
+    /// <c>none</c>, e o requisito só nas operações protegidas.
+    /// </param>
+    /// <param name="cancellationToken">Cancelamento do teste.</param>
+    /// <param name="log">Onde registrar cada chamada, para a evidência.</param>
     public static async Task AssertAsync(
         HttpClient client,
         bool expected,
+        string authentication,
         CancellationToken cancellationToken,
         Action<string>? log = null)
     {
@@ -96,19 +117,11 @@ internal static class SwaggerRoutes
                     "endpoints da aplicação (ADR-0001).");
             }
 
-            // O README de `swagger + auth` afirma que a interface não tem botão *Authorize*
-            // "porque o documento OpenAPI desta combinação não declara esquema de segurança".
-            // Esta é a guarda dessa frase: no dia em que alguém declarar o esquema bearer, o
-            // teste cai e manda reescrever a subseção "Swagger e autenticação" junto.
-            bool declaresSecurity =
-                json.RootElement.TryGetProperty("security", out _) ||
-                (json.RootElement.TryGetProperty("components", out JsonElement components) &&
-                    components.TryGetProperty("securitySchemes", out _));
-
-            Assert.False(
-                declaresSecurity,
-                "O documento OpenAPI passou a declarar esquema de segurança. O README de " +
-                "'swagger + auth' diz o contrário (subseção 'Swagger e autenticação'): atualize-o.");
+            // T08b: o README de `swagger + auth` afirma que a interface tem o botão *Authorize*
+            // "porque o documento OpenAPI desta combinação declara o esquema de segurança
+            // `bearer`", e que as rotas com cadeado são as protegidas. Esta é a guarda das duas
+            // frases — e, sem autenticação, a guarda de que nada de segurança vaza para o documento.
+            SecurityDeclaration(json.RootElement, authentication, log);
         }
 
         using (HttpResponseMessage ui = await client.GetAsync("swagger/index.html", cancellationToken))
@@ -133,4 +146,151 @@ internal static class SwaggerRoutes
                 "ADR-0001 o admite apenas como interface.");
         }
     }
+
+    /// <summary>
+    /// O que o documento declara de segurança, contra a autenticação da combinação (T08b).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>Sem autenticação:</strong> nem <c>components.securitySchemes</c>, nem
+    /// <c>security</c> na raiz, nem <c>security</c> em operação nenhuma.
+    /// </para>
+    /// <para>
+    /// <strong>Com autenticação:</strong> um esquema <c>http</c>/<c>bearer</c> — com
+    /// <c>bearerFormat: JWT</c> no JWT e <strong>sem</strong> ele no Identity, cujo token é opaco —,
+    /// nenhum requisito global na raiz, e o requisito em cada operação <strong>se e somente se</strong>
+    /// ela é protegida: todas as de <c>/items</c> e, com Identity, todas as de
+    /// <c>/auth/manage/...</c>. Qualquer outra — <c>/health</c>, <c>/auth/register</c>,
+    /// <c>/auth/login</c>, <c>/auth/refresh</c> e as de e-mail do Identity — fica sem cadeado. A
+    /// igualdade nos dois sentidos é o que pega os dois defeitos prováveis: o requisito aplicado em
+    /// bloco a todas as operações, e o filtro de metadado que não enxerga o grupo de
+    /// <c>MapIdentityApi</c>.
+    /// </para>
+    /// </remarks>
+    private static void SecurityDeclaration(
+        JsonElement document,
+        string authentication,
+        Action<string>? log)
+    {
+        bool authenticated = !string.Equals(authentication, "none", StringComparison.Ordinal);
+        bool identity = string.Equals(authentication, "identity", StringComparison.Ordinal);
+
+        Assert.False(
+            document.TryGetProperty("security", out _),
+            "O documento OpenAPI declara 'security' na raiz, o que poria cadeado em toda operação " +
+            "— inclusive em '/health', que é pública em qualquer combinação (RF-12).");
+
+        JsonElement schemes = default;
+        bool declaresSchemes =
+            document.TryGetProperty("components", out JsonElement components) &&
+            components.TryGetProperty("securitySchemes", out schemes);
+
+        log?.Invoke(
+            $"/openapi/v1.json (authentication={authentication}) components.securitySchemes: " +
+            (declaresSchemes ? schemes.GetRawText().ReplaceLineEndings(" ") : "(ausente)"));
+
+        Assert.True(
+            declaresSchemes == authenticated,
+            $"Com authentication = {authentication}, o documento OpenAPI " +
+            $"{(declaresSchemes ? "declara" : "não declara")} 'components.securitySchemes'. O " +
+            "esquema bearer — e com ele o botão Authorize — existe se e somente se há autenticação " +
+            "(T08b, critérios 1 e 3).");
+
+        HashSet<string> schemeNames = new(StringComparer.Ordinal);
+
+        if (declaresSchemes)
+        {
+            foreach (JsonProperty scheme in schemes.EnumerateObject())
+            {
+                schemeNames.Add(scheme.Name);
+
+                Assert.Equal("http", scheme.Value.GetProperty("type").GetString());
+                Assert.Equal(
+                    "bearer",
+                    scheme.Value.GetProperty("scheme").GetString(),
+                    StringComparer.OrdinalIgnoreCase);
+
+                bool hasFormat = scheme.Value.TryGetProperty("bearerFormat", out JsonElement format);
+
+                if (identity)
+                {
+                    Assert.False(
+                        hasFormat,
+                        $"O esquema '{scheme.Name}' do Identity declara bearerFormat " +
+                        $"'{(hasFormat ? format.GetString() : null)}'. O token do Identity é bearer " +
+                        "próprio e opaco, não JWT (generated-projects.md, 'identity').");
+                }
+                else
+                {
+                    Assert.True(
+                        hasFormat && format.GetString() == "JWT",
+                        $"O esquema '{scheme.Name}' de authentication = {authentication} não " +
+                        "declara bearerFormat 'JWT'.");
+                }
+            }
+
+            Assert.Single(schemeNames);
+        }
+
+        int protectedOperations = 0;
+        int manageOperations = 0;
+
+        foreach (JsonProperty path in document.GetProperty("paths").EnumerateObject())
+        {
+            bool items =
+                path.Name.Equals("/items", StringComparison.Ordinal) ||
+                path.Name.StartsWith("/items/", StringComparison.Ordinal);
+            bool manage = identity && path.Name.StartsWith("/auth/manage/", StringComparison.Ordinal);
+            bool shouldRequire = authenticated && (items || manage);
+
+            foreach (JsonProperty operation in path.Value.EnumerateObject()
+                .Where(entry => _httpMethods.Contains(entry.Name, StringComparer.Ordinal)))
+            {
+                string[] required = RequiredSchemes(operation.Value);
+                bool requires = required.Length > 0;
+
+                log?.Invoke(
+                    $"  {operation.Name.ToUpperInvariant()} {path.Name} security: " +
+                    (requires ? string.Join(", ", required) : "(nenhum)"));
+
+                Assert.True(
+                    requires == shouldRequire,
+                    $"Com authentication = {authentication}, a operação " +
+                    $"{operation.Name.ToUpperInvariant()} {path.Name} " +
+                    $"{(requires ? "exige" : "não exige")} segurança no documento. O requisito vai " +
+                    "só nas operações protegidas: o CRUD de /items e, com Identity, " +
+                    "/auth/manage/... (T08b, critério 2).");
+
+                Assert.All(required, name => Assert.Contains(name, schemeNames));
+
+                protectedOperations += requires ? 1 : 0;
+                manageOperations += requires && manage ? 1 : 0;
+            }
+        }
+
+        // Sanidade: os cinco verbos do CRUD, e ao menos uma rota de gestão da conta no Identity.
+        // Sem isto, um documento sem `/items` faria o laço acima passar por vacuidade.
+        Assert.True(
+            !authenticated || protectedOperations >= 5,
+            $"Só {protectedOperations} operação(ões) com requisito de segurança; o CRUD tem cinco.");
+        Assert.True(
+            !identity || manageOperations >= 1,
+            "Nenhuma operação de /auth/manage/... com requisito de segurança. O MapIdentityApi " +
+            "exige autorização nelas, e o documento precisa dizer isso.");
+    }
+
+    /// <summary>
+    /// Os nomes de esquema que uma operação exige em <c>security</c>, ou nenhum.
+    /// </summary>
+    private static string[] RequiredSchemes(JsonElement operation) =>
+        operation.ValueKind == JsonValueKind.Object &&
+        operation.TryGetProperty("security", out JsonElement security) &&
+        security.ValueKind == JsonValueKind.Array
+            ?
+            [
+                .. security.EnumerateArray()
+                    .SelectMany(requirement => requirement.EnumerateObject())
+                    .Select(scheme => scheme.Name),
+            ]
+            : [];
 }

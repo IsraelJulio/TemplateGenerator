@@ -69,7 +69,7 @@ public sealed class GeneratedProjectRuntimeTests
 
         // RF-20 na parte observável: com Swagger marcado, documento e interface respondem em
         // Development — e o documento é o nativo, não o do Swashbuckle (ADR-0001).
-        await SwaggerRoutes.AssertAsync(client, expected: true, cancellationToken);
+        await SwaggerRoutes.AssertAsync(client, expected: true, "none", cancellationToken);
 
         await OsDadosSomemNoReinicio(project, cancellationToken);
     }
@@ -95,7 +95,7 @@ public sealed class GeneratedProjectRuntimeTests
         // A aplicação está no ar e atendendo — o 404 abaixo não é de um processo que não subiu.
         await SaudeEhPublica(client, cancellationToken);
 
-        await SwaggerRoutes.AssertAsync(client, expected: false, cancellationToken);
+        await SwaggerRoutes.AssertAsync(client, expected: false, "none", cancellationToken);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed class GeneratedProjectRuntimeTests
 
         // A contraparte do teste acima e o fecho de RF-20: a opção desmarcada não deixa rota para
         // trás — nem o documento nativo, nem a interface do Swashbuckle.
-        await SwaggerRoutes.AssertAsync(client, expected: false, cancellationToken);
+        await SwaggerRoutes.AssertAsync(client, expected: false, "none", cancellationToken);
     }
 
     [Fact]
