@@ -386,6 +386,50 @@
       "report": "docs/reports/T09.md"
     },
     {
+      "id": "T08b",
+      "startedAt": "2026-10-23",
+      "pullRequest": null,
+      "order": 9.2,
+      "title": "Botao Authorize no Swagger e rotas /auth/manage no README",
+      "state": "in_progress",
+      "dependsOn": [
+        "T08"
+      ],
+      "roles": [
+        "template-engineer",
+        "qa"
+      ],
+      "skills": [
+        "dotnet-templates",
+        "verify-mvp"
+      ],
+      "context": [
+        "docs/decisions/adr-0001-swagger.md",
+        "docs/architecture/generated-projects.md",
+        "docs/decisions/adr-0011-contribuicao-por-marcador.md",
+        "docs/decisions/adr-0015-contribuicao-le-eixo-anterior.md",
+        "docs/quality/test-strategy.md",
+        "docs/reports/T08.md"
+      ],
+      "objective": "Fechar a lacuna registrada em T08: com swagger e autenticacao, o documento OpenAPI declara o esquema bearer e a interface ganha o botao Authorize; e o README de identity cita as rotas /auth/manage/*.",
+      "acceptanceCriteria": [
+        "Com swagger = true e authentication = identity ou jwt, o documento OpenAPI declara um esquema de seguranca bearer em components.securitySchemes, e a interface do Swashbuckle mostra o botao Authorize. Origem: lacuna registrada em T08 (generated-projects.md, 'O que jwt deliberadamente nao faz'), pedida pelo usuario.",
+        "A exigencia de seguranca vai so nas operacoes que exigem autenticacao (o CRUD de /items e, com identity, /auth/manage/*). /health, /auth/register, /auth/login e /auth/refresh nao aparecem como protegidas no documento.",
+        "Com authentication = none, ou com swagger = false, o documento nao declara esquema de seguranca nenhum e nada novo entra no pacote; nenhuma PackageReference nova alem das duas de ADR-0001 em nenhuma combinacao.",
+        "A composicao segue ADR-0011 e ADR-0015: a contribuicao de seguranca vem de auth/identity e auth/jwt e e lida para tras por swagger/enabled; sem condicional, laco ou expressao em template.",
+        "Em runtime, com o token (Identity: o accessToken de POST /auth/login; JWT: um token valido do emissor de teste de ADR-0006), uma chamada a /items com o cabecalho que a interface envia apos Authorize responde 200, e sem ele 401.",
+        "O README de swagger + auth explica o botao Authorize e de onde vem o token, e o README de identity cita as rotas /auth/manage/* como protegidas. Origem: observacao do reviewer de T08, rodada 1.",
+        "A guarda de SwaggerRoutes (camada 3) que hoje afirma 'sem securitySchemes' passa a afirmar o esquema presente se e somente se ha autenticacao, e as camadas 1, 2 e 3 continuam verdes."
+      ],
+      "verifications": [
+        "Camada 1 nas 32, conferindo o marcador de seguranca presente so nas combinacoes com swagger e autenticacao.",
+        "Camadas 2 e 3, com o documento OpenAPI inspecionado em runtime nas linhas com e sem autenticacao.",
+        "Interface do Swagger aberta em navegador numa combinacao identity + swagger: Authorize com o token do login e Try it out em /items respondendo 200, com captura de tela."
+      ],
+      "blockers": [],
+      "report": "docs/reports/T08b.md"
+    },
+    {
       "id": "T09b",
       "pullRequest": null,
       "order": 9.5,
