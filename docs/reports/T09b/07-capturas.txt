@@ -1,0 +1,97 @@
+T09b - as quatro capturas de tela desta pasta: comando, fonte e reproducao
+Branch fix/T09b-corrigir-a-corrida-entre-a-troca-de-opcao-e-a-leit, arvore de trabalho sem commit sobre 5f3b714.
+
+O que elas mostram. Estado da tela com o relogio da pagina parado logo depois da seta, por
+teclado (foco no 1o radio do 1o grupo + ArrowDown):
+  1-render-parado-{desktop,celular}.png  o 2o radio ja esta marcado; o resumo e a arvore ainda
+                                         mostram a arquitetura anterior (o render nao aconteceu)
+  2-render-feito-{desktop,celular}.png   depois de soltar o relogio e esperar a arvore nova
+Sao fullPage. Desktop: 1440x900 (projeto "desktop"); celular: Pixel 7 (projeto "celular").
+
+== 1. A execucao que gerou os arquivos commitados em 5f3b714 (codigo da rodada 1)
+Concluida em: 2026-10-23T13:22:01Z (UTC). O script usa stableTree e treeAfterChange, a API da
+rodada 1; nao compila mais contra o support.ts desta rodada. A reproducao com a API atual esta
+na secao 2.
+
+$ export PATH="/c/Users/2273129/AppData/Local/Microsoft/dotnet:$PATH" DOTNET_ROOT='C:\Users\2273129\AppData\Local\Microsoft\dotnet'
+$ cp /c/Users/2273129/AppData/Local/Temp/claude/c--Users-2273129-Documents-Projects-TemplateGenerator/318d2cf1-dde3-4bfe-96a2-838beef3a510/scratchpad/t09b/zz-t09b-shots.e2e.ts src/web/e2e/
+$ cd src/web && npx playwright test e2e/zz-t09b-shots.e2e.ts
+(linhas "[WebServer]" e linhas em branco removidas com: grep -v '^\[WebServer\]' | grep -v '^\s*$')
+Running 2 tests using 1 worker
+  ok 1 [desktop] › e2e\zz-t09b-shots.e2e.ts:7:5 › captura: radio ja marcado, arvore ainda anterior; depois, arvore nova (1.8s)
+  ok 2 [celular] › e2e\zz-t09b-shots.e2e.ts:7:5 › captura: radio ja marcado, arvore ainda anterior; depois, arvore nova (2.5s)
+  2 passed (17.2s)
+exit=0
+$ rm e2e/zz-t09b-shots.e2e.ts
+
+-- Fonte integral de zz-t09b-shots.e2e.ts (rodada 1)
+// CAPTURA FORA DA SUITE (T09b). Copiado para e2e/ so durante a execucao e apagado em seguida.
+import { expect, test } from '@playwright/test';
+import { openWithProjectName, pickSecondOfFirstGroup, stableTree, treeAfterChange } from './support';
+
+const SHOTS = 'C:/Users/2273129/AppData/Local/Temp/claude/c--Users-2273129-Documents-Projects-TemplateGenerator/318d2cf1-dde3-4bfe-96a2-838beef3a510/scratchpad/t09b/shots';
+
+test('captura: radio ja marcado, arvore ainda anterior; depois, arvore nova', async ({ page }, testInfo) => {
+  await page.clock.install();
+  const { form, tree: antes } = await openWithProjectName(page);
+
+  await page.clock.pauseAt(Date.now() + 1_000);
+  await pickSecondOfFirstGroup(page, form); // por teclado: foco + ArrowDown
+  expect(await stableTree(page)).toEqual(antes);
+  await page.screenshot({ path: `${SHOTS}/1-render-parado-${testInfo.project.name}.png`, fullPage: true });
+
+  await page.clock.resume();
+  const depois = await treeAfterChange(page, antes);
+  expect(depois).not.toEqual(antes);
+  await page.screenshot({ path: `${SHOTS}/2-render-feito-${testInfo.project.name}.png`, fullPage: true });
+});
+
+== 2. Reproducao com o codigo desta rodada (treeAcross), em pasta separada do scratchpad
+Iniciada em: 2026-10-23T13:52:42Z (UTC). Alem da captura, confere a premissa: o texto de .tree
+nao muda com o relogio parado.
+
+$ cp /c/Users/2273129/AppData/Local/Temp/claude/c--Users-2273129-Documents-Projects-TemplateGenerator/318d2cf1-dde3-4bfe-96a2-838beef3a510/scratchpad/t09b/zz-t09b-shots-r2.e2e.ts src/web/e2e/
+$ cd src/web && npx playwright test e2e/zz-t09b-shots-r2.e2e.ts
+(linhas "[WebServer]" e linhas em branco removidas com: grep -v '^\[WebServer\]' | grep -v '^\s*$')
+Running 2 tests using 1 worker
+  ok 1 [desktop] › e2e\zz-t09b-shots-r2.e2e.ts:7:5 › captura: radio ja marcado, arvore ainda anterior; depois, arvore nova (2.1s)
+  ok 2 [celular] › e2e\zz-t09b-shots-r2.e2e.ts:7:5 › captura: radio ja marcado, arvore ainda anterior; depois, arvore nova (2.7s)
+  2 passed (17.8s)
+exit=0
+$ rm e2e/zz-t09b-shots-r2.e2e.ts
+
+-- Fonte integral de zz-t09b-shots-r2.e2e.ts (rodada 2)
+// CAPTURA FORA DA SUITE (T09b, rodada 2). Copiado para e2e/ so durante a execucao e apagado em seguida.
+import { expect, test } from '@playwright/test';
+import { openWithProjectName, pickSecondOfFirstGroup, treeAcross } from './support';
+
+const SHOTS = 'C:/Users/2273129/AppData/Local/Temp/claude/c--Users-2273129-Documents-Projects-TemplateGenerator/318d2cf1-dde3-4bfe-96a2-838beef3a510/scratchpad/t09b/shots-r2';
+
+test('captura: radio ja marcado, arvore ainda anterior; depois, arvore nova', async ({ page }, testInfo) => {
+  await page.clock.install();
+  const { form, tree: antes } = await openWithProjectName(page);
+  const textoAntes = await page.locator('.tree').innerText();
+
+  await page.clock.pauseAt(Date.now() + 1_000);
+  await pickSecondOfFirstGroup(page, form); // por teclado: foco + ArrowDown
+  expect(await page.locator('.tree').innerText()).toBe(textoAntes); // render parado
+  await page.screenshot({ path: `${SHOTS}/1-render-parado-${testInfo.project.name}.png`, fullPage: true });
+
+  const depois = await treeAcross(page, () => page.clock.resume());
+  expect(depois).not.toEqual(antes);
+  await page.screenshot({ path: `${SHOTS}/2-render-feito-${testInfo.project.name}.png`, fullPage: true });
+});
+
+== 3. Os arquivos desta pasta sao byte a byte os da reproducao
+$ sha256sum docs/reports/T09b/*.png <scratchpad>/t09b/shots-r2/*.png
+82e4da64ac65fe8fe52d2743b390150673ca6c77d96d99c9cdd53d4d71e85faa *docs/reports/T09b/1-render-parado-celular.png
+d4aa1053910843e6ab275d53bad66e4f3041a9b5aafe11a67ca5175cb84bc3c0 *docs/reports/T09b/1-render-parado-desktop.png
+9a543198cff634d2bf1ac905580cb67f6248ca9a74c0d9b1d8bfda4ee99448c6 *docs/reports/T09b/2-render-feito-celular.png
+add36b19bd890862ebdeeed456c0c1976135dca5e4a3f7c049603c8bc4366bad *docs/reports/T09b/2-render-feito-desktop.png
+82e4da64ac65fe8fe52d2743b390150673ca6c77d96d99c9cdd53d4d71e85faa *<scratchpad>/t09b/shots-r2/1-render-parado-celular.png
+d4aa1053910843e6ab275d53bad66e4f3041a9b5aafe11a67ca5175cb84bc3c0 *<scratchpad>/t09b/shots-r2/1-render-parado-desktop.png
+9a543198cff634d2bf1ac905580cb67f6248ca9a74c0d9b1d8bfda4ee99448c6 *<scratchpad>/t09b/shots-r2/2-render-feito-celular.png
+add36b19bd890862ebdeeed456c0c1976135dca5e4a3f7c049603c8bc4366bad *<scratchpad>/t09b/shots-r2/2-render-feito-desktop.png
+$ diff <(cd docs/reports/T09b && sha256sum *.png) <(cd <scratchpad>/t09b/shots-r2 && sha256sum *.png) && echo identicos
+identicos
+exit=0

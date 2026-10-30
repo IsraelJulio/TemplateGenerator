@@ -4,10 +4,14 @@ import {
   ZIP_SIGNATURE,
   chooseNonDefault,
   expectSelection,
+  expectTreeMatchesZip,
+  generateAndOpen,
+  openWithProjectName,
   openZip,
+  pickSecondOfFirstGroup,
   readCatalog,
   saveZip,
-  treeOnScreen,
+  treeAcross,
   waitForCatalog,
   zipEntries,
 } from './support';
@@ -31,16 +35,14 @@ import {
  */
 
 test('baixa um ZIP de verdade, e o pacote é o que a tela prometeu', async ({ page }, testInfo) => {
-  await page.goto('/');
-  const form = await waitForCatalog(page);
+  // A "estrutura prevista" é lida **antes** de gerar: é a promessa que a tela
+  // fez à pessoa, e é contra ela que o pacote será conferido. Este teste não
+  // troca opção nenhuma, mas digitar o nome já muda a árvore, então ela vem
+  // de `treeAcross`, como em qualquer troca (T09b).
+  const { form, tree: prometido } = await openWithProjectName(page);
 
   await expect(page.getByRole('heading', { name: 'Gerador de projetos .NET' })).toBeVisible();
 
-  await page.getByLabel('Nome do projeto').fill(PROJECT_NAME);
-
-  // A "estrutura prevista" é lida **antes** de gerar: é a promessa que a tela
-  // fez à pessoa, e é contra ela que o pacote será conferido.
-  const prometido = await treeOnScreen(page);
   expect(prometido.length).toBeGreaterThan(20);
   expect(prometido).toContain(`src/${PROJECT_NAME}/`);
 
@@ -86,12 +88,7 @@ test('baixa um ZIP de verdade, e o pacote é o que a tela prometeu', async ({ pa
   expect(csproj).toContain('<Project Sdk=');
   expect(csproj).not.toContain('__ProjectName__');
 
-  const sobrando = prometido.filter((path) => !real.includes(path));
-  const faltando = real.filter((path) => !prometido.includes(path));
-  expect(
-    { sobrando, faltando },
-    'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
-  ).toEqual({ sobrando: [], faltando: [] });
+  expectTreeMatchesZip(prometido, real);
 
   // Estado 7 de `visual-spec.md`, agora sem dublê nenhum por trás.
   const concluido = page.locator('.notice--done');
@@ -141,39 +138,26 @@ test('gera sem mouse: foco visível, escolha por setas e envio pelo teclado', as
  * teclado. Nenhum valor é nomeado, pela mesma regra do cabeçalho deste arquivo:
  * o que se afirma é "a outra arquitetura que o catálogo oferece", seja ela qual
  * for.
+ *
+ * É o teste em que a corrida de T09b apareceu: a árvore era lida logo depois do
+ * `toBeChecked()`, que passa antes do render. Agora a troca acontece dentro de
+ * `treeAcross`, que lê a árvore antes dela e espera a nova assentar. É também o
+ * sentido 2 da prova de T09b; o sentido 1, o mesmo cenário com a leitura
+ * obsoleta, está em `tree-read.e2e.ts`.
  */
 test('a outra arquitetura do catálogo também baixa o que a tela prometeu', async ({
   page,
 }, testInfo) => {
-  await page.goto('/');
-  const form = await waitForCatalog(page);
+  const { form, tree: antes } = await openWithProjectName(page);
 
-  await page.getByLabel('Nome do projeto').fill(PROJECT_NAME);
-
-  const primeiroGrupo = form.locator('fieldset').first();
-  await primeiroGrupo.locator('input[type="radio"]').first().focus();
-  await page.keyboard.press('ArrowDown');
-  await expect(primeiroGrupo.locator('input[type="radio"]').nth(1)).toBeChecked();
-
-  const prometido = await treeOnScreen(page);
+  const prometido = await treeAcross(page, () => pickSecondOfFirstGroup(page, form));
+  // A árvore de antes é a mesma que o sentido 1 usa como leitura obsoleta.
+  expect(prometido).not.toEqual(antes);
   expect(prometido.length).toBeGreaterThan(20);
 
-  const baixando = page.waitForEvent('download', { timeout: 120_000 });
-  await form.getByRole('button', { name: 'Gerar projeto' }).click();
-  const download = await baixando;
+  const real = await generateAndOpen(page, form, testInfo);
 
-  const saved = testInfo.outputPath(download.suggestedFilename());
-  await download.saveAs(saved);
-
-  const { readFileSync } = await import('node:fs');
-  const real = zipEntries(openZip(new Uint8Array(readFileSync(saved))));
-
-  const sobrando = prometido.filter((path) => !real.includes(path));
-  const faltando = real.filter((path) => !prometido.includes(path));
-  expect(
-    { sobrando, faltando },
-    'A árvore exibida na tela divergiu do ZIP que o navegador acabou de baixar.',
-  ).toEqual({ sobrando: [], faltando: [] });
+  expectTreeMatchesZip(prometido, real);
 });
 
 /**
@@ -229,10 +213,9 @@ test('desabilita na tela o que a API marcou como sem template', async ({ page })
  * nomeado aqui.
  *
  * O que se afirma é o **manifesto** do ZIP (RF-22) contra as escolhas da tela, e
- * um conjunto de caminhos que vale em qualquer combinação. A árvore da tela não
- * é lida depois de mudar opções: essa leitura tem uma corrida conhecida, que é
- * a T09b, e a comparação árvore × ZIP já está nos testes acima e em
- * `zip-structure.spec.ts`.
+ * um conjunto de caminhos que vale em qualquer combinação. A comparação
+ * árvore × ZIP está nos testes acima e em `zip-structure.spec.ts`; quem
+ * quiser fazê-la depois de mudar opções lê a árvore com `treeAcross` (T09b).
  */
 test('uma combinação não padrão escolhida pela tela chega inteira ao manifesto do ZIP', async ({
   page,
