@@ -512,11 +512,12 @@
     },
     {
       "id": "T11",
+      "finishedAt": "2026-10-30",
       "startedAt": "2026-10-30",
       "pullRequest": null,
       "order": 11,
       "title": "Validacao em ambiente limpo e entrega local documentada",
-      "state": "in_progress",
+      "state": "done",
       "dependsOn": ["T10"],
       "roles": ["po", "qa", "reviewer"],
       "skills": ["verify-mvp"],
