@@ -11,10 +11,11 @@ namespace TemplateGenerator.Matrix.Tests.Layer4;
 /// <remarks>
 /// <para>
 /// O build é um <c>[Theory(Explicit = true)]</c> (xUnit v3). Sem o modo explícito os 32 casos
-/// <strong>não executam e não contam como aprovados</strong>, mas também <strong>não aparecem no
-/// resumo do console</strong>: ele mostra só <c>Total: 1</c> (o teste de contagem). Os 32 só ficam
-/// visíveis como <c>NotExecuted</c> num TRX (<c>--logger trx</c>). Ou seja: <c>Total: 1</c> com o
-/// filtro da camada 4 significa que a camada 4 <strong>não</strong> rodou. Comando que os executa:
+/// <strong>não executam e não contam como aprovados</strong>. O console os lista, um por linha, como
+/// <c>Skipped …A_combinacao_compila(…)</c>, mas o resumo não os conta: <c>Skipped: 0, Total: 1</c> (só
+/// o teste de contagem). O outcome real, <c>NotExecuted</c>, só aparece num TRX. O sinal confiável é o
+/// total: <c>Total: 1</c> com o filtro da camada 4 significa que ela <strong>não</strong> rodou;
+/// <c>Total: 33</c>, que rodou. Comando que os executa:
 /// </para>
 /// <code>
 /// dotnet test tests/TemplateGenerator.Matrix.Tests --filter "Camada=4" -- xUnit.Explicit=on

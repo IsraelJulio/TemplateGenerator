@@ -51,8 +51,9 @@ seja exercitado nos dois estados em runtime.
 `dotnet test tests/TemplateGenerator.Matrix.Tests --filter "Camada=4" -- xUnit.Explicit=on`
 (`Theory(Explicit = true)`). É a materialização do `--full` citado na
 [ADR-0002](../decisions/adr-0002-validacao-estratificada.md). **Sem `-- xUnit.Explicit=on` a camada 4
-não roda e o console não avisa**: mostra só `Total: 1` (o teste que confere as 32), e os 32 builds
-aparecem apenas como `NotExecuted` num TRX. O resultado que prova a camada 4 é `Total: 33`.
+não roda, e o exit code continua 0**: o console lista os 32 como linhas `Skipped …`, mas o resumo
+não os conta (`Skipped: 0, Total: 1`, só o teste que confere as 32), e o TRX os registra como
+`NotExecuted`. O resultado que prova a camada 4 é `Total: 33`.
 
 ## Provedor OIDC de teste
 

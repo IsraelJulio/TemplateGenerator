@@ -1,39 +1,161 @@
 $ npm audit --omit=dev
+# npm audit report
+
+@angular/router  22.0.0 - 22.2.0
+Severity: high
+Angular Server-Side Rendering (SSR): Denial of Service via Numeric URL Matrix Parameters - https://github.com/advisories/GHSA-ff3f-86qr-9cv3
+@angular/router: Denial of Service via Unmatched Empty-Path Outlet Route Matching in Server-Side Rendering (SSR) - https://github.com/advisories/GHSA-62vg-58rm-qff7
+@angular/router: Denial of Service via RouterLink Query Parameter Retention in Server-Side Rendering (SSR) - https://github.com/advisories/GHSA-57xq-rjx2-v5xh
+fix available via `npm audit fix`
+node_modules/@angular/router
+
+zod  <4.6.6
+Severity: high
+Zod can exhaust memory while validating oversized constrained collections - https://github.com/advisories/GHSA-mrhx-c7xc-m3w5
+fix available via `npm audit fix`
 node_modules/zod
 
 2 high severity vulnerabilities
 
 To address all issues, run:
   npm audit fix
-EXIT=0
+EXIT=1
+
 $ npm audit
+# npm audit report
+
 @angular/router  22.0.0 - 22.2.0
 Severity: high
+Angular Server-Side Rendering (SSR): Denial of Service via Numeric URL Matrix Parameters - https://github.com/advisories/GHSA-ff3f-86qr-9cv3
+@angular/router: Denial of Service via Unmatched Empty-Path Outlet Route Matching in Server-Side Rendering (SSR) - https://github.com/advisories/GHSA-62vg-58rm-qff7
+@angular/router: Denial of Service via RouterLink Query Parameter Retention in Server-Side Rendering (SSR) - https://github.com/advisories/GHSA-57xq-rjx2-v5xh
+fix available via `npm audit fix`
+node_modules/@angular/router
+
 @hono/node-server  1.19.10 - 2.1.2
 Severity: moderate
+@hono/node-server: `serveStatic` decodes the request path a second time, leading to bypass of middleware on static paths - https://github.com/advisories/GHSA-rmxm-3fg6-px4f
+fix available via `npm audit fix`
+node_modules/@hono/node-server
+
 @modelcontextprotocol/sdk  <=1.31.0
 Severity: high
+MCP TypeScript SDK: OAuth client could send credentials to an authorization server chosen by the MCP server - https://github.com/advisories/GHSA-6qxp-vccf-f47h
+MCP TypeScript SDK: Experimental tasks were not tied to the session that created them - https://github.com/advisories/GHSA-22jm-h49p-29qw
+MCP TypeScript client SDK: HTTP client transports and OAuth requests followed cross-origin redirects and re-sent custom headers and request bodies - https://github.com/advisories/GHSA-6prh-2h8m-c8cw
+MCP TypeScript SDK: One HTTP request within the default size limit could exhaust server memory during validation - https://github.com/advisories/GHSA-46jr-4wx8-v453
+MCP TypeScript SDK: Server bearer authentication accepted tokens issued for another service - https://github.com/advisories/GHSA-rvq5-wwqv-78pq
+MCP TypeScript SDK: HTTP server transports and handlers did not limit request body size or JSON-RPC batch length - https://github.com/advisories/GHSA-f897-62hf-6gxq
+fix available via `npm audit fix`
+node_modules/@modelcontextprotocol/sdk
+  @angular/cli  20.1.0-next.0 - 20.3.39 || 21.0.0-next.0 - 21.2.26 || 22.0.0-next.0 - 22.2.2 || 22.3.0-next.0 - 22.3.0-next.1
+  Depends on vulnerable versions of @modelcontextprotocol/sdk
+  Depends on vulnerable versions of zod
+  node_modules/@angular/cli
+
 @vitest/mocker  <=4.1.11
 Severity: moderate
+Vitest: Code injection via unauthenticated manual mock registration - https://github.com/advisories/GHSA-qxg6-89mg-rqv8
+Vitest: Windows backslash traversal bypasses the @vitest/mocker redirect allowlist fix - https://github.com/advisories/GHSA-xp26-3454-mjgp
+fix available via `npm audit fix --force`
+Will install vitest@4.1.12, which is outside the stated dependency range
+node_modules/@vitest/mocker
+  vitest  2.1.0-beta.1 - 4.1.11
+  Depends on vulnerable versions of @vitest/mocker
+  node_modules/vitest
+
 body-parser  2.0.0 - 2.3.0
 Severity: high
+body-parser vulnerable to Denial of Service via trailing bytes after a compressed request body - https://github.com/advisories/GHSA-27r3-jxmh-p828
+fix available via `npm audit fix`
+node_modules/body-parser
+
 fast-uri  3.0.0 - 3.1.8
 Severity: moderate
+fast-uri vulnerable to inconsistent host case normalization via percent-encoded octets - https://github.com/advisories/GHSA-hrr3-gc8f-f4qj
+fast-uri vulnerable to URI scheme spoofing via percent-encoded scheme decoding - https://github.com/advisories/GHSA-w74x-v6f9-j3xg
+fast-uri vulnerable to improper path equivalence in relative reference normalization - https://github.com/advisories/GHSA-xhq7-xmqj-769h
+fast-uri vulnerable to host confusion via unchecked WHATWG host canonicalization - https://github.com/advisories/GHSA-wjr9-j795-jxcr
+fast-uri vulnerable to scheme injection via an unescaped first-segment colon in suffix references - https://github.com/advisories/GHSA-333x-w4r6-6crp
+fix available via `npm audit fix`
+node_modules/fast-uri
+
 hono  4.12.4 - 4.13.10
 Severity: moderate
+Hono: `serveStatic` decodes the request path a second time, leading to bypass of middleware on static paths - https://github.com/advisories/GHSA-5r4p-p66f-jhc7
+fix available via `npm audit fix`
+node_modules/hono
+
 ip-address  <=10.7.3
 Severity: moderate
+ip-address: isInSubnet() and isHostInSubnet() compare addresses of different families as if they shared an address space, allowing an allowlist check to admit an address outside its range - https://github.com/advisories/GHSA-j6r3-76f7-8jcv
+ip-address: Address6 builds a parse diagnostic proportional to the input with no length bound, allowing a single long string to stall or crash the process - https://github.com/advisories/GHSA-h3mg-xc3c-68pw
+ip-address: Address6 matches a zone identifier in quadratic time ahead of its length limit, allowing a single long string to stall the process - https://github.com/advisories/GHSA-rxp7-6hxx-x8q5
+fix available via `npm audit fix`
+node_modules/ip-address
+
 piscina  5.0.0 - 5.3.1
 Severity: critical
+piscina: Prototype-pollution gadget in ThreadPool.options allows RCE via execArgv / loadBalancer / env - https://github.com/advisories/GHSA-67c8-pqhq-4rmx
+fix available via `npm audit fix`
+node_modules/piscina
+  @angular/build  20.0.0-next.0 - 20.3.37 || 21.0.0-next.0 - 21.2.24 || 22.0.0-next.0 - 22.2.0-rc.0
+  Depends on vulnerable versions of piscina
+  Depends on vulnerable versions of vite
+  node_modules/@angular/build
+
 proxy-addr  1.1.0 - 2.0.7
 Severity: critical
+proxy-addr vulnerable to IP spoofing via IPv4-mapped IPv6 trust subnet - https://github.com/advisories/GHSA-jqcg-44mw-7w3h
+fix available via `npm audit fix`
+node_modules/proxy-addr
+
 qs  6.7.0 - 6.16.0
 Severity: moderate
+qs : qs.stringify with arrayFormat 'comma' throws an uncaught TypeError on array elements carrying a non-callable own toString (DoS) - https://github.com/advisories/GHSA-6pq8-jhm2-2vcw
+fix available via `npm audit fix`
+node_modules/qs
+
 source-map-js  1.0.0 - 1.2.1
 Severity: high
+source-map-js allows event-loop denial of service through indexed source-map section offsets - https://github.com/advisories/GHSA-68fv-2mgg-jv7q
+fix available via `npm audit fix`
+node_modules/source-map-js
+
 undici  7.0.0 - 7.30.0
 Severity: high
+undici vulnerable to Denial of Service via unbounded memory in the EventSource parser - https://github.com/advisories/GHSA-4qv8-2p9j-2685
+undici vulnerable to Subresource Integrity bypass via non-lowercase algorithm tokens - https://github.com/advisories/GHSA-f72v-6w45-q472
+undici vulnerable to Denial of Service via unhandled error on excessive content-encodings - https://github.com/advisories/GHSA-xjj6-f33q-929c
+undici vulnerable to cache poisoning and cross-user disclosure via cross-origin redirects - https://github.com/advisories/GHSA-4w7w-5xrc-9h26
+undici vulnerable to TLS certificate validation bypass via dropped tls options in Agent - https://github.com/advisories/GHSA-2m5v-pch6-74hx
+undici vulnerable to Denial of Service via TLS 1.2 certificate-changing renegotiation - https://github.com/advisories/GHSA-qrxm-fqhp-jwvm
+undici WebSocket client vulnerable to Denial of Service via unbounded automatic PONG buffering - https://github.com/advisories/GHSA-9fm3-97px-rjf6
+undici vulnerable to Denial of Service via unhandled exception in the decompress interceptor - https://github.com/advisories/GHSA-55wc-3pg8-jfw6
+fix available via `npm audit fix`
+node_modules/undici
+
 vite  8.0.0 - 8.1.5
 Severity: high
+launch-editor: escapeCmdArgs() omits % escaping on Windows - https://github.com/advisories/GHSA-698v-4r3x-3vcv
+launch-editor: Editor CLI flag misinterpretation causing arbitrary command execution for some editors - https://github.com/advisories/GHSA-r825-w8mm-5pxw
+launch-editor: `fs.existsSync()` existence check can be bypassed on Windows - https://github.com/advisories/GHSA-587h-7wmj-h5pm
+Vite: Cross origin script execution through Vite custom middleware - https://github.com/advisories/GHSA-9jrq-w75r-8gcw
+Vite: Files outside `server.fs.allow` could be served when project paths match system paths on non-Windows machine - https://github.com/advisories/GHSA-rq7h-c2jc-7f22
+fix available via `npm audit fix`
+node_modules/vite
+
 zod  <4.6.6
 Severity: high
+Zod can exhaust memory while validating oversized constrained collections - https://github.com/advisories/GHSA-mrhx-c7xc-m3w5
+fix available via `npm audit fix`
+node_modules/zod
+
+18 vulnerabilities (7 moderate, 8 high, 3 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues, run:
+  npm audit fix --force
+EXIT=1
