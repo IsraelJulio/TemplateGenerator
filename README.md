@@ -117,7 +117,9 @@ PGUSER=postgres PGPASSWORD=<sua senha> dotnet test
 ```
 
 Sem `PGPASSWORD`, ou com o serviço parado, esses testes **falham** dizendo o que fazer; não são
-pulados.
+pulados. O `psql` não precisa estar no `PATH`: os testes o procuram também na instalação padrão,
+`C:\Program Files\PostgreSQL\<versão>\bin`. Para usá-lo você mesmo no terminal, ponha essa pasta
+no `PATH`.
 
 A **camada 4** compila as 32 combinações e fica fora do `dotnet test` normal, por ser longa. Rode
 explicitamente:
@@ -134,5 +136,12 @@ cd src/web
 npm run e2e:install          # uma vez por máquina: baixa o Chromium
 npm run e2e
 ```
+
+Duas linhas da saída do `npm run e2e` aparecem marcadas com `x` e "(falha de propósito)": são
+testes que **precisam** falhar para provar que a verificação tem dentes (`test.fail` do
+Playwright), e contam como aprovados. O que vale é o resumo `N passed` e o exit code 0.
+
+O `npm ci` pode imprimir avisos `npm warn allow-scripts … npm approve-scripts`. Eles não impedem
+nada: a tela sobe e os testes passam sem aprovar script algum.
 
 Estratégia completa em [`docs/quality/test-strategy.md`](docs/quality/test-strategy.md).

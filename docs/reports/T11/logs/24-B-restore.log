@@ -1,0 +1,5 @@
+$ dotnet restore
+  Determining projects to restore...
+  Restored C:\Users\2273129\tg-t11-work\run\B\src\MinhaApi\MinhaApi.csproj (in 327 ms).
+  Restored C:\Users\2273129\tg-t11-work\run\B\tests\MinhaApi.Tests\MinhaApi.Tests.csproj (in 380 ms).
+EXIT=0

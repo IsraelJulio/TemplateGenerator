@@ -1,0 +1,6 @@
+$ npm run e2e:install
+
+> web@0.0.0 e2e:install
+> playwright install chromium
+
+EXIT=0

@@ -1,0 +1,51 @@
+$ npm run e2e
+
+> web@0.0.0 e2e
+> playwright test
+
+
+Running 40 tests using 1 worker
+
+  ok  1 [desktop] › e2e\download.e2e.ts:40:5 › baixa um ZIP de verdade, e o pacote é o que a tela prometeu (3.2s)
+  ok  2 [desktop] › e2e\download.e2e.ts:102:5 › gera sem mouse: foco visível, escolha por setas e envio pelo teclado (1.7s)
+  ok  3 [desktop] › e2e\download.e2e.ts:151:5 › a outra arquitetura do catálogo também baixa o que a tela prometeu (2.1s)
+  ok  4 [desktop] › e2e\download.e2e.ts:178:5 › desabilita na tela o que a API marcou como sem template (1.0s)
+  ok  5 [desktop] › e2e\download.e2e.ts:230:5 › desabilita na tela o que a restrição do catálogo proíbe, com a razão visível (1.1s)
+  ok  6 [desktop] › e2e\download.e2e.ts:275:5 › uma combinação não padrão escolhida pela tela chega inteira ao manifesto do ZIP (1.9s)
+  ok  7 [desktop] › e2e\generation-states.e2e.ts:31:5 › mostra "gerando" com o botão bloqueado entre o clique e o download (RF-05) (1.3s)
+  ok  8 [desktop] › e2e\generation-states.e2e.ts:75:7 › envio duplicado por duplo clique gera um POST e um download só (RF-07) (1.2s)
+  ok  9 [desktop] › e2e\generation-states.e2e.ts:75:7 › envio duplicado por Enter repetido gera um POST e um download só (RF-07) (1.3s)
+  ok 10 [desktop] › e2e\generation-states.e2e.ts:125:5 › a recusa do servidor aparece no campo certo e preserva todas as escolhas (RF-06) (1.6s)
+  ok 11 [desktop] › e2e\generation-states.e2e.ts:195:5 › a recusa do servidor a uma restrição aparece no campo do catálogo e preserva as escolhas (RF-06) (1.7s)
+  ok 12 [desktop] › e2e\horizontal-overflow.e2e.ts:128:5 › a página não rola na horizontal em sete larguras e três estados de conteúdo (3.1s)
+  ok 13 [desktop] › e2e\horizontal-overflow.e2e.ts:193:9 › a sonda de transbordo › acusa elemento que passa da borda de ancestro com overflow hidden (944ms)
+  ok 14 [desktop] › e2e\horizontal-overflow.e2e.ts:193:9 › a sonda de transbordo › acusa elemento que passa da borda de ancestro com overflow clip (798ms)
+  ok 15 [desktop] › e2e\horizontal-overflow.e2e.ts:203:7 › a sonda de transbordo › não acusa o que cabe no ancestro com overflow hidden (773ms)
+  ok 16 [desktop] › e2e\horizontal-overflow.e2e.ts:208:7 › a sonda de transbordo › não acusa o que rola dentro de ancestro com overflow auto (859ms)
+  x  17 [desktop] › e2e\tree-read.e2e.ts:42:5 › T09b, sentido 1: a árvore lida antes da troca diverge do ZIP da outra arquitetura (falha de propósito) (1.7s)
+  ok 18 [desktop] › e2e\tree-read.e2e.ts:70:5 › T09b: com o render parado, a seta já marcou a opção e a árvore ainda é a anterior (6.7s)
+  ok 19 [desktop] › e2e\tree-settle.e2e.ts:37:5 › T09b, sem navegador: a primeira leitura diferente não basta; anterior A, leituras B, C, C devolvem C (367ms)
+  ok 20 [desktop] › e2e\tree-settle.e2e.ts:48:5 › T09b, sem navegador: estabilidade não basta; anterior A, leituras A, A, B, B devolvem B (882ms)
+  ok 21 [celular] › e2e\download.e2e.ts:40:5 › baixa um ZIP de verdade, e o pacote é o que a tela prometeu (3.0s)
+  ok 22 [celular] › e2e\download.e2e.ts:102:5 › gera sem mouse: foco visível, escolha por setas e envio pelo teclado (1.3s)
+  ok 23 [celular] › e2e\download.e2e.ts:151:5 › a outra arquitetura do catálogo também baixa o que a tela prometeu (2.2s)
+  ok 24 [celular] › e2e\download.e2e.ts:178:5 › desabilita na tela o que a API marcou como sem template (1.4s)
+  ok 25 [celular] › e2e\download.e2e.ts:230:5 › desabilita na tela o que a restrição do catálogo proíbe, com a razão visível (1.2s)
+  ok 26 [celular] › e2e\download.e2e.ts:275:5 › uma combinação não padrão escolhida pela tela chega inteira ao manifesto do ZIP (1.8s)
+  ok 27 [celular] › e2e\generation-states.e2e.ts:31:5 › mostra "gerando" com o botão bloqueado entre o clique e o download (RF-05) (1.5s)
+  ok 28 [celular] › e2e\generation-states.e2e.ts:75:7 › envio duplicado por duplo clique gera um POST e um download só (RF-07) (1.4s)
+  ok 29 [celular] › e2e\generation-states.e2e.ts:75:7 › envio duplicado por Enter repetido gera um POST e um download só (RF-07) (1.2s)
+  ok 30 [celular] › e2e\generation-states.e2e.ts:125:5 › a recusa do servidor aparece no campo certo e preserva todas as escolhas (RF-06) (1.3s)
+  ok 31 [celular] › e2e\generation-states.e2e.ts:195:5 › a recusa do servidor a uma restrição aparece no campo do catálogo e preserva as escolhas (RF-06) (1.2s)
+  ok 32 [celular] › e2e\horizontal-overflow.e2e.ts:128:5 › a página não rola na horizontal em sete larguras e três estados de conteúdo (3.4s)
+  ok 33 [celular] › e2e\horizontal-overflow.e2e.ts:193:9 › a sonda de transbordo › acusa elemento que passa da borda de ancestro com overflow hidden (1.2s)
+  ok 34 [celular] › e2e\horizontal-overflow.e2e.ts:193:9 › a sonda de transbordo › acusa elemento que passa da borda de ancestro com overflow clip (923ms)
+  ok 35 [celular] › e2e\horizontal-overflow.e2e.ts:203:7 › a sonda de transbordo › não acusa o que cabe no ancestro com overflow hidden (817ms)
+  ok 36 [celular] › e2e\horizontal-overflow.e2e.ts:208:7 › a sonda de transbordo › não acusa o que rola dentro de ancestro com overflow auto (891ms)
+  x  37 [celular] › e2e\tree-read.e2e.ts:42:5 › T09b, sentido 1: a árvore lida antes da troca diverge do ZIP da outra arquitetura (falha de propósito) (1.6s)
+  ok 38 [celular] › e2e\tree-read.e2e.ts:70:5 › T09b: com o render parado, a seta já marcou a opção e a árvore ainda é a anterior (5.9s)
+  ok 39 [celular] › e2e\tree-settle.e2e.ts:37:5 › T09b, sem navegador: a primeira leitura diferente não basta; anterior A, leituras B, C, C devolvem C (380ms)
+  ok 40 [celular] › e2e\tree-settle.e2e.ts:48:5 › T09b, sem navegador: estabilidade não basta; anterior A, leituras A, A, B, B devolvem B (889ms)
+
+  40 passed (1.2m)
+EXIT=0

@@ -1,0 +1,8 @@
+$ curl -si http://localhost:4200/ | head -5; curl http://localhost:4200/api/health
+HTTP/1.1 200 OK
+Vary: Origin
+Content-Type: text/html
+Cache-Control: no-cache
+Date: Fri, 30 Oct 2026 12:58:51 GMT
+{"status":"ok"}
+EXIT=0

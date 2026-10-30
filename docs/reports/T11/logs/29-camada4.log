@@ -1,0 +1,11 @@
+$ dotnet test tests/TemplateGenerator.Matrix.Tests --filter "Camada=4" -- xUnit.Explicit=on
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  TemplateGenerator.Generation -> C:\Users\2273129\tg-t11-clean\src\TemplateGenerator.Generation\bin\Debug\net10.0\TemplateGenerator.Generation.dll
+  TemplateGenerator.Api -> C:\Users\2273129\tg-t11-clean\src\TemplateGenerator.Api\bin\Debug\net10.0\TemplateGenerator.Api.dll
+  TemplateGenerator.Matrix.Tests -> C:\Users\2273129\tg-t11-clean\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll
+Test run for C:\Users\2273129\tg-t11-clean\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    33, Skipped:     0, Total:    33, Duration: 8 m 23 s - TemplateGenerator.Matrix.Tests.dll (net10.0)
+EXIT=0

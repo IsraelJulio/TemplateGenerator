@@ -1,0 +1,12 @@
++++ curl -s -X POST http://localhost:5100/auth/login -H 'Content-Type: application/json' -d '{"email":"pessoa@exemplo.com","password":"Senha!123"}'
+++ curl -i http://localhost:5100/items -H 'Authorization: Bearer CfDJ8<redigido>'
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100     32   0     32   0      0    195      0                              0100     32   0     32   0      0    195      0                              0100     32   0     32   0      0    194      0                              0
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Fri, 30 Oct 2026 13:03:50 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+[{"id":2,"title":"Persistente"}]

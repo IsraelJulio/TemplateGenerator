@@ -1,0 +1,41 @@
+$ npm test
+
+> web@0.0.0 test
+> npm run check && ng test
+
+
+> web@0.0.0 check
+> npm run check:versions && npm run check:licenses && npm run check:selftest
+
+
+> web@0.0.0 check:versions
+> node scripts/check-versions.mjs
+
+check:versions OK: 5 dependencias com versao exata, 12 na lista de excecao da ADR-0009
+
+> web@0.0.0 check:licenses
+> node scripts/check-licenses.mjs
+
+check:licenses OK: 506 pacotes dentro da lista permitida (MIT=432, ISC=25, Apache-2.0=13, BSD-2-Clause=12, MPL-2.0=12, BSD-3-Clause=6, MIT-0=2, CC-BY-4.0=1, BlueOak-1.0.0=1, CC0-1.0=1, 0BSD=1)
+
+> web@0.0.0 check:selftest
+> node scripts/check-selftest.mjs
+
+OK  check-licenses.mjs saiu com 1 no caso ruim
+OK  check-versions.mjs saiu com 1 no caso ruim
+❯ Building...
+✔ Building...
+Application bundle generation complete. [3.389 seconds] - 2026-10-30T12:59:02.094Z
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90mC:/Users/2273129/tg-t11-clean/src/web[39m
+
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+
+[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[32m204 passed[39m[22m[90m (204)[39m
+[2m   Start at [22m 09:59:02
+[2m   Duration [22m 9.19s[2m (transform 2.81s, setup 12.92s, import 4.05s, tests 2.58s, environment 45.00s)[22m
+
+EXIT=0
