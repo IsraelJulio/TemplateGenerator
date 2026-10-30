@@ -1,0 +1,2 @@
+$ netstat -ano | grep -E ":(5080|4200|5100) .*LISTEN"
+EXIT=1 (1 = nenhuma porta em LISTEN)

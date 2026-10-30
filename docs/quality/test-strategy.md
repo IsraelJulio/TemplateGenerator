@@ -49,7 +49,10 @@ seja exercitado nos dois estados em runtime.
 
 `dotnet build` nas **32**. Roda em T11 e por invocação explícita, não no ciclo normal:
 `dotnet test tests/TemplateGenerator.Matrix.Tests --filter "Camada=4" -- xUnit.Explicit=on`
-(`Theory(Explicit = true)`; sem a opção os 32 aparecem como não executados).
+(`Theory(Explicit = true)`). É a materialização do `--full` citado na
+[ADR-0002](../decisions/adr-0002-validacao-estratificada.md). **Sem `-- xUnit.Explicit=on` a camada 4
+não roda e o console não avisa**: mostra só `Total: 1` (o teste que confere as 32), e os 32 builds
+aparecem apenas como `NotExecuted` num TRX. O resultado que prova a camada 4 é `Total: 33`.
 
 ## Provedor OIDC de teste
 

@@ -1,0 +1,48 @@
+$ dotnet test tests/TemplateGenerator.Matrix.Tests --no-build --filter "Camada=4" --logger "trx;LogFileName=c4.trx" --results-directory <tmp>
+Test run for C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "postgresql", authentication: "jwt", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "postgresql", authentication: "none", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "none", authentication: "none", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "sqlite", authentication: "identity", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "sqlite", authentication: "none", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "postgresql", authentication: "none", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "postgresql", authentication: "jwt", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "postgresql", authentication: "none", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "none", authentication: "jwt", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "none", authentication: "jwt", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "sqlite", authentication: "jwt", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "none", authentication: "none", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "postgresql", authentication: "none", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "sqlite", authentication: "identity", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "sqlite", authentication: "none", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "postgresql", authentication: "identity", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "postgresql", authentication: "jwt", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "none", authentication: "none", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "postgresql", authentication: "identity", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "none", authentication: "none", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "sqlite", authentication: "identity", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "sqlite", authentication: "none", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "sqlite", authentication: "none", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "postgresql", authentication: "identity", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "sqlite", authentication: "jwt", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "postgresql", authentication: "identity", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "sqlite", authentication: "jwt", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "none", authentication: "jwt", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "simple", database: "sqlite", authentication: "identity", swagger: True) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "none", authentication: "jwt", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "sqlite", authentication: "jwt", swagger: False) [1 ms]
+  Skipped TemplateGenerator.Matrix.Tests.Layer4.FullBuildMatrixTests.A_combinacao_compila(architecture: "clean", database: "postgresql", authentication: "jwt", swagger: False) [1 ms]
+Results File: C:\Users\2273129\AppData\Local\Temp\tmp.ZdgYhkaAeV\c4.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 118 ms - TemplateGenerator.Matrix.Tests.dll (net10.0)
+EXIT=0
+
+$ grep -o "outcome=\"[A-Za-z]*\"" c4.trx | sort | uniq -c
+      1 outcome="Completed"
+     32 outcome="NotExecuted"
+      1 outcome="Passed"
+EXIT=0
+$ grep -o "<Counters [^>]*>" c4.trx
+<Counters total="33" executed="1" passed="1" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+EXIT=0

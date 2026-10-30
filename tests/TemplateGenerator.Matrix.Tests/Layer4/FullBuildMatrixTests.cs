@@ -10,9 +10,11 @@ namespace TemplateGenerator.Matrix.Tests.Layer4;
 /// </summary>
 /// <remarks>
 /// <para>
-/// O build é um <c>[Theory(Explicit = true)]</c> (xUnit v3). Sem o modo explícito os 32 casos aparecem
-/// como <strong>não executados</strong> ("not run"), nunca como aprovados nem como pulados em
-/// silêncio. Comando que os executa:
+/// O build é um <c>[Theory(Explicit = true)]</c> (xUnit v3). Sem o modo explícito os 32 casos
+/// <strong>não executam e não contam como aprovados</strong>, mas também <strong>não aparecem no
+/// resumo do console</strong>: ele mostra só <c>Total: 1</c> (o teste de contagem). Os 32 só ficam
+/// visíveis como <c>NotExecuted</c> num TRX (<c>--logger trx</c>). Ou seja: <c>Total: 1</c> com o
+/// filtro da camada 4 significa que a camada 4 <strong>não</strong> rodou. Comando que os executa:
 /// </para>
 /// <code>
 /// dotnet test tests/TemplateGenerator.Matrix.Tests --filter "Camada=4" -- xUnit.Explicit=on

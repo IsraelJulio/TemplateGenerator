@@ -1,3 +1,5 @@
+// Evidência histórica da T11: importa o Playwright do clone limpo por caminho absoluto, então só
+// roda naquela máquina. Para reutilizar, troque o caminho pelo node_modules do seu clone.
 import { chromium } from 'file:///C:/Users/2273129/tg-t11-clean/src/web/node_modules/playwright/index.mjs';
 import fs from 'node:fs'; import crypto from 'node:crypto';
 const [,, name, arch, db, auth, swagger, tag] = process.argv;

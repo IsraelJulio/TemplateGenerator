@@ -30,7 +30,7 @@ ferramentas: [`docs/interop.md`](docs/interop.md).
 
 | Ferramenta | Versão | Para quê |
 |---|---|---|
-| .NET SDK | **10.0.302** (fixado em `global.json`, aceita só patches 10.0.3xx) | API geradora e testes |
+| .NET SDK | **10.0.302** (fixado em `global.json`, aceita 10.0.302 ou patch superior da faixa 10.0.3xx) | API geradora e testes |
 | Node | 24.18.1 | tela Angular |
 | npm | 11.16.0 | tela Angular (`packageManager` em `src/web/package.json`) |
 | git | 2.55+ | clonar |
@@ -51,7 +51,7 @@ PostgreSQL é o serviço nativo e o provedor OIDC dos testes roda dentro do proc
 
 ### Se `dotnet` disser "A compatible .NET SDK was not found"
 
-O `global.json` exige o 10.0.302 (ou um patch 10.0.3xx). Se a máquina só tiver outra faixa — por
+O `global.json` exige o 10.0.302 ou um patch superior da faixa 10.0.3xx. Se a máquina só tiver outra faixa — por
 exemplo 10.0.4xx —, instale o 10.0.302 por usuário com o
 [`dotnet-install.ps1`](https://learn.microsoft.com/dotnet/core/tools/dotnet-install-script)
 oficial e ponha essa pasta à frente do `PATH`, com `DOTNET_ROOT` apontando para ela. Confira com
@@ -127,6 +127,9 @@ explicitamente:
 ```bash
 dotnet test tests/TemplateGenerator.Matrix.Tests --filter "Camada=4" -- xUnit.Explicit=on
 ```
+
+O resultado certo é `Total: 33` (as 32 mais o teste de contagem). Se aparecer `Total: 1`, faltou
+o `-- xUnit.Explicit=on` e a camada 4 **não** rodou.
 
 O teste **ponta a ponta** sobe a API e a tela sozinho (ou reaproveita as que já estiverem no ar),
 preenche o formulário, baixa o ZIP e inspeciona o conteúdo, em desktop e celular:
