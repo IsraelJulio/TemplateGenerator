@@ -28,7 +28,8 @@ __ItemsAuthorization__
 
         items.MapGet("", async (ItemService service, CancellationToken cancellationToken) =>
             Results.Ok(await service.ListAsync(cancellationToken)))
-            .WithName("ListItems");
+            .WithName("ListItems")
+            .Produces<List<Item>>(StatusCodes.Status200OK);
 
         items.MapGet("/{id:int}", async (
             int id,
@@ -37,7 +38,9 @@ __ItemsAuthorization__
             await service.FindAsync(id, cancellationToken) is Item item
                 ? Results.Ok(item)
                 : Results.NotFound())
-            .WithName("GetItem");
+            .WithName("GetItem")
+            .Produces<Item>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
 
         items.MapPost("", async (
             ItemInput input,
@@ -53,7 +56,9 @@ __ItemsAuthorization__
 
             return Results.Created($"/items/{created.Id}", created);
         })
-            .WithName("CreateItem");
+            .WithName("CreateItem")
+            .Produces<Item>(StatusCodes.Status201Created)
+            .ProducesValidationProblem();
 
         items.MapPut("/{id:int}", async (
             int id,
@@ -70,7 +75,10 @@ __ItemsAuthorization__
                 ? Results.NoContent()
                 : Results.NotFound();
         })
-            .WithName("ReplaceItem");
+            .WithName("ReplaceItem")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status404NotFound);
 
         items.MapDelete("/{id:int}", async (
             int id,
@@ -79,7 +87,9 @@ __ItemsAuthorization__
             await service.DeleteAsync(id, cancellationToken)
                 ? Results.NoContent()
                 : Results.NotFound())
-            .WithName("DeleteItem");
+            .WithName("DeleteItem")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
 
         return routes;
     }

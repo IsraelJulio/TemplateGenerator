@@ -28,6 +28,10 @@ options =>
 
         if (metadata.OfType<IAuthorizeData>().Any() && !metadata.OfType<IAllowAnonymous>().Any())
         {
+            // É a resposta real de quem chega sem token válido: 401, sem corpo.
+            operation.Responses ??= new OpenApiResponses();
+            operation.Responses["401"] = new OpenApiResponse { Description = "Unauthorized" };
+
             operation.Security ??= [];
             operation.Security.Add(new OpenApiSecurityRequirement
             {
