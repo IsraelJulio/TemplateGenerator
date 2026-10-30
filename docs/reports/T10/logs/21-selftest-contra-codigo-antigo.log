@@ -1,6 +1,14 @@
-$ node scripts/check-selftest.mjs   # com check-licenses.mjs de fc583e7 (antes da correcao)
+$ git show fc583e7:src/web/scripts/check-licenses.mjs > scripts/check-licenses.mjs
+EXIT=0
+$ node scripts/check-selftest.mjs
 ERRO check-licenses.mjs saiu com 1 no caso ruim; faltou acusar: paren-trap, broken-expr
 check:licenses FALHOU (4 de 8 pacotes)
   - gpl-thing@2.0.0: licenca "GPL-3.0-only" fora da lista permitida
   - lightningcss@1.0.0: MPL-2.0 so e aceita como devDependency, e este pacote nao e dev
+  - nolic@1.0.0: sem licenca declarada no lockfile
+  - with-expr@1.0.0: licenca "Apache-2.0 WITH LLVM-exception" fora da lista permitida
+
+OK  check-versions.mjs saiu com 1 no caso ruim
 EXIT=1
+$ git checkout -- scripts/check-licenses.mjs   # restaura 2ede1e2
+EXIT=0
