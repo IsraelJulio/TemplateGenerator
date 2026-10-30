@@ -3,9 +3,9 @@
 Configure um projeto .NET em uma tela e baixe um ZIP compilável, com exemplos funcionais e um
 README específico para aquela combinação.
 
-**Estado atual:** estrutura e contrato de pé (T01). A API responde o catálogo e valida a
-configuração; a tela consome o catálogo. **O motor de geração ainda não existe** — uma
-configuração válida responde `501`, e isso vira o ZIP em T03.
+**Estado atual:** MVP completo. A tela oferece as 32 combinações válidas (arquitetura, banco,
+autenticação, Swagger), a API gera o ZIP de forma determinística e cada ZIP traz o README com os
+comandos exatos daquela combinação. Tudo roda localmente — não há hospedagem pública.
 
 ## Para pessoas
 
@@ -28,21 +28,34 @@ ferramentas: [`docs/interop.md`](docs/interop.md).
 
 ## Pré-requisitos do ambiente
 
-| Ferramenta | Versão | Obrigatória |
+| Ferramenta | Versão | Para quê |
 |---|---|---|
-| .NET SDK | 10.0.302 | sim |
-| `dotnet-ef` | 10.0.12 (`dotnet tool install --global dotnet-ef`) | sim, a partir de T05 |
-| Node | 24.18.1 | sim |
-| Angular CLI | 22.1.2 | sim |
-| PostgreSQL | 18, serviço nativo em execução | sim, a partir de T05 |
-| git | 2.55+ | sim |
-| ripgrep | qualquer, **no PATH do Windows** | recomendado (busca do Codex) |
+| .NET SDK | **10.0.302** (fixado em `global.json`, aceita só patches 10.0.3xx) | API geradora e testes |
+| Node | 24.18.1 | tela Angular |
+| npm | 11.16.0 | tela Angular (`packageManager` em `src/web/package.json`) |
+| git | 2.55+ | clonar |
+| PostgreSQL | 18, **serviço nativo** em execução, com `psql` instalado | testes da camada 3 e projetos gerados com `postgresql` |
+| Navegador Chromium do Playwright | baixado por `npm run e2e:install` | só para o teste ponta a ponta |
+| ripgrep | qualquer, **no PATH do Windows** | opcional (busca do Codex) |
 
-**Não é necessário Docker nem Podman.** O projeto é deliberadamente livre de containers — ver
+Não é preciso instalar Angular CLI nem `dotnet-ef` globalmente: o Angular CLI vem pelo `npm ci`
+e os projetos gerados que usam migração trazem o `dotnet-ef` num manifesto local
+(`dotnet tool restore`, indicado no README de cada ZIP).
+
+**Não é necessário Docker nem Podman.** O projeto é deliberadamente livre de containers — o
+PostgreSQL é o serviço nativo e o provedor OIDC dos testes roda dentro do processo de teste. Ver
 [ADR-0005](docs/decisions/adr-0005-sem-containers.md).
 
-O Playwright baixa navegadores na primeira execução (algumas centenas de MB) — conta como
-dependência de rede a partir de T09.
+**Downloads de rede na primeira execução:** pacotes NuGet (`dotnet restore`), pacotes npm
+(`npm ci`) e o Chromium do Playwright (`npm run e2e:install`, algumas centenas de MB).
+
+### Se `dotnet` disser "A compatible .NET SDK was not found"
+
+O `global.json` exige o 10.0.302 (ou um patch 10.0.3xx). Se a máquina só tiver outra faixa — por
+exemplo 10.0.4xx —, instale o 10.0.302 por usuário com o
+[`dotnet-install.ps1`](https://learn.microsoft.com/dotnet/core/tools/dotnet-install-script)
+oficial e ponha essa pasta à frente do `PATH`, com `DOTNET_ROOT` apontando para ela. Confira com
+`dotnet --version` na raiz do repositório. Detalhes em [`docs/environment.md`](docs/environment.md).
 
 ### Se você clonou em outro caminho
 
@@ -52,8 +65,8 @@ pedir aprovação. Ver [`docs/interop.md`](docs/interop.md), seção 3.
 
 ## Como rodar
 
-São **dois processos**, em dois terminais. O frontend fala com a API por um proxy, então a API
-precisa estar no ar primeiro.
+São **dois processos**, em dois terminais, ambos a partir da raiz do repositório. O frontend fala
+com a API por um proxy, então a API precisa estar no ar primeiro.
 
 ### 1. API geradora
 
@@ -79,16 +92,47 @@ npm start
 Abre em `http://localhost:4200`. O `proxy.conf.json` encaminha `/api` para a porta 5080 — se
 você mudar a porta da API, mude o proxy junto.
 
-### Verificar
+### 3. Gerar um projeto
+
+Na tela, preencha o nome, escolha arquitetura, banco, autenticação, Swagger e versão, e clique em
+**Gerar projeto**. O navegador baixa `<NomeDoProjeto>.zip`. Extraia e siga **somente** o
+`README.md` que está dentro dele: ele traz os pré-requisitos e os comandos daquela combinação —
+migração, execução, como obter um token quando há autenticação.
+
+## Testes
+
+Pré-requisito de todos os comandos `dotnet` abaixo: o SDK da seção anterior ativo na raiz.
 
 ```bash
 dotnet build                 # zero erro, zero warning (TreatWarningsAsErrors está ligado)
-dotnet test                  # 129 testes
-cd src/web && npm test       # 42 testes
+dotnet test                  # camadas 1, 2 e 3 da matriz, API e motor
+cd src/web && npm test       # verificações de versão e licença, depois os testes da tela
 ```
 
-### O que esperar hoje
+A **camada 3** sobe projetos gerados contra o PostgreSQL nativo, criando e derrubando um database
+descartável por teste. A credencial vem do ambiente, pela convenção do `psql` — nunca de arquivo:
 
-Preencher a tela e clicar em **Gerar projeto** responde `501 Not Implemented`, com a explicação
-no corpo. Isso é o comportamento correto de T01: a configuração é validada de verdade, mas o
-motor de geração chega em T03. A tela ainda está sem acabamento visual — isso é T02.
+```bash
+PGUSER=postgres PGPASSWORD=<sua senha> dotnet test
+```
+
+Sem `PGPASSWORD`, ou com o serviço parado, esses testes **falham** dizendo o que fazer; não são
+pulados.
+
+A **camada 4** compila as 32 combinações e fica fora do `dotnet test` normal, por ser longa. Rode
+explicitamente:
+
+```bash
+dotnet test tests/TemplateGenerator.Matrix.Tests --filter "Camada=4" -- xUnit.Explicit=on
+```
+
+O teste **ponta a ponta** sobe a API e a tela sozinho (ou reaproveita as que já estiverem no ar),
+preenche o formulário, baixa o ZIP e inspeciona o conteúdo, em desktop e celular:
+
+```bash
+cd src/web
+npm run e2e:install          # uma vez por máquina: baixa o Chromium
+npm run e2e
+```
+
+Estratégia completa em [`docs/quality/test-strategy.md`](docs/quality/test-strategy.md).

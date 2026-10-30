@@ -47,7 +47,9 @@ seja exercitado nos dois estados em runtime.
 
 ### Camada 4 — completa, sob demanda
 
-`dotnet build` nas **32**. Roda em T11 e por invocação explícita (`--full`), não no ciclo normal.
+`dotnet build` nas **32**. Roda em T11 e por invocação explícita, não no ciclo normal:
+`dotnet test tests/TemplateGenerator.Matrix.Tests --filter "Camada=4" -- xUnit.Explicit=on`
+(`Theory(Explicit = true)`; sem a opção os 32 aparecem como não executados).
 
 ## Provedor OIDC de teste
 
