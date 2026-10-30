@@ -8,7 +8,7 @@
   },
   "project": "TemplateGenerator",
   "templateVersion": "1.0.0",
-  "updatedAt": "2026-10-23",
+  "updatedAt": "2026-10-30",
   "states": ["pending", "in_progress", "blocked", "done"],
   "tasks": [
     {
@@ -462,10 +462,11 @@
     },
     {
       "id": "T10",
+      "startedAt": "2026-10-30",
       "pullRequest": null,
       "order": 10,
       "title": "Matriz completa e revisao funcional, visual e de seguranca",
-      "state": "pending",
+      "state": "in_progress",
       "dependsOn": ["T09"],
       "roles": ["qa", "frontend", "template-engineer", "architect", "reviewer"],
       "skills": ["verify-mvp"],
@@ -505,7 +506,7 @@
         "Checklist completo do papel reviewer."
       ],
       "blockers": [],
-      "report": null
+      "report": "docs/reports/T10.md"
     },
     {
       "id": "T11",
