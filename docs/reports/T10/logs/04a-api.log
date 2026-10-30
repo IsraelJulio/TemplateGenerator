@@ -1,0 +1,90 @@
+Test run for C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Api.Tests\bin\Debug\net10.0\TemplateGenerator.Api.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.10)
+[xUnit.net 00:00:00.41]   Discovering: TemplateGenerator.Api.Tests
+[xUnit.net 00:00:00.84]   Discovered:  TemplateGenerator.Api.Tests
+[xUnit.net 00:00:01.23]   Starting:    TemplateGenerator.Api.Tests
+  Passed TemplateGenerator.Api.Tests.Architecture.NoExternalProcessTests.A_biblioteca_de_geracao_nao_referencia_o_sistema_de_arquivos [44 ms]
+  Passed TemplateGenerator.Api.Tests.Architecture.NoExternalProcessTests.Assembly_da_plataforma_nao_referencia_execucao_de_processo(assemblyPath: "C:\\Users\\2273129\\Documents\\Projects\\TemplateG"···) [10 ms]
+  Passed TemplateGenerator.Api.Tests.Architecture.NoExternalProcessTests.Assembly_da_plataforma_nao_referencia_execucao_de_processo(assemblyPath: "C:\\Users\\2273129\\Documents\\Projects\\TemplateG"···) [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.HealthEndpointTests.Responde_200_com_json [1 s]
+  Passed TemplateGenerator.Api.Tests.ApplicationStartupTests.Aplicacao_sobe_e_responde [1 s]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsSnapshotTests.A_comparacao_aponta_o_caminho_da_primeira_divergencia(mutation: "description-sumido", expectedPath: "$.fields.database.values[1].description", expectedReason: "o payload tem esta chave e o snapshot não") [1 s]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Campo_de_escolha_traz_rotulo_padrao_e_valores(key: "dotnetVersion", label: "Versão .NET", defaultValue: "net10.0", valueCount: 1) [1 s]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsSnapshotTests.A_comparacao_aponta_o_caminho_da_primeira_divergencia(mutation: "type-ausente", expectedPath: "$.fields.swagger.type", expectedReason: "o payload tem esta chave e o snapshot não") [4 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsSnapshotTests.A_comparacao_aponta_o_caminho_da_primeira_divergencia(mutation: "booleano-virou-texto", expectedPath: "$.fields.swagger.default", expectedReason: "o snapshot tem texto e o payload tem booleano true") [1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Campo_de_escolha_traz_rotulo_padrao_e_valores(key: "database", label: "Banco", defaultValue: "none", valueCount: 3) [3 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsSnapshotTests.A_comparacao_aponta_o_caminho_da_primeira_divergencia(mutation: "array-fora-de-ordem", expectedPath: "$.fields.database.values[0].value", expectedReason: "o texto é outro") [1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Campo_de_escolha_traz_rotulo_padrao_e_valores(key: "architecture", label: "Arquitetura", defaultValue: "simple", valueCount: 2) [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsSnapshotTests.A_comparacao_aponta_o_caminho_da_primeira_divergencia(mutation: "chave-a-mais-no-snapshot", expectedPath: "$.fields.architecture.novo", expectedReason: "o snapshot tem esta chave e o payload não") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Campo_de_escolha_traz_rotulo_padrao_e_valores(key: "authentication", label: "Autenticação", defaultValue: "none", valueCount: 3) [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.HealthEndpointTests.Uma_rota_inexistente_sob_api_continua_404 [7 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsSnapshotTests.A_comparacao_aponta_o_caminho_da_primeira_divergencia(mutation: "when-escalar", expectedPath: "$.constraints[0].when.authentication", expectedReason: "o snapshot tem texto e o payload tem array") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Swagger_desligado_nunca_aparece_em_unavailable [4 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsSnapshotTests.A_comparacao_ignora_a_ordem_das_chaves_de_objeto_e_a_formatacao [6 ms]
+  Passed TemplateGenerator.Api.Tests.HealthEndpointTests.Nao_exige_autenticacao_nem_cabecalho [10 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Unavailable_e_irmao_de_constraints_e_vem_como_lista [11 ms]
+  Passed TemplateGenerator.Api.Tests.GenerationNotImplementedEndpointTests.A_frase_do_501_e_a_mesma_que_o_catalogo_publica [1 s]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsSnapshotTests.O_payload_de_template_options_e_exatamente_o_snapshot_versionado [16 ms]
+  Passed TemplateGenerator.Api.Tests.GenerationLimitsEndpointTests.Geracao_simultanea_acima_do_limite_responde_429_com_Retry_After [1 s]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.A_restricao_de_Identity_vem_como_dado_na_lista_constraints [8 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Todo_campo_declara_type_no_json [4 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Traz_a_versao_do_conjunto_de_templates [2 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Nenhum_valor_de_dotnetVersion_aparece_em_unavailable [2 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Toda_restricao_e_legivel_sem_conhecer_a_regra_especifica [4 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Responde_200_em_json [2 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Fields_e_constraints_nao_mudaram_com_o_membro_novo [17 ms]
+  Passed TemplateGenerator.Api.Tests.GenerationFailureEndpointTests.Defeito_de_template_responde_erro_e_nao_um_ZIP_truncado [1 s]
+  Passed TemplateGenerator.Api.Tests.GenerationNotImplementedEndpointTests.O_501_diz_qual_campo_causou_a_recusa_em_errors_na_ordem_do_catalogo [48 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Espaco_nas_pontas_do_nome_e_aparado_e_nao_recusado(projectName: " Acme.Api ") [1 s]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.O_topo_da_resposta_e_o_catalogo_mais_unavailable [17 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.When_e_requires_saem_sempre_como_vetor [2 ms]
+  Passed TemplateGenerator.Api.Tests.GenerationLimitsEndpointTests.Segunda_requisicao_na_mesma_janela_responde_429_com_Retry_After [63 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Traz_os_campos_configuraveis_da_matriz [2 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Swagger_chega_como_interruptor_booleano [2 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Espaco_nas_pontas_do_nome_e_aparado_e_nao_recusado(projectName: "\tAcme.Api\n") [9 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateOptionsEndpointTests.Todo_par_de_unavailable_pertence_ao_catalogo_que_a_mesma_resposta_entregou [2 ms]
+  Passed TemplateGenerator.Api.Tests.GenerationNotImplementedEndpointTests.Combinacao_sem_template_responde_501_em_problem_json [24 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Valor_fora_do_catalogo_responde_400_apontando_o_proprio_campo(field: "architecture", value: "hexagonal") [8 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Valor_fora_do_catalogo_responde_400_apontando_o_proprio_campo(field: "database", value: "oracle") [1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Valor_fora_do_catalogo_responde_400_apontando_o_proprio_campo(field: "authentication", value: "oauth") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Valor_fora_do_catalogo_responde_400_apontando_o_proprio_campo(field: "dotnetVersion", value: "net9.0") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Json_malformado_responde_400_e_nao_500 [11 ms]
+  Passed TemplateGenerator.Api.Tests.GenerationNotImplementedEndpointTests.Valor_fora_do_catalogo_responde_400_e_nao_501 [41 ms]
+  Passed TemplateGenerator.Api.Tests.GenerationLimitsEndpointTests.O_limite_nao_alcanca_o_health_nem_o_catalogo [54 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Dois_downloads_da_mesma_configuracao_tem_o_mesmo_SHA256 [12 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nome_de_projeto_invalido_responde_400_apontando_projectName(projectName: "class") [2 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nome_de_projeto_invalido_responde_400_apontando_projectName(projectName: "../etc/passwd") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nome_de_projeto_invalido_responde_400_apontando_projectName(projectName: "CON") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.GenerationNotImplementedEndpointTests.Restricao_nao_satisfeita_responde_400_e_nao_501_mesmo_sem_template [18 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nome_de_projeto_invalido_responde_400_apontando_projectName(projectName: "Acme Billing!") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nome_de_projeto_invalido_responde_400_apontando_projectName(projectName: "Acme..Api") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nome_de_projeto_invalido_responde_400_apontando_projectName(projectName: "Cotação.Api") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nome_de_projeto_invalido_responde_400_apontando_projectName(projectName: "") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nome_de_projeto_invalido_responde_400_apontando_projectName(projectName: "1Acme") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nome_de_projeto_invalido_responde_400_apontando_projectName(projectName: "..") [< 1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.O_nome_do_arquivo_baixado_e_o_nome_do_projeto [6 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Corpo_com_UTF8_invalido_responde_400_e_nao_500 [4 ms]
+  Passed TemplateGenerator.Api.Tests.GenerationNotImplementedEndpointTests.O_501_nao_traz_detail [18 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Configuracao_valida_responde_200_com_um_ZIP_de_verdade [6 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Toda_mensagem_de_erro_esta_enderecada_a_um_campo_do_catalogo [2 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nome_de_projeto_acima_de_cem_caracteres_e_recusado [1 ms]
+  Passed TemplateGenerator.Api.Tests.GenerationNotImplementedEndpointTests.A_combinacao_com_template_continua_respondendo_200_com_o_pacote [25 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nenhuma_entrada_do_pacote_sai_da_raiz [17 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.O_pacote_traz_o_manifesto_com_a_versao_e_as_opcoes_pedidas [8 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Corpo_sem_nenhum_campo_cobra_todos_os_campos [1 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Configuracao_valida_nao_e_recusada_pela_validacao [5 ms]
+  Passed TemplateGenerator.Api.Tests.GenerationNotImplementedEndpointTests.A_recusa_nao_traz_nenhum_cabecalho_de_download [20 ms]
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Nome_com_acento_e_recusado_com_mensagem_que_diz_o_que_fazer [1 ms]
+[xUnit.net 00:00:02.63]   Finished:    TemplateGenerator.Api.Tests (ID = 'b6a0521562ef71c096d127fff08868dbc6a3c64fa05d1410d8023be5f04f0fef')
+  Passed TemplateGenerator.Api.Tests.TemplateCreationEndpointTests.Identity_sem_banco_responde_400_apontando_o_campo_authentication [1 ms]
+
+Test Run Successful.
+Total tests: 73
+     Passed: 73
+ Total time: 3.3337 Seconds
+
+real	0m4.878s
+user	0m0.015s
+sys	0m0.062s
+EXIT=0

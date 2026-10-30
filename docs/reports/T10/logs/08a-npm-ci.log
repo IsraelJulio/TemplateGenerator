@@ -1,0 +1,27 @@
+
+added 378 packages, and audited 379 packages in 34s
+
+113 packages are looking for funding
+  run `npm fund` for details
+
+18 vulnerabilities (7 moderate, 8 high, 3 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues, run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
+npm warn allow-scripts   @parcel/watcher@2.6.0 (install: node scripts/build-from-source.js)
+npm warn allow-scripts   esbuild@0.28.2 (postinstall: node install.js)
+npm warn allow-scripts   lmdb@3.5.6 (install: node-gyp-build-optional-packages)
+npm warn allow-scripts   msgpackr-extract@3.0.4 (install: node-gyp-build-optional-packages)
+npm warn allow-scripts
+npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+
+real	0m35.853s
+user	0m0.307s
+sys	0m0.417s
+EXIT=0

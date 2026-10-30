@@ -1,0 +1,8 @@
+check:versions FALHOU (6)
+  - dependencies.left-pad: "^1.3.0" e intervalo; fora da lista de excecao da ADR-0009 a versao tem de ser exata
+  - devDependencies.vitest: "~4.1.11" e intervalo; fora da lista de excecao da ADR-0009 a versao tem de ser exata
+  - devDependencies.a: "*" e intervalo; fora da lista de excecao da ADR-0009 a versao tem de ser exata
+  - devDependencies.b: ">=1" e intervalo; fora da lista de excecao da ADR-0009 a versao tem de ser exata
+  - devDependencies.c: "1.x" e intervalo; fora da lista de excecao da ADR-0009 a versao tem de ser exata
+  - devDependencies.d: "latest" e intervalo; fora da lista de excecao da ADR-0009 a versao tem de ser exata
+EXIT=1

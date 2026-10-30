@@ -163,16 +163,18 @@ describe('Configurator', () => {
   });
 
   it('não renderiza explicação vazia na opção que o catálogo manda sem description', async () => {
-    // `dotnetVersion` chega hoje com um valor só e sem `description`. O teste
-    // não nomeia o campo: procura no snapshot toda opção nessa situação.
-    await serveCatalog();
+    // Desde T10 o contrato exige `description` e o snapshot cumpre; a tolerância
+    // do cliente (regra 8) é provada tirando-a de um valor de cada campo de escolha.
+    const catalog = JSON.parse(JSON.stringify(CATALOG_FIXTURE)) as typeof CATALOG_FIXTURE;
+    const semDescricao = Object.entries(catalog.fields).flatMap(([key, field]) => {
+      const option = field.values?.[0];
+      if (!option) return [];
+      delete (option as { description?: string }).description;
+      return [{ key, option }];
+    });
+    expect(semDescricao.length, 'nenhum campo de escolha no catálogo').toBeGreaterThan(0);
 
-    const semDescricao = Object.entries(SNAPSHOT_CATALOG.fields).flatMap(([key, field]) =>
-      (field.values ?? [])
-        .filter((option) => option.description === undefined)
-        .map((option) => ({ key, option })),
-    );
-    expect(semDescricao.length, 'o snapshot não tem mais opção sem description').toBeGreaterThan(0);
+    await serveCatalog(catalog);
 
     for (const { key, option } of semDescricao) {
       const label = radio(key, option.value).closest('label')!;

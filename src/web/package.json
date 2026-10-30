@@ -6,7 +6,11 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
+    "check:licenses": "node scripts/check-licenses.mjs",
+    "check:versions": "node scripts/check-versions.mjs",
+    "check:selftest": "node scripts/check-selftest.mjs",
+    "check": "npm run check:versions && npm run check:licenses && npm run check:selftest",
+    "test": "npm run check && ng test",
     "e2e": "playwright test",
     "e2e:install": "playwright install chromium",
     "e2e:typecheck": "tsc -p tsconfig.e2e.json --noEmit"
@@ -29,9 +33,9 @@
     "@angular/compiler-cli": "^22.1.0",
     "@playwright/test": "1.63.0",
     "fflate": "0.8.3",
-    "jsdom": "^28.0.0",
-    "prettier": "^3.8.1",
+    "jsdom": "28.1.0",
+    "prettier": "3.9.6",
     "typescript": "~6.0.2",
-    "vitest": "^4.0.8"
+    "vitest": "4.1.11"
   }
 }

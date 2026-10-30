@@ -1,0 +1,11 @@
+{
+  "dependencies": { "@angular/core": "^22.1.0", "left-pad": "^1.3.0" },
+  "devDependencies": {
+    "vitest": "~4.1.11",
+    "a": "*",
+    "b": ">=1",
+    "c": "1.x",
+    "d": "latest",
+    "e": "1.2.3"
+  }
+}

@@ -1,0 +1,33 @@
+Test run for C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.10)
+[xUnit.net 00:00:00.42]   Discovering: TemplateGenerator.Matrix.Tests
+[xUnit.net 00:00:01.78]   Discovered:  TemplateGenerator.Matrix.Tests
+[xUnit.net 00:00:02.21]   Starting:    TemplateGenerator.Matrix.Tests
+  Passed TemplateGenerator.Matrix.Tests.Layer2.DatabaseBuildMatrixTests.A_combinacao_com_banco_compila_e_o_provider_resolve_no_grafo(architecture: "clean", database: "sqlite", swagger: False) [19 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.PairwiseBuildMatrixTests.A_combinacao_do_conjunto_pairwise_compila(architecture: "clean", database: "sqlite", authentication: "jwt", swagger: False) [27 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.DatabaseBuildMatrixTests.A_combinacao_com_banco_compila_e_o_provider_resolve_no_grafo(architecture: "clean", database: "postgresql", swagger: True) [21 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.PairwiseBuildMatrixTests.A_combinacao_do_conjunto_pairwise_compila(architecture: "clean", database: "none", authentication: "none", swagger: False) [19 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.DatabaseBuildMatrixTests.A_combinacao_com_banco_compila_e_o_provider_resolve_no_grafo(architecture: "simple", database: "sqlite", swagger: True) [9 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.PairwiseBuildMatrixTests.A_combinacao_do_conjunto_pairwise_compila(architecture: "simple", database: "postgresql", authentication: "jwt", swagger: False) [9 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.DatabaseBuildMatrixTests.A_combinacao_com_banco_compila_e_o_provider_resolve_no_grafo(architecture: "simple", database: "postgresql", swagger: False) [9 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.DatabaseBuildMatrixTests.O_conjunto_cobre_os_dois_bancos_nas_duas_arquiteturas [14 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.PairwiseBuildMatrixTests.A_combinacao_do_conjunto_pairwise_compila(architecture: "simple", database: "none", authentication: "none", swagger: True) [7 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.PairwiseBuildMatrixTests.A_combinacao_do_conjunto_pairwise_compila(architecture: "simple", database: "none", authentication: "jwt", swagger: True) [7 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.PairwiseBuildMatrixTests.A_combinacao_do_conjunto_pairwise_compila(architecture: "clean", database: "sqlite", authentication: "identity", swagger: False) [23 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.PairwiseBuildMatrixTests.A_combinacao_do_conjunto_pairwise_compila(architecture: "simple", database: "sqlite", authentication: "none", swagger: True) [6 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.PairwiseBuildMatrixTests.A_combinacao_do_conjunto_pairwise_compila(architecture: "clean", database: "postgresql", authentication: "none", swagger: True) [14 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.PairwiseBuildMatrixTests.A_combinacao_do_conjunto_pairwise_compila(architecture: "simple", database: "postgresql", authentication: "identity", swagger: True) [6 s]
+[xUnit.net 00:02:03.91]   Finished:    TemplateGenerator.Matrix.Tests (ID = '1f54fb58e1af225135dd492f0a20fd84a1806fa8dfae512b3640a4d1b39cbe32')
+  Passed TemplateGenerator.Matrix.Tests.Layer2.PairwiseBuildMatrixTests.O_conjunto_cobre_todos_os_pares_de_valores_das_combinacoes_validas [6 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer2.PairwiseBuildMatrixTests.O_conjunto_tem_o_tamanho_minimo_e_so_combinacoes_validas_e_disponiveis [8 ms]
+
+Test Run Successful.
+Total tests: 16
+     Passed: 16
+ Total time: 2.0780 Minutes
+
+real	2m6.402s
+user	0m0.031s
+sys	0m0.077s
+EXIT=0

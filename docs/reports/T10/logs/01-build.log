@@ -1,0 +1,18 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  TemplateGenerator.Generation -> C:\Users\2273129\Documents\Projects\TemplateGenerator\src\TemplateGenerator.Generation\bin\Debug\net10.0\TemplateGenerator.Generation.dll
+  TemplateGenerator.Api -> C:\Users\2273129\Documents\Projects\TemplateGenerator\src\TemplateGenerator.Api\bin\Debug\net10.0\TemplateGenerator.Api.dll
+  TemplateGenerator.Generation.Tests -> C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Generation.Tests\bin\Debug\net10.0\TemplateGenerator.Generation.Tests.dll
+  TemplateGenerator.Api.Tests -> C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Api.Tests\bin\Debug\net10.0\TemplateGenerator.Api.Tests.dll
+  TemplateGenerator.Matrix.Tests -> C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:05.55
+
+real	0m6.247s
+user	0m0.015s
+sys	0m0.046s
+EXIT=0

@@ -56,6 +56,16 @@ Devolve opções, rótulos em português, padrões e restrições.
 **`type` só admite dois valores:** `"choice"` (campo com lista em `values`) e `"boolean"`
 (interruptor, sem `values`). Ambos são obrigatórios de emitir — ver regra 3 adiante.
 
+**`description` de um valor de `choice` é obrigatória de emitir.** Todo item de `values`, de
+qualquer campo, traz `description` não vazia, em português. Motivo: a tela mostra o texto auxiliar
+para ajudar a escolher, e um valor sem ele deixaria um item "mudo" entre os vizinhos — inclusive
+quando o campo tem um valor só (`dotnetVersion`), porque a lista existe para crescer sem quebrar o
+contrato. É exigência do servidor (catálogo), defendida por teste em
+`tests/TemplateGenerator.Generation.Tests/Catalog/CatalogDescriptionTests.cs`. O cliente continua
+tolerando a ausência (regra 8: não quebrar com dado a menos), mas não deve depender dela. Para
+campos `boolean`, `description` fica no campo e segue opcional. Não é caso para ADR: não há
+alternativa arquitetural relevante, só uniformidade do contrato.
+
 As restrições são **dados**, não código. Acrescentar uma restrição não deve exigir mudança no
 frontend.
 

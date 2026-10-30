@@ -107,7 +107,13 @@ public static class TemplateCatalog
 
                 // Um valor só no MVP, mas modelado como lista para permitir expansão sem quebrar
                 // o contrato (docs/product/option-matrix.md).
-                Values = [new TemplateOptionValue("net10.0", ".NET 10")],
+                Values =
+                [
+                    new TemplateOptionValue("net10.0", ".NET 10")
+                    {
+                        Description = "Versão atual do .NET, usada como alvo do projeto gerado.",
+                    },
+                ],
             },
         };
 

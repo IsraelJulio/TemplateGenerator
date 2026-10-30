@@ -1,0 +1,23 @@
+{
+  "_doc": "Lista permitida de licencas npm (RNF-09). Lida por scripts/check-licenses.mjs contra o package-lock.json. Mudar esta lista e decisao deliberada, registrada em docs/THIRD-PARTY.md.",
+  "allowed": [
+    "MIT",
+    "MIT-0",
+    "ISC",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "Apache-2.0",
+    "0BSD",
+    "CC0-1.0",
+    "CC-BY-4.0",
+    "BlueOak-1.0.0"
+  ],
+  "exceptions": [
+    {
+      "license": "MPL-2.0",
+      "packagePattern": "^lightningcss(-[a-z0-9-]+)?$",
+      "devOnly": true,
+      "reason": "Copyleft fraco por arquivo, ferramenta de build nao modificada e nao redistribuida. Excecao explicita a RNF-09; ver docs/THIRD-PARTY.md."
+    }
+  ]
+}

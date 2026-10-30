@@ -1,0 +1,40 @@
+$ PGUSER=postgres PGPASSWORD=*** dotnet test tests/TemplateGenerator.Matrix.Tests --no-build --filter "Camada=3" --logger "console;verbosity=normal"
+Test run for C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.10)
+[xUnit.net 00:00:00.92]   Discovering: TemplateGenerator.Matrix.Tests
+[xUnit.net 00:00:02.46]   Discovered:  TemplateGenerator.Matrix.Tests
+[xUnit.net 00:00:02.91]   Starting:    TemplateGenerator.Matrix.Tests
+  Passed TemplateGenerator.Matrix.Tests.Layer3.OpenApiResponsesTests.Sem_autenticacao_o_documento_declara_as_respostas_reais_e_nenhum_401 [49 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Sem_token_todo_o_CRUD_responde_401_e_a_saude_continua_publica [3 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.A_Clean_compila_sobe_e_atende_o_mesmo_CRUD_que_a_Simples [55 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Assinatura_invalida_responde_401_RF19 [871 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Token_expirado_responde_401_RF19_sem_folga_de_relogio [43 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Token_valido_do_provedor_externo_acessa_o_CRUD_protegido [146 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Emissor_errado_responde_401_RF19 [16 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Audiencia_errada_responde_401_RF19 [12 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Swagger_responde_ou_nao_conforme_a_selecao [26 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.DatabaseRuntimeTests.Simple_com_SQLite_migra_pelo_README_e_os_dados_sobrevivem_ao_reinicio [1 m 5 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Swagger_responde_ou_nao_conforme_a_selecao [506 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Emissor_errado_responde_401_RF19 [530 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Sem_token_todo_o_CRUD_responde_401_e_a_saude_continua_publica [42 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Assinatura_invalida_responde_401_RF19 [181 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Token_expirado_responde_401_RF19_sem_folga_de_relogio [19 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Audiencia_errada_responde_401_RF19 [13 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Token_valido_do_provedor_externo_acessa_o_CRUD_protegido [6 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.Com_swagger_o_projeto_compila_sobe_atende_o_CRUD_e_esquece_tudo_no_reinicio [33 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Simple_com_SQLite_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [1 m 37 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.Com_swagger_fora_de_Development_nenhuma_rota_de_documentacao_responde [10 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.Sem_swagger_o_projeto_sobe_igual_e_nenhuma_rota_de_documentacao_responde [10 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.OpenApiResponsesTests.Com_identity_o_documento_declara_o_401_em_items_e_em_auth_manage [1 m]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.OpenApiResponsesTests.Com_jwt_o_documento_declara_as_respostas_reais_e_o_401_em_items [8 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.DatabaseRuntimeTests.Clean_com_PostgreSQL_migra_num_database_descartavel_e_persiste_no_reinicio [58 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Clean_com_SQLite_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [46 s]
+[xUnit.net 00:03:07.69]   Finished:    TemplateGenerator.Matrix.Tests (ID = '1f54fb58e1af225135dd492f0a20fd84a1806fa8dfae512b3640a4d1b39cbe32')
+  Passed TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Clean_com_PostgreSQL_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [40 s]
+
+Test Run Successful.
+Total tests: 26
+     Passed: 26
+ Total time: 3.1555 Minutes
+EXIT=0

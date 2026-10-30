@@ -7,6 +7,7 @@ import {
   expectSelection,
   fieldBlock,
   holdNextGeneration,
+  radioOf,
   readCatalog,
   saveZip,
   waitForCatalog,
@@ -176,6 +177,103 @@ test('a recusa do servidor aparece no campo certo e preserva todas as escolhas (
   await expect(page.getByLabel('Nome do projeto')).toHaveValue(PROJECT_NAME);
 
   // 3. Nenhum download: a resposta foi um `400`, e ela já chegou.
+  expect(contagem.posts()).toBe(1);
+  expect(contagem.downloads()).toBe(0);
+});
+
+/**
+ * RF-06 para um **campo do catálogo** (T10, ressalva 2 do reviewer de T09). A
+ * tela desabilita a combinação que a restrição proíbe, então ela nunca a
+ * enviaria: a pessoa escolhe uma combinação válida e o corpo é reescrito em
+ * trânsito para a proibida. Quem recusa, com a mensagem, é a API de verdade, e
+ * a tela tem de colocá-la no campo que o `400` endereça — não só no nome.
+ *
+ * A restrição é lida do catálogo servido (a primeira), sem nomear campo nem
+ * valor: hoje é "Identity exige um banco", e o teste reescreve o banco para o
+ * valor que a restrição não admite.
+ */
+test('a recusa do servidor a uma restrição aparece no campo do catálogo e preserva as escolhas (RF-06)', async ({
+  page,
+}) => {
+  const contagem = watchGenerations(page);
+  await page.goto('/');
+  const form = await waitForCatalog(page);
+  const catalog = await readCatalog(page);
+
+  const restricao = catalog.constraints[0];
+  expect(restricao, 'o catálogo não traz restrição nenhuma').toBeDefined();
+  const [campoQuando, valoresQuando] = Object.entries(restricao.when)[0] as [
+    string,
+    readonly string[],
+  ];
+  const [campoExige, valoresExigidos] = Object.entries(restricao.requires)[0] as [
+    string,
+    readonly string[],
+  ];
+  const valorQuando = valoresQuando[0];
+  const valorValido = valoresExigidos[0];
+  const valorProibido = (catalog.fields[campoExige].values ?? []).find(
+    (opcao) => !valoresExigidos.includes(opcao.value),
+  )?.value;
+  expect(valorProibido, `"${campoExige}" não tem valor que a restrição proíba`).toBeDefined();
+
+  // Combinação válida na tela: primeiro o que a restrição exige, depois o valor
+  // que depende dele (a ordem inversa deixaria este controle desabilitado).
+  const escolhas = { [campoExige]: valorValido, [campoQuando]: valorQuando };
+  await radioOf(form, campoExige, valorValido).check();
+  await radioOf(form, campoQuando, valorQuando).check();
+  await expectSelection(page, escolhas);
+  await page.getByLabel('Nome do projeto').fill(PROJECT_NAME);
+
+  await page.route(
+    TEMPLATES_ROUTE,
+    async (route) => {
+      const body = route.request().postDataJSON() as Record<string, unknown>;
+      await route.continue({ postData: JSON.stringify({ ...body, [campoExige]: valorProibido }) });
+    },
+    { times: 1 },
+  );
+
+  const respondeu = page.waitForResponse(
+    (response) => new URL(response.url()).pathname === '/api/templates',
+  );
+  await form.locator('button[type="submit"]').click();
+  const response = await respondeu;
+
+  expect(response.status()).toBe(400);
+  expect(response.headers()['content-type']).toContain('application/problem+json');
+  const problem = (await response.json()) as { errors?: Record<string, string[]> };
+  const errors = problem.errors ?? {};
+
+  // O 400 real endereça a recusa a um campo do catálogo, com a mensagem da restrição.
+  const chaves = Object.keys(errors);
+  expect(chaves.length, 'o servidor endereçou a recusa a algum campo').toBeGreaterThan(0);
+  expect(
+    chaves.every((chave) => chave in catalog.fields),
+    `chaves: ${chaves}`,
+  ).toBe(true);
+  expect(Object.values(errors).flat()).toContain(restricao.message);
+
+  // 1. Cada mensagem do servidor aparece inline, no bloco do campo endereçado.
+  for (const [chave, mensagens] of Object.entries(errors)) {
+    const bloco = fieldBlock(page, chave);
+    await expect(bloco, `bloco do campo "${chave}"`).toHaveCount(1);
+    for (const mensagem of mensagens) {
+      await expect(bloco.locator('.field__error')).toContainText(mensagem);
+    }
+  }
+  // E nenhuma mensagem foi parar no nome do projeto.
+  await expect(page.locator(`input[id="${PROJECT_NAME_KEY}"]`)).not.toHaveAttribute(
+    'aria-invalid',
+    'true',
+  );
+  await expect(page.locator('.notice--error')).toContainText('Nenhuma escolha foi perdida');
+
+  // 2. A combinação que a pessoa escolheu continua na tela (não a reescrita).
+  await expectSelection(page, escolhas);
+  await expect(page.getByLabel('Nome do projeto')).toHaveValue(PROJECT_NAME);
+
+  // 3. Nenhum download.
   expect(contagem.posts()).toBe(1);
   expect(contagem.downloads()).toBe(0);
 });

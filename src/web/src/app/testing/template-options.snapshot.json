@@ -75,7 +75,8 @@
       "values": [
         {
           "value": "net10.0",
-          "label": ".NET 10"
+          "label": ".NET 10",
+          "description": "Versão atual do .NET, usada como alvo do projeto gerado."
         }
       ]
     }

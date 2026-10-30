@@ -28,13 +28,21 @@ interface Medicao {
 }
 
 /**
- * Mede dentro do navegador. Um elemento só é culpado se passa da borda direita
- * **e** nenhum ancestro o recorta: o que transborda dentro de um quadro com
- * `overflow-x` próprio (a árvore rola no próprio quadro, de propósito) não
- * empurra a página — e o quadro, se passasse da borda, seria ele o culpado.
+ * Mede dentro do navegador. Dois tipos de culpado:
+ *
+ * 1. Passa da borda direita da janela **e** nenhum ancestro tem `overflow-x`
+ *    próprio: o que transborda dentro de um quadro assim (a árvore rola no
+ *    próprio quadro, de propósito) não empurra a página — e o quadro, se
+ *    passasse da borda, seria ele o culpado.
+ * 2. (T10) Passa da borda de um ancestro com `overflow-x: hidden` ou `clip`
+ *    sem que haja, entre os dois, um quadro que role (`auto`/`scroll`). Esse
+ *    recorte é silencioso: a página não rola, mas conteúdo some sem aviso —
+ *    foi o caso de `.options { overflow: hidden }` em T09.
+ *
+ * `raiz` limita a sonda a uma subárvore (o teste da própria sonda a usa).
  */
-async function medir(page: Page): Promise<Medicao> {
-  return page.evaluate(() => {
+async function medir(page: Page, raiz?: string): Promise<Medicao> {
+  return page.evaluate((raiz) => {
     const root = document.documentElement;
     const limit = root.clientWidth;
 
@@ -53,16 +61,37 @@ async function medir(page: Page): Promise<Medicao> {
       return `<${el.tagName.toLowerCase()}${id}${classes}> right=${right} "${texto}"`;
     };
 
-    const culpados = [...document.body.querySelectorAll('*')]
-      .filter((el) => el.getBoundingClientRect().right > limit && !recortado(el))
-      .map(nome);
+    /** O ancestro com `hidden`/`clip` que corta este elemento, ou null. */
+    const cortadoPor = (el: Element): Element | null => {
+      const box = el.getBoundingClientRect();
+      if (box.width === 0 && box.height === 0) return null;
+      for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+        const ox = getComputedStyle(p).overflowX;
+        if (ox === 'auto' || ox === 'scroll') return null;
+        if (ox === 'hidden' || ox === 'clip') {
+          const borda = p.getBoundingClientRect();
+          if (box.right > borda.right + 0.5 || box.left < borda.left - 0.5) return p;
+        }
+      }
+      return null;
+    };
+
+    const alcance = raiz ? (document.querySelector(raiz) ?? document.body) : document.body;
+    const todos = [...alcance.querySelectorAll('*')];
+    const culpados = [
+      ...todos.filter((el) => el.getBoundingClientRect().right > limit && !recortado(el)).map(nome),
+      ...todos.flatMap((el) => {
+        const corte = cortadoPor(el);
+        return corte ? [`${nome(el)} cortado por ${nome(corte)}`] : [];
+      }),
+    ];
 
     return {
       doc: { scroll: root.scrollWidth, client: root.clientWidth },
       body: { scroll: document.body.scrollWidth, client: document.body.clientWidth },
       culpados,
     };
-  });
+  }, raiz);
 }
 
 /** Espera o layout assentar depois de mudar a largura: fontes e dois quadros. */
@@ -133,4 +162,51 @@ test('a página não rola na horizontal em sete larguras e três estados de cont
 
   expect(medicoes).toBe(WIDTHS.length * estados.length);
   expect(falhas, `transbordo horizontal:\n${falhas.join('\n')}`).toEqual([]);
+});
+
+/**
+ * A própria sonda (T10, critério 4): injeta um elemento que passa da borda de
+ * um ancestro e exige que a sonda o acuse conforme o `overflow` do ancestro.
+ * Sem este teste, "nenhum culpado" na tela real não distingue sonda cega de
+ * página limpa.
+ */
+test.describe('a sonda de transbordo', () => {
+  async function injetar(page: Page, overflowX: string, filhoMuitoLargo: boolean): Promise<void> {
+    await page.goto('/');
+    await waitForCatalog(page);
+    await page.evaluate(
+      ({ overflowX, largo }) => {
+        const quadro = document.createElement('div');
+        quadro.id = 'sonda-quadro';
+        quadro.style.cssText = `width:120px;height:40px;overflow-x:${overflowX};`;
+        const filho = document.createElement('div');
+        filho.id = 'sonda-filho';
+        filho.style.cssText = `width:${largo ? 400 : 60}px;height:20px;`;
+        quadro.append(filho);
+        document.body.prepend(quadro);
+      },
+      { overflowX, largo: filhoMuitoLargo },
+    );
+  }
+
+  for (const overflowX of ['hidden', 'clip'] as const) {
+    test(`acusa elemento que passa da borda de ancestro com overflow ${overflowX}`, async ({
+      page,
+    }) => {
+      await injetar(page, overflowX, true);
+      const m = await medir(page, '#sonda-quadro');
+      expect(m.culpados.join('\n')).toContain('#sonda-filho');
+      expect(m.culpados.join('\n')).toContain('cortado por');
+    });
+  }
+
+  test('não acusa o que cabe no ancestro com overflow hidden', async ({ page }) => {
+    await injetar(page, 'hidden', false);
+    expect((await medir(page, '#sonda-quadro')).culpados).toEqual([]);
+  });
+
+  test('não acusa o que rola dentro de ancestro com overflow auto', async ({ page }) => {
+    await injetar(page, 'auto', true);
+    expect((await medir(page, '#sonda-quadro')).culpados).toEqual([]);
+  });
 });
