@@ -1,10 +1,92 @@
-simple+none+none+swagger=true: 4260a9251b08be9c35fbdeab38e7f00c5b662aa906e35e9c7122f17676180266 | 4260a9251b08be9c35fbdeab38e7f00c5b662aa906e35e9c7122f17676180266
-clean+postgresql+identity+swagger=false: 7cd38eab729effb69882da24d02d86c7a8a394853bfd8443632541a92ba244c3 | 7cd38eab729effb69882da24d02d86c7a8a394853bfd8443632541a92ba244c3
-clean+sqlite+jwt+swagger=true: 6b5ee7debc484395f20397220f5edd7e568233176c20962cd74b8f2141f3fc2a | 6b5ee7debc484395f20397220f5edd7e568233176c20962cd74b8f2141f3fc2a
-simple+sqlite+identity+swagger=true: dfedf2f13e87e767afdf25239e702c3046d9a15fcdd0cafae5e352f27f945adf | dfedf2f13e87e767afdf25239e702c3046d9a15fcdd0cafae5e352f27f945adf
---- nome invalido
-{"type":"https://templategenerator.local/problems/invalid-configuration","title":"Configuração inválida","status":400,"errors":{"projectName":["O trecho '1-invalido' não é um identificador C# válido. Use apenas letras sem acento, dígitos e '_', começando por letra ou '_'."]},"traceId":"00-7ab90a3d7e19cfc4a1edec033b3184aa-c267ac83549c2a91-00"}
+$ bash docs/reports/T10/determinism.sh <scratch>
++ for c in "simple none none true" "clean postgresql identity false" "clean sqlite jwt true" "simple sqlite identity true"
++ set -- simple none none true
++ body='{"projectName":"Acme.Billing.Api","architecture":"simple","database":"none","authentication":"none","swagger":true,"dotnetVersion":"net10.0"}'
++ curl -sS -o <scratch>/z1.zip -w 'HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{"projectName":"Acme.Billing.Api","architecture":"simple","database":"none","authentication":"none","swagger":true,"dotnetVersion":"net10.0"}' http://localhost:5099/api/templates
+HTTP 200
++ echo EXIT=0
+EXIT=0
++ curl -sS -o <scratch>/z2.zip -w 'HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{"projectName":"Acme.Billing.Api","architecture":"simple","database":"none","authentication":"none","swagger":true,"dotnetVersion":"net10.0"}' http://localhost:5099/api/templates
+HTTP 200
++ echo EXIT=0
+EXIT=0
++ sha256sum <scratch>/z1.zip <scratch>/z2.zip
++ cut -c1-64
+4260a9251b08be9c35fbdeab38e7f00c5b662aa906e35e9c7122f17676180266
+4260a9251b08be9c35fbdeab38e7f00c5b662aa906e35e9c7122f17676180266
++ echo EXIT=0
+EXIT=0
++ cmp -s <scratch>/z1.zip <scratch>/z2.zip
++ echo IDENTICOS_EXIT=0
+IDENTICOS_EXIT=0
++ for c in "simple none none true" "clean postgresql identity false" "clean sqlite jwt true" "simple sqlite identity true"
++ set -- clean postgresql identity false
++ body='{"projectName":"Acme.Billing.Api","architecture":"clean","database":"postgresql","authentication":"identity","swagger":false,"dotnetVersion":"net10.0"}'
++ curl -sS -o <scratch>/z1.zip -w 'HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{"projectName":"Acme.Billing.Api","architecture":"clean","database":"postgresql","authentication":"identity","swagger":false,"dotnetVersion":"net10.0"}' http://localhost:5099/api/templates
+HTTP 200
++ echo EXIT=0
+EXIT=0
++ curl -sS -o <scratch>/z2.zip -w 'HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{"projectName":"Acme.Billing.Api","architecture":"clean","database":"postgresql","authentication":"identity","swagger":false,"dotnetVersion":"net10.0"}' http://localhost:5099/api/templates
+HTTP 200
++ echo EXIT=0
+EXIT=0
++ sha256sum <scratch>/z1.zip <scratch>/z2.zip
++ cut -c1-64
+7cd38eab729effb69882da24d02d86c7a8a394853bfd8443632541a92ba244c3
+7cd38eab729effb69882da24d02d86c7a8a394853bfd8443632541a92ba244c3
++ echo EXIT=0
+EXIT=0
++ cmp -s <scratch>/z1.zip <scratch>/z2.zip
++ echo IDENTICOS_EXIT=0
+IDENTICOS_EXIT=0
++ for c in "simple none none true" "clean postgresql identity false" "clean sqlite jwt true" "simple sqlite identity true"
++ set -- clean sqlite jwt true
++ body='{"projectName":"Acme.Billing.Api","architecture":"clean","database":"sqlite","authentication":"jwt","swagger":true,"dotnetVersion":"net10.0"}'
++ curl -sS -o <scratch>/z1.zip -w 'HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{"projectName":"Acme.Billing.Api","architecture":"clean","database":"sqlite","authentication":"jwt","swagger":true,"dotnetVersion":"net10.0"}' http://localhost:5099/api/templates
+HTTP 200
++ echo EXIT=0
+EXIT=0
++ curl -sS -o <scratch>/z2.zip -w 'HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{"projectName":"Acme.Billing.Api","architecture":"clean","database":"sqlite","authentication":"jwt","swagger":true,"dotnetVersion":"net10.0"}' http://localhost:5099/api/templates
+HTTP 200
++ echo EXIT=0
+EXIT=0
++ sha256sum <scratch>/z1.zip <scratch>/z2.zip
++ cut -c1-64
+6b5ee7debc484395f20397220f5edd7e568233176c20962cd74b8f2141f3fc2a
+6b5ee7debc484395f20397220f5edd7e568233176c20962cd74b8f2141f3fc2a
++ echo EXIT=0
+EXIT=0
++ cmp -s <scratch>/z1.zip <scratch>/z2.zip
++ echo IDENTICOS_EXIT=0
+IDENTICOS_EXIT=0
++ for c in "simple none none true" "clean postgresql identity false" "clean sqlite jwt true" "simple sqlite identity true"
++ set -- simple sqlite identity true
++ body='{"projectName":"Acme.Billing.Api","architecture":"simple","database":"sqlite","authentication":"identity","swagger":true,"dotnetVersion":"net10.0"}'
++ curl -sS -o <scratch>/z1.zip -w 'HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{"projectName":"Acme.Billing.Api","architecture":"simple","database":"sqlite","authentication":"identity","swagger":true,"dotnetVersion":"net10.0"}' http://localhost:5099/api/templates
+HTTP 200
++ echo EXIT=0
+EXIT=0
++ curl -sS -o <scratch>/z2.zip -w 'HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{"projectName":"Acme.Billing.Api","architecture":"simple","database":"sqlite","authentication":"identity","swagger":true,"dotnetVersion":"net10.0"}' http://localhost:5099/api/templates
+HTTP 200
++ echo EXIT=0
+EXIT=0
++ sha256sum <scratch>/z1.zip <scratch>/z2.zip
++ cut -c1-64
+dfedf2f13e87e767afdf25239e702c3046d9a15fcdd0cafae5e352f27f945adf
+dfedf2f13e87e767afdf25239e702c3046d9a15fcdd0cafae5e352f27f945adf
++ echo EXIT=0
+EXIT=0
++ cmp -s <scratch>/z1.zip <scratch>/z2.zip
++ echo IDENTICOS_EXIT=0
+IDENTICOS_EXIT=0
++ curl -sS -w '\nHTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{"projectName":"1-invalido","architecture":"simple","database":"none","authentication":"none","swagger":true,"dotnetVersion":"net10.0"}' http://localhost:5099/api/templates
+{"type":"https://templategenerator.local/problems/invalid-configuration","title":"Configuração inválida","status":400,"errors":{"projectName":["O trecho '1-invalido' não é um identificador C# válido. Use apenas letras sem acento, dígitos e '_', começando por letra ou '_'."]},"traceId":"00-756b5a13d2095e030a580fa1720db052-f47612264b1fecc3-00"}
 HTTP 400
---- identity + none
-{"type":"https://templategenerator.local/problems/invalid-configuration","title":"Configuração inválida","status":400,"errors":{"authentication":["O Identity nativo precisa de um banco para persistir os usuários."]},"traceId":"00-00233b190244000cf43ee12dcf20369f-0ef4e58434279982-00"}
++ echo EXIT=0
+EXIT=0
++ curl -sS -w '\nHTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{"projectName":"Acme.Api","architecture":"simple","database":"none","authentication":"identity","swagger":true,"dotnetVersion":"net10.0"}' http://localhost:5099/api/templates
+{"type":"https://templategenerator.local/problems/invalid-configuration","title":"Configuração inválida","status":400,"errors":{"authentication":["O Identity nativo precisa de um banco para persistir os usuários."]},"traceId":"00-0285c332f9a87ba993969279d7f23876-11a8573507479d58-00"}
 HTTP 400
++ echo EXIT=0
+EXIT=0
+EXIT=0

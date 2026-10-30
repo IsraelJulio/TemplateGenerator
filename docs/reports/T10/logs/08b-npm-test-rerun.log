@@ -1,3 +1,4 @@
+$ npm test -- --watch=false
 
 > web@0.0.0 test
 > npm run check && ng test --watch=false
@@ -24,7 +25,7 @@ OK  check-licenses.mjs saiu com 1 no caso ruim
 OK  check-versions.mjs saiu com 1 no caso ruim
 ❯ Building...
 ✔ Building...
-Application bundle generation complete. [2.398 seconds] - 2026-10-30T10:37:07.906Z
+Application bundle generation complete. [2.591 seconds] - 2026-10-30T11:56:02.134Z
 
 
 [1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90mC:/Users/2273129/Documents/Projects/TemplateGenerator/src/web[39m
@@ -34,6 +35,7 @@ Not implemented: navigation to another Document
 
 [2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
 [2m      Tests [22m [1m[32m204 passed[39m[22m[90m (204)[39m
-[2m   Start at [22m 07:37:08
-[2m   Duration [22m 6.18s[2m (transform 1.01s, setup 7.08s, import 1.90s, tests 1.81s, environment 30.42s)[22m
+[2m   Start at [22m 08:56:02
+[2m   Duration [22m 6.97s[2m (transform 1.31s, setup 8.52s, import 2.37s, tests 1.91s, environment 35.19s)[22m
 
+EXIT=0

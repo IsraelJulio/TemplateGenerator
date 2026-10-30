@@ -478,7 +478,8 @@
         "docs/THIRD-PARTY.md",
         "docs/architecture/http-contract.md",
         "docs/design/visual-spec.md",
-        "docs/architecture/generated-projects.md"
+        "docs/architecture/generated-projects.md",
+        "docs/environment.md"
       ],
       "objective": "Executar as camadas 1 a 3 inteiras e a revisao independente de qualidade, seguranca e licencas.",
       "acceptanceCriteria": [
