@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import type { TemplateOptionsCatalog } from '../src/app/core/catalog/template-options.model';
 import {
   PROJECT_NAME,
   ZIP_SIGNATURE,
@@ -9,8 +10,10 @@ import {
   openWithProjectName,
   openZip,
   pickSecondOfFirstGroup,
+  radioOf,
   readCatalog,
   saveZip,
+  type Selection,
   treeAcross,
   waitForCatalog,
   zipEntries,
@@ -161,18 +164,74 @@ test('a outra arquitetura do catálogo também baixa o que a tela prometeu', asy
 });
 
 /**
- * ADR-0012 pela tela: o valor que ainda não gera projeto chega **desabilitado**,
- * com a razão que o catálogo mandou, e o que tem template continua clicável.
+ * ADR-0012 pela tela, **com a API dizendo o que está sem template** (T10,
+ * ressalva 5 de T09). Hoje o catálogo real traz `unavailable: []`, então o
+ * teste intercepta `GET /api/template-options`, busca a resposta de verdade e
+ * só acrescenta uma entrada em `unavailable` — o resto do catálogo é o do
+ * servidor. A entrada é tirada do próprio catálogo: o segundo valor do primeiro
+ * campo de escolha (nunca o padrão), com uma razão que o teste inventa para
+ * poder procurá-la na tela.
  *
- * Sem nomear nenhum dos dois: o teste conta o que a API de verdade marcou, e
- * continua valendo no dia em que a lista encolher — quando ela esvaziar, é o
- * `else` que passa a ser exercitado.
+ * O que se afirma: o valor marcado chega desabilitado, com a razão visível e
+ * ligada ao controle por `aria-describedby`; o resto do grupo segue clicável.
  */
 test('desabilita na tela o que a API marcou como sem template', async ({ page }) => {
-  const form = await (async () => {
-    await page.goto('/');
-    return waitForCatalog(page);
-  })();
+  const razao = 'Ainda não existe template para esta opção (marcação do teste).';
+  let marcado: { field: string; value: string } | undefined;
+
+  await page.route('**/api/template-options', async (route) => {
+    const resposta = await route.fetch();
+    const catalogo = (await resposta.json()) as TemplateOptionsCatalog;
+    const [campo, definicao] = Object.entries(catalogo.fields).find(
+      ([, f]) => f.type === 'choice' && (f.values ?? []).length > 1,
+    )!;
+    const alvo = (definicao.values ?? []).find((v) => v.value !== definicao.default)!;
+    marcado = { field: campo, value: String(alvo.value) };
+    await route.fulfill({
+      response: resposta,
+      json: { ...catalogo, unavailable: [{ field: campo, value: alvo.value, reason: razao }] },
+    });
+  });
+
+  await page.goto('/');
+  const form = await waitForCatalog(page);
+  expect(marcado, 'a tela não pediu o catálogo pela rota interceptada').toBeDefined();
+
+  const radio = radioOf(form, marcado!.field, marcado!.value);
+  await expect(radio).toBeDisabled();
+  const id = await radio.getAttribute('aria-describedby');
+  expect(id, 'opção sem template sem razão associada').not.toBeNull();
+  const motivo = page.locator(`[id="${id}"]`);
+  await expect(motivo).toBeVisible();
+  await expect(motivo).toContainText(razao);
+
+  // O valor padrão do mesmo campo continua selecionado e clicável, e nenhum
+  // outro valor foi desabilitado por esta marcação.
+  const mesmoGrupo = form.locator(`input[type="radio"][data-field="${marcado!.field}"]`);
+  const habilitados = await mesmoGrupo.evaluateAll(
+    (els) => els.filter((el) => !(el as HTMLInputElement).disabled).length,
+  );
+  expect(habilitados).toBe((await mesmoGrupo.count()) - 1);
+  await expect(
+    form.locator(`input[type="radio"][data-field="${marcado!.field}"]:checked`),
+  ).toBeEnabled();
+});
+
+/**
+ * O outro motivo de desabilitar, com a API de verdade e sem interceptar nada: a
+ * **restrição** do catálogo. A tela nasce no padrão e, em cada campo, o valor
+ * que a restrição proíbe naquele momento chega desabilitado com a razão
+ * visível e ligada ao controle; nenhum valor marcado por padrão está
+ * desabilitado, senão a tela nasceria impossível de enviar.
+ *
+ * (Antes de T10 este teste se chamava "...o que a API marcou como sem template"
+ * e passava só por isto, porque o catálogo real traz `unavailable: []`.)
+ */
+test('desabilita na tela o que a restrição do catálogo proíbe, com a razão visível', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const form = await waitForCatalog(page);
 
   const radios = form.locator('input[type="radio"]');
   const total = await radios.count();
@@ -187,15 +246,11 @@ test('desabilita na tela o que a API marcou como sem template', async ({ page })
     }
     desabilitados += 1;
 
-    // A razão é visível e está ligada ao controle por `aria-describedby`, que é
-    // o que um leitor de tela anuncia junto com "indisponível".
     const id = await radio.getAttribute('aria-describedby');
     expect(id, 'opção desabilitada sem razão associada').not.toBeNull();
     await expect(page.locator(`[id="${id}"]`)).toBeVisible();
   }
 
-  // Nenhum valor selecionado por padrão pode estar desabilitado: seria uma tela
-  // que nasce impossível de enviar.
   for (let i = 0; i < total; i += 1) {
     const radio = radios.nth(i);
     if (await radio.isChecked()) {
@@ -203,7 +258,7 @@ test('desabilita na tela o que a API marcou como sem template', async ({ page })
     }
   }
 
-  expect(desabilitados, 'nenhuma opção veio desabilitada — a API mudou?').toBeGreaterThan(0);
+  expect(desabilitados, 'nenhuma opção veio desabilitada — o catálogo mudou?').toBeGreaterThan(0);
 });
 
 /**
@@ -224,8 +279,14 @@ test('uma combinação não padrão escolhida pela tela chega inteira ao manifes
   const form = await waitForCatalog(page);
   const catalog = await readCatalog(page);
 
-  const escolhas = await chooseNonDefault(page, catalog);
-  await page.getByLabel('Nome do projeto').fill(PROJECT_NAME);
+  // A árvore da tela é lida antes das trocas e depois de assentada (T09b): são
+  // várias trocas seguidas (uma por campo e o nome), e `treeAcross` espera a
+  // árvore nova ficar igual em duas leituras, não o primeiro estado intermediário.
+  let escolhas: Selection = {};
+  const prometido = await treeAcross(page, async () => {
+    escolhas = await chooseNonDefault(page, catalog);
+    await page.getByLabel('Nome do projeto').fill(PROJECT_NAME);
+  });
 
   // Não padrão de verdade: todo campo que oferece mais de uma posição saiu do
   // padrão. Um catálogo em que só sobrasse o padrão faria este teste repetir o
@@ -246,6 +307,10 @@ test('uma combinação não padrão escolhida pela tela chega inteira ao manifes
 
   const files = openZip(await saveZip(download, testInfo));
   const real = zipEntries(files);
+
+  // O que a tela prometeu para esta combinação é o que o ZIP trouxe.
+  expect(prometido.length).toBeGreaterThan(20);
+  expectTreeMatchesZip(prometido, real);
 
   const manifest = JSON.parse(new TextDecoder().decode(files['.templategenerator/manifest.json']));
   expect(manifest).toEqual({

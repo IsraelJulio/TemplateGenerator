@@ -49,8 +49,7 @@ precisa prender de volta.
 `@angular/*`, `@angular-devkit/*`, `@schematics/*`, `typescript`, `rxjs`, `zone.js`, `tslib`.
 
 **Tudo o mais fica exato**, sem `^` e sem `~`. Hoje isso inclui `@playwright/test` e `fflate` (já
-exatos) e alcança `jsdom`, `prettier` e `vitest`, que ainda estão com `^` — a correção é pequena e
-cabe ao papel `frontend` na próxima tarefa que tocar o `package.json`.
+exatos) e alcança `jsdom`, `prettier` e `vitest`, que estavam com `^` e foram fixados em T10.
 
 Acrescentar um nome à lista de exceções é **edição deliberada desta ADR**, não inferência: a lista
 existe justamente para não crescer sozinha.
@@ -58,9 +57,12 @@ existe justamente para não crescer sozinha.
 O lockfile e o `npm ci` continuam obrigatórios nos dois casos — eles são o que fixa as transitivas,
 e nenhuma quantidade de pinning no `package.json` substitui isso.
 
-**Verificação:** uma checagem de que toda dependência do `package.json` fora da lista de exceções
-tem versão exata. É trabalho de `frontend`/`qa`; sem ela, esta seção é comentário, não regra — e
-uma regra de versão sem verificação é exatamente o que RNF-06 existe para não aceitar.
+**Verificação (T10):** `src/web/scripts/check-versions.mjs`, exposto como `npm run check:versions`
+e encadeado em `npm test`. Falha com exit 1 diante de qualquer intervalo (`^`, `~`, `>`, `*`, `x`,
+tag...) em dependência fora da lista de exceções, e também se o lockfile resolver versão diferente
+da fixada. `jsdom`, `prettier` e `vitest` foram fixados na versão que o lockfile já resolvia. A
+lista de exceções vive no próprio script e espelha a acima; `npm run check:selftest` prova que ele
+falha diante de `scripts/fixtures/bad-package.json`.
 
 ## Consequências
 

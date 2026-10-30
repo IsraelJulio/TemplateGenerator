@@ -237,31 +237,26 @@ dois bancos, porque a ferramenta de CLI opera sobre as migrações sem exigir pa
 
 ## Pacotes npm — plataforma
 
-506 pacotes no `package-lock.json`, contando transitivas. Auditoria do lockfile, **reexecutada em
-T03** — eram 502 até a entrada das quatro dependências de teste ponta a ponta da seção seguinte:
+A auditoria de licenças **não é uma tabela mantida à mão**: é o script
+`src/web/scripts/check-licenses.mjs` (`npm run check:licenses`), que lê o `package-lock.json` —
+a árvore inteira, transitivas incluídas — e **falha com exit 1** diante de pacote com licença fora
+da lista permitida ou sem licença declarada. A lista permitida é explícita no repositório:
+`src/web/scripts/license-policy.json` (MIT, MIT-0, ISC, BSD-2-Clause, BSD-3-Clause, Apache-2.0,
+0BSD, CC0-1.0, CC-BY-4.0, BlueOak-1.0.0), e mudá-la é decisão deliberada registrada aqui. O script
+imprime a contagem por licença a cada execução; essa saída substitui a tabela de T01/T03, que
+estava defasada (502, depois 506 pacotes). Ele roda dentro de `npm test` (via `npm run check`), e
+`npm run check:selftest` prova que ele falha diante de um lockfile ruim
+(`src/web/scripts/fixtures/bad-lock.json`).
 
-| Licença | Pacotes |
-|---|---|
-| MIT | 432 |
-| ISC | 25 |
-| BSD-2-Clause | 12 |
-| **MPL-2.0** | **12** |
-| Apache-2.0 | 13 |
-| BSD-3-Clause | 6 |
-| MIT-0 (2) / CC-BY-4.0 / CC0-1.0 / BlueOak-1.0.0 / 0BSD | 6 |
-| **Total** | **506** |
-
-A variação de T01 para T03 é exatamente `+3` Apache-2.0 (os três pacotes do Playwright) e `+1` MIT
-(`fflate`).
-
-**Nenhum pacote sem licença declarada.** A coluna conta **pacotes**, não nomes de licença — a
-última linha agrupa 5 licenças distintas em 6 pacotes, porque `MIT-0` aparece duas vezes. A
-tabela tem de somar exatamente o total; se não somar, está errada.
+A regra de versão da [ADR-0009](decisions/adr-0009-fixacao-de-versoes-npm.md) tem a verificação
+irmã `src/web/scripts/check-versions.mjs` (`npm run check:versions`).
 
 ### Decisão sobre os 12 MPL-2.0
 
 Os doze são `lightningcss` 1.33.0 e seus binários por plataforma, todos marcados `dev` no
-lockfile — fazem parte do toolchain de build do Angular.
+lockfile — fazem parte do toolchain de build do Angular. É a **única exceção** à lista permitida,
+declarada em `license-policy.json` com `devOnly: true`: o script a recusa se o pacote deixar de
+ser `dev`.
 
 MPL-2.0 é *copyleft fraco*, com obrigação **por arquivo**: recai sobre modificações nos arquivos
 do próprio `lightningcss`, não sobre código que apenas o usa como ferramenta. Nós não o
@@ -275,10 +270,6 @@ que não redistribuímos não cria obrigação sobre este projeto.
 > (um pacote incluindo `node_modules`, uma imagem, um instalador). Ela se apoia inteiramente em
 > "não redistribuímos", e o ZIP gerado — único canal de distribuição do projeto — não contém
 > `lightningcss`. Se essa premissa mudar, a decisão precisa ser refeita, não herdada.
-
-> ⚠️ **502 dependências transitivas não se mantêm à mão.** Esta tabela é um retrato de T01. A
-> manutenção precisa virar script de auditoria que **falhe** diante de licença fora da lista
-> permitida — está registrado como tarefa em `backlog.json`.
 
 ## Pacotes npm — teste ponta a ponta
 

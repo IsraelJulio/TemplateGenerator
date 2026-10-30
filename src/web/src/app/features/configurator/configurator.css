@@ -141,8 +141,12 @@
   border-radius: var(--radius);
 }
 
+/* Vazio tem de parecer vazio (T10): o exemplo leva o prefixo "Ex.:" e vai em
+   itálico, para não se confundir com um valor já preenchido. A cor continua
+   --ink-soft, que passa o contraste AA sobre --panel (contrast.spec.ts). */
 .text-input::placeholder {
   color: var(--ink-soft);
+  font-style: italic;
 }
 
 .text-input[aria-invalid='true'] {
