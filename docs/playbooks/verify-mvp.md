@@ -61,7 +61,11 @@ código-fonte:
 
 ## Camada 4 — completa, sob demanda
 
-`dotnet build` nas 32. Roda em T11 e por invocação explícita. Longa: planeje o tempo.
+`dotnet build` nas 32. Roda em T11 e por invocação explícita. Longa (cerca de 8 min com cache frio): planeje o tempo.
+
+```bash
+dotnet test tests/TemplateGenerator.Matrix.Tests --filter "Camada=4" -- xUnit.Explicit=on
+```
 
 ## Frontend
 

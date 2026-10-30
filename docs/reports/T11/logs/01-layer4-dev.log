@@ -1,0 +1,6 @@
+$ dotnet test tests/TemplateGenerator.Matrix.Tests --no-build --filter "Camada=4" -- xUnit.Explicit=on
+Test run for C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    33, Skipped:     0, Total:    33, Duration: 7 m 57 s - TemplateGenerator.Matrix.Tests.dll (net10.0)
+EXIT=0

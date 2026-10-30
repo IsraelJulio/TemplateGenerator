@@ -1,0 +1,19 @@
+$ dotnet build
+  Determining projects to restore...
+  Restored C:\Users\2273129\tg-t11-clean\src\TemplateGenerator.Generation\TemplateGenerator.Generation.csproj (in 184 ms).
+  Restored C:\Users\2273129\tg-t11-clean\src\TemplateGenerator.Api\TemplateGenerator.Api.csproj (in 477 ms).
+  Restored C:\Users\2273129\tg-t11-clean\tests\TemplateGenerator.Generation.Tests\TemplateGenerator.Generation.Tests.csproj (in 653 ms).
+  Restored C:\Users\2273129\tg-t11-clean\tests\TemplateGenerator.Api.Tests\TemplateGenerator.Api.Tests.csproj (in 664 ms).
+  Restored C:\Users\2273129\tg-t11-clean\tests\TemplateGenerator.Matrix.Tests\TemplateGenerator.Matrix.Tests.csproj (in 664 ms).
+  TemplateGenerator.Generation -> C:\Users\2273129\tg-t11-clean\src\TemplateGenerator.Generation\bin\Debug\net10.0\TemplateGenerator.Generation.dll
+  TemplateGenerator.Generation.Tests -> C:\Users\2273129\tg-t11-clean\tests\TemplateGenerator.Generation.Tests\bin\Debug\net10.0\TemplateGenerator.Generation.Tests.dll
+  TemplateGenerator.Api -> C:\Users\2273129\tg-t11-clean\src\TemplateGenerator.Api\bin\Debug\net10.0\TemplateGenerator.Api.dll
+  TemplateGenerator.Api.Tests -> C:\Users\2273129\tg-t11-clean\tests\TemplateGenerator.Api.Tests\bin\Debug\net10.0\TemplateGenerator.Api.Tests.dll
+  TemplateGenerator.Matrix.Tests -> C:\Users\2273129\tg-t11-clean\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:11.97
+EXIT=0

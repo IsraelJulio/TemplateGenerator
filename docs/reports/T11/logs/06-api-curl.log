@@ -1,0 +1,11 @@
+$ curl -i http://localhost:5080/api/health
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Fri, 30 Oct 2026 12:57:40 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{"status":"ok"}
+$ curl http://localhost:5080/api/template-options
+{"templateVersion":"1.0.0","fields":{"architecture":{"label":"Arquitetura","default":"simple","type":"choice","values":[{"value":"simple","label":"Simples","description":"Um projeto Web API."},{"value":"clean","label":"Clean Architecture","description":"Api, Application, Domain e Infrastructure."}]},"database":{"label":"Banco","default":"none","type":"choice","values":[{"value":"none","label":"Nenhum","description":"Sem persistência."},{"value":"sqlite","label":"SQLite","description":"Arquivo local, sem serviço externo."},{"value":"postgresql","label":"PostgreSQL","description":"Servidor PostgreSQL via Npgsql."}]},"authentication":{"label":"Autenticação","default":"none","type":"choice","values":[{"value":"none","label":"Nenhuma","description":"Endpoints abertos."},{"value":"identity","label":"Identity","description":"ASP.NET Core Identity, com usuários persistidos."},{"value":"jwt","label":"JWT","description":"Validação de token, sem persistência de usuário."}]},"swagger":{"label":"Swagger","default":true,"type":"boolean","description":"Interface de exploração da API no projeto gerado."},"dotnetVersion":{"label":"Versão .NET","default":"net10.0","type":"choice","values":[{"value":"net10.0","label":".NET 10","description":"Versão atual do .NET, usada como alvo do projeto gerado."}]}},"constraints":[{"id":"identity-requires-database","when":{"authentication":["identity"]},"requires":{"database":["sqlite","postgresql"]},"message":"O Identity nativo precisa de um ba
+EXIT=0

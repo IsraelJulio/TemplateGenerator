@@ -1,0 +1,19 @@
+$ npm start
+
+> web@0.0.0 start
+> ng serve
+
+❯ Building...
+✔ Building...
+Initial chunk files | Names         |  Raw size
+main.js             | main          | 103.22 kB | 
+styles.css          | styles        |   2.80 kB | 
+
+                    | Initial total | 106.02 kB
+
+Application bundle generation complete. [2.575 seconds] - 2026-10-30T12:58:31.144Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m4200[22m/[39m
+[2m9:58:32 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [optimizer] bundling dependencies...

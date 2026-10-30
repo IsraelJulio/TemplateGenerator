@@ -1,0 +1,26 @@
+$ dotnet --version
+10.0.302
+EXIT=0
+$ node --version
+v24.18.1
+EXIT=0
+$ npm --version
+11.16.0
+EXIT=0
+$ git --version
+git version 2.55.0.windows.3
+EXIT=0
+$ psql --version
+/usr/bin/bash: line 4: psql: command not found
+EXIT=127
+$ sc query postgresql-x64-18
+
+SERVICE_NAME: postgresql-x64-18 
+        TYPE               : 10  WIN32_OWN_PROCESS  
+        STATE              : 4  RUNNING 
+                                (STOPPABLE, PAUSABLE, ACCEPTS_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+EXIT=0

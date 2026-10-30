@@ -512,10 +512,12 @@
     },
     {
       "id": "T11",
+      "finishedAt": "2026-10-30",
+      "startedAt": "2026-10-30",
       "pullRequest": null,
       "order": 11,
       "title": "Validacao em ambiente limpo e entrega local documentada",
-      "state": "pending",
+      "state": "done",
       "dependsOn": ["T10"],
       "roles": ["po", "qa", "reviewer"],
       "skills": ["verify-mvp"],
@@ -539,7 +541,7 @@
         "Percorrer o fluxo de ponta a ponta como usuario final."
       ],
       "blockers": [],
-      "report": null
+      "report": "docs/reports/T11.md"
     }
   ]
 }

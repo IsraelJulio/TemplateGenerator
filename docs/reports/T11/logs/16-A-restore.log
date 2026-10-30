@@ -1,0 +1,8 @@
+$ dotnet restore
+  Determining projects to restore...
+  Restored C:\Users\2273129\tg-t11-work\run\A\src\PedidosApi.Domain\PedidosApi.Domain.csproj (in 220 ms).
+  Restored C:\Users\2273129\tg-t11-work\run\A\src\PedidosApi.Application\PedidosApi.Application.csproj (in 252 ms).
+  Restored C:\Users\2273129\tg-t11-work\run\A\src\PedidosApi.Infrastructure\PedidosApi.Infrastructure.csproj (in 626 ms).
+  Restored C:\Users\2273129\tg-t11-work\run\A\tests\PedidosApi.Tests\PedidosApi.Tests.csproj (in 656 ms).
+  Restored C:\Users\2273129\tg-t11-work\run\A\src\PedidosApi.Api\PedidosApi.Api.csproj (in 751 ms).
+EXIT=0

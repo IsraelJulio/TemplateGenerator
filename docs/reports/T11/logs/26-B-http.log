@@ -1,0 +1,49 @@
+$ curl -i http://localhost:5100/health; curl -i http://localhost:5100/items; curl -i -H 'Authorization: Bearer xyz' http://localhost:5100/items; curl -i http://localhost:5100/swagger/index.html; curl -i http://localhost:5100/openapi/v1.json
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100     15   0     15   0      0     92      0                              0100     15   0     15   0      0     90      0                              0100     15   0     15   0      0     89      0                              0
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Fri, 30 Oct 2026 13:04:24 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{"status":"ok"}  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    165   0    165   0      0   3374      0                              0100    165   0    165   0      0   3271      0                              0100    165   0    165   0      0   3215      0                              0
+HTTP/1.1 401 Unauthorized
+Content-Type: application/problem+json
+Date: Fri, 30 Oct 2026 13:04:24 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+WWW-Authenticate: Bearer
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-4e337a5371d7660f7c21dfc273a3dd43-6e20b1ae01d355ce-00"}  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    165   0    165   0      0   3231      0                              0100    165   0    165   0      0   3156      0                              0100    165   0    165   0      0   3104      0                              0
+HTTP/1.1 401 Unauthorized
+Content-Type: application/problem+json
+Date: Fri, 30 Oct 2026 13:04:24 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+WWW-Authenticate: Bearer error="invalid_token"
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-78d515713f863dc0656963436cce1d5f-58813f48b063afbc-00"}  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    162   0    162   0      0  20426      0                              0100    162   0    162   0      0  16958      0                              0100    162   0    162   0      0  14393      0                              0
+HTTP/1.1 404 Not Found
+Content-Type: application/problem+json
+Date: Fri, 30 Oct 2026 13:04:24 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.5","title":"Not Found","status":404,"traceId":"00-364133a3753cfd62247bdd95f465e2ed-d29a5410d78235b0-00"}  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    162   0    162   0      0  17530      0                              0100    162   0    162   0      0  14585      0                              0100    162   0    162   0      0  12546      0                              0
+HTTP/1.1 404 Not Found
+Content-Type: application/problem+json
+Date: Fri, 30 Oct 2026 13:04:25 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.5","title":"Not Found","status":404,"traceId":"00-d70e6162354400f373e6661ecf6f3f39-58da3637979e68f4-00"}EXIT=0

@@ -1,0 +1,15 @@
+$ git -C C:/Users/2273129/tg-t11-clean rev-parse HEAD
+1b1edcb1eba0658593b6c72e9196d1bcc7a68aed
+EXIT=0
+$ git -C C:/Users/2273129/tg-t11-clean log --oneline -1
+1b1edcb T11: camada 4 nas 32 como Theory explicita, README da raiz com os pre-requisitos e o fluxo reais
+EXIT=0
+$ git -C C:/Users/2273129/tg-t11-clean status --porcelain
+EXIT=0
+$ git -C C:/Users/2273129/tg-t11-clean remote -v
+origin	C:/Users/2273129/Documents/Projects/TemplateGenerator (fetch)
+origin	C:/Users/2273129/Documents/Projects/TemplateGenerator (push)
+EXIT=0
+$ git -C C:/Users/2273129/tg-t11-clean branch --show-current
+feat/T11-validacao-em-ambiente-limpo-e-entrega-local-docume
+EXIT=0
