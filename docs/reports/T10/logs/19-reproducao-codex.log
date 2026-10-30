@@ -1,0 +1,4 @@
+$ node scripts/check-licenses.mjs --lock <fixture com um pacote "(MIT OR Apache-2.0) AND GPL-3.0-only">
+check:licenses FALHOU (1 de 1 pacotes)
+  - x@1: licenca "(MIT OR Apache-2.0) AND GPL-3.0-only" fora da lista permitida
+EXIT=1

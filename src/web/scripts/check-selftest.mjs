@@ -12,7 +12,8 @@ const cases = [
   {
     script: 'check-licenses.mjs',
     args: ['--lock', resolve(here, 'fixtures/bad-lock.json')],
-    expect: ['gpl-thing', 'nolic', 'lightningcss'],
+    expect: ['gpl-thing', 'nolic', 'lightningcss', 'paren-trap', 'broken-expr', 'with-expr'],
+    forbid: ['paren-ok'],
   },
   {
     script: 'check-versions.mjs',
@@ -33,13 +34,15 @@ for (const c of cases) {
   const r = spawnSync(process.execPath, [resolve(here, c.script), ...c.args], { encoding: 'utf8' });
   const out = `${r.stdout}${r.stderr}`;
   const missing = c.expect.filter((s) => !out.includes(s));
+  const wrongly = (c.forbid ?? []).filter((s) => out.includes(s));
   const ok =
     r.status !== 0 &&
     missing.length === 0 &&
+    wrongly.length === 0 &&
     !out.includes('@angular/core') &&
     !out.includes('devDependencies.e');
   console.log(
-    `${ok ? 'OK ' : 'ERRO'} ${c.script} saiu com ${r.status} no caso ruim${missing.length ? `; faltou acusar: ${missing.join(', ')}` : ''}`,
+    `${ok ? 'OK ' : 'ERRO'} ${c.script} saiu com ${r.status} no caso ruim${missing.length ? `; faltou acusar: ${missing.join(', ')}` : ''}${wrongly.length ? `; acusou indevidamente: ${wrongly.join(', ')}` : ''}`,
   );
   if (!ok) {
     failed = true;

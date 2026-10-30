@@ -24,12 +24,53 @@ const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
 const policy = JSON.parse(readFileSync(policyPath, 'utf8'));
 const allowed = new Set(policy.allowed);
 
-/** Expressao SPDX simples: `OR` basta uma alternativa permitida; `AND` exige todas. */
+/**
+ * Expressao SPDX com agrupamento: `OR` basta uma alternativa permitida; `AND` exige todas;
+ * `AND` precede `OR`; parenteses agrupam. Falha fechada: `WITH`, operador minusculo ou
+ * expressao malformada contam como NAO permitida (cai na lista de excecoes ou vira violacao).
+ */
 function expressionAllowed(expression) {
-  const text = expression.replace(/[()]/g, ' ').trim();
-  return text
-    .split(/\s+OR\s+/)
-    .some((alt) => alt.split(/\s+AND\s+/).every((id) => allowed.has(id.trim())));
+  const tokens = expression.match(/\(|\)|[^\s()]+/g) ?? [];
+  let pos = 0;
+  const peek = () => tokens[pos];
+  const fail = () => {
+    throw new Error('expressao SPDX nao avaliavel');
+  };
+
+  function orExpr() {
+    let ok = andExpr();
+    while (peek() === 'OR') {
+      pos += 1;
+      ok = andExpr() || ok;
+    }
+    return ok;
+  }
+  function andExpr() {
+    let ok = atom();
+    while (peek() === 'AND') {
+      pos += 1;
+      ok = atom() && ok;
+    }
+    return ok;
+  }
+  function atom() {
+    const t = tokens[pos++];
+    if (t === '(') {
+      const ok = orExpr();
+      if (tokens[pos++] !== ')') fail();
+      return ok;
+    }
+    if (t === undefined || t === ')' || /^(AND|OR|WITH)$/i.test(t)) fail();
+    if (peek()?.toUpperCase() === 'WITH') fail();
+    return allowed.has(t);
+  }
+
+  try {
+    const ok = orExpr();
+    return pos === tokens.length && ok;
+  } catch {
+    return false;
+  }
 }
 
 const nameOf = (path) => path.replace(/^.*node_modules\//, '');

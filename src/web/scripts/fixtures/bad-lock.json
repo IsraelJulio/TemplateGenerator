@@ -4,6 +4,10 @@
     "node_modules/ok": { "version": "1.0.0", "license": "MIT" },
     "node_modules/gpl-thing": { "version": "2.0.0", "license": "GPL-3.0-only" },
     "node_modules/lightningcss": { "version": "1.0.0", "license": "MPL-2.0" },
-    "node_modules/nolic": { "version": "1.0.0" }
+    "node_modules/nolic": { "version": "1.0.0" },
+    "node_modules/paren-trap": { "version": "1.0.0", "license": "(MIT OR Apache-2.0) AND GPL-3.0-only" },
+    "node_modules/paren-ok": { "version": "1.0.0", "license": "(MIT OR GPL-3.0-only) AND Apache-2.0" },
+    "node_modules/broken-expr": { "version": "1.0.0", "license": "(MIT OR Apache-2.0" },
+    "node_modules/with-expr": { "version": "1.0.0", "license": "Apache-2.0 WITH LLVM-exception" }
   }
 }

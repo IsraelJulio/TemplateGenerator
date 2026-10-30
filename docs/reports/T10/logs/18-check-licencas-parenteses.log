@@ -1,0 +1,22 @@
+$ npm run check
+
+> web@0.0.0 check
+> npm run check:versions && npm run check:licenses && npm run check:selftest
+
+
+> web@0.0.0 check:versions
+> node scripts/check-versions.mjs
+
+check:versions OK: 5 dependencias com versao exata, 12 na lista de excecao da ADR-0009
+
+> web@0.0.0 check:licenses
+> node scripts/check-licenses.mjs
+
+check:licenses OK: 506 pacotes dentro da lista permitida (MIT=432, ISC=25, Apache-2.0=13, BSD-2-Clause=12, MPL-2.0=12, BSD-3-Clause=6, MIT-0=2, CC-BY-4.0=1, BlueOak-1.0.0=1, CC0-1.0=1, 0BSD=1)
+
+> web@0.0.0 check:selftest
+> node scripts/check-selftest.mjs
+
+OK  check-licenses.mjs saiu com 1 no caso ruim
+OK  check-versions.mjs saiu com 1 no caso ruim
+EXIT=0
