@@ -462,11 +462,12 @@
     },
     {
       "id": "T10",
+      "finishedAt": "2026-10-30",
       "startedAt": "2026-10-30",
       "pullRequest": null,
       "order": 10,
       "title": "Matriz completa e revisao funcional, visual e de seguranca",
-      "state": "in_progress",
+      "state": "done",
       "dependsOn": ["T09"],
       "roles": ["qa", "frontend", "template-engineer", "architect", "reviewer"],
       "skills": ["verify-mvp"],
