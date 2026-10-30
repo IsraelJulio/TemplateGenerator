@@ -91,11 +91,22 @@ describe('validação de forma do snapshot', () => {
     expect(() => parseCatalog(raw)).toThrow(`fields.${key}.default`);
   });
 
-  it('aceita a opção sem `description`, que o snapshot traz', () => {
+  it('aceita a opção sem `description`: o cliente tolera a ausência (regra 8 do contrato)', () => {
+    // Desde T10 o contrato exige `description` em todo valor de escolha e o
+    // snapshot cumpre; a tolerância do cliente é provada removendo-a de um valor.
+    const raw = clone(RAW);
+    const field = Object.values(raw.fields as Record<string, { values?: { description?: string }[] }>)
+      .find((candidate) => (candidate.values?.length ?? 0) > 0)!;
+    delete field.values![0].description;
+
+    expect(() => parseCatalog(raw)).not.toThrow();
+  });
+
+  it('o snapshot traz `description` em todo valor de escolha (docs/architecture/http-contract.md)', () => {
     const semDescricao = Object.values(SNAPSHOT_CATALOG.fields)
       .flatMap((field) => field.values ?? [])
-      .filter((option) => !('description' in option));
+      .filter((option) => !option.description?.trim());
 
-    expect(semDescricao.length).toBeGreaterThan(0);
+    expect(semDescricao).toEqual([]);
   });
 });
