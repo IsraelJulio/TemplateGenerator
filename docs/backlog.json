@@ -514,7 +514,7 @@
       "id": "T11",
       "finishedAt": "2026-10-30",
       "startedAt": "2026-10-30",
-      "pullRequest": null,
+      "pullRequest": "https://github.com/IsraelJulio/TemplateGenerator/pull/20",
       "order": 11,
       "title": "Validacao em ambiente limpo e entrega local documentada",
       "state": "done",
