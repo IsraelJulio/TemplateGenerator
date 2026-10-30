@@ -1,0 +1,10 @@
+simple+none+none+swagger=true: 4260a9251b08be9c35fbdeab38e7f00c5b662aa906e35e9c7122f17676180266 | 4260a9251b08be9c35fbdeab38e7f00c5b662aa906e35e9c7122f17676180266
+clean+postgresql+identity+swagger=false: 7cd38eab729effb69882da24d02d86c7a8a394853bfd8443632541a92ba244c3 | 7cd38eab729effb69882da24d02d86c7a8a394853bfd8443632541a92ba244c3
+clean+sqlite+jwt+swagger=true: 6b5ee7debc484395f20397220f5edd7e568233176c20962cd74b8f2141f3fc2a | 6b5ee7debc484395f20397220f5edd7e568233176c20962cd74b8f2141f3fc2a
+simple+sqlite+identity+swagger=true: dfedf2f13e87e767afdf25239e702c3046d9a15fcdd0cafae5e352f27f945adf | dfedf2f13e87e767afdf25239e702c3046d9a15fcdd0cafae5e352f27f945adf
+--- nome invalido
+{"type":"https://templategenerator.local/problems/invalid-configuration","title":"Configuração inválida","status":400,"errors":{"projectName":["O trecho '1-invalido' não é um identificador C# válido. Use apenas letras sem acento, dígitos e '_', começando por letra ou '_'."]},"traceId":"00-7ab90a3d7e19cfc4a1edec033b3184aa-c267ac83549c2a91-00"}
+HTTP 400
+--- identity + none
+{"type":"https://templategenerator.local/problems/invalid-configuration","title":"Configuração inválida","status":400,"errors":{"authentication":["O Identity nativo precisa de um banco para persistir os usuários."]},"traceId":"00-00233b190244000cf43ee12dcf20369f-0ef4e58434279982-00"}
+HTTP 400

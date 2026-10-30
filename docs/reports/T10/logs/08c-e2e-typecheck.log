@@ -1,0 +1,9 @@
+
+> web@0.0.0 e2e:typecheck
+> tsc -p tsconfig.e2e.json --noEmit
+
+
+real	0m3.415s
+user	0m0.230s
+sys	0m0.823s
+EXIT=0

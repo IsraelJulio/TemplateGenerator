@@ -1,0 +1,75 @@
+
+> web@0.0.0 test
+> npm run check && ng test --watch=false
+
+
+> web@0.0.0 check
+> npm run check:versions && npm run check:licenses && npm run check:selftest
+
+
+> web@0.0.0 check:versions
+> node scripts/check-versions.mjs
+
+check:versions OK: 5 dependencias com versao exata, 12 na lista de excecao da ADR-0009
+
+> web@0.0.0 check:licenses
+> node scripts/check-licenses.mjs
+
+check:licenses OK: 506 pacotes dentro da lista permitida (MIT=432, ISC=25, Apache-2.0=13, BSD-2-Clause=12, MPL-2.0=12, BSD-3-Clause=6, MIT-0=2, CC-BY-4.0=1, BlueOak-1.0.0=1, CC0-1.0=1, 0BSD=1)
+
+> web@0.0.0 check:selftest
+> node scripts/check-selftest.mjs
+
+OK  check-licenses.mjs saiu com 1 no caso ruim
+OK  check-versions.mjs saiu com 1 no caso ruim
+❯ Building...
+✔ Building...
+Application bundle generation complete. [3.174 seconds] - 2026-10-30T10:33:06.037Z
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90mC:/Users/2273129/Documents/Projects/TemplateGenerator/src/web[39m
+
+ [31m❯[39m [30m[46m web [49m[39m src/app/testing/catalog.fixture.spec.ts [2m([22m[2m10 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 40[2mms[22m[39m
+[31m     [31m×[31m aceita a opção sem `description`, que o snapshot traz[39m[32m 8[2mms[22m[39m
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+ [31m❯[39m [30m[46m web [49m[39m src/app/features/configurator/configurator.spec.ts [2m([22m[2m24 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1337[2mms[22m[39m
+[31m     [31m×[31m não renderiza explicação vazia na opção que o catálogo manda sem description[39m[32m 38[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m [30m[46m web [49m[39m src/app/testing/catalog.fixture.spec.ts[2m > [22mvalidação de forma do snapshot[2m > [22maceita a opção sem `description`, que o snapshot traz
+[31m[1mAssertionError[22m: expected 0 to be greater than 0[39m
+[36m [2m❯[22m src/app/testing/catalog.fixture.spec.ts:[2m99:33[22m[39m
+    [90m 97|[39m       [33m.[39m[34mfilter[39m((option) [33m=>[39m [33m![39m([32m'description'[39m [35min[39m option))[33m;[39m
+    [90m 98|[39m
+    [90m 99|[39m     [34mexpect[39m(semDescricao[33m.[39mlength)[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m   |[39m                                 [31m^[39m
+    [90m100|[39m   })[33m;[39m
+    [90m101|[39m })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m [30m[46m web [49m[39m src/app/features/configurator/configurator.spec.ts[2m > [22mConfigurator[2m > [22mnão renderiza explicação vazia na opção que o catálogo manda sem description
+[31m[1mAssertionError[22m: o snapshot não tem mais opção sem description: expected 0 to be greater than 0[39m
+[36m [2m❯[22m src/app/features/configurator/configurator.spec.ts:[2m175:82[22m[39m
+    [90m173|[39m         [33m.[39m[34mmap[39m((option) [33m=>[39m ({ key[33m,[39m option }))[33m,[39m
+    [90m174|[39m     )[33m;[39m
+    [90m175|[39m     expect(semDescricao.length, 'o snapshot não tem mais opção sem des…
+    [90m   |[39m                                                                                  [31m^[39m
+    [90m176|[39m
+    [90m177|[39m     [35mfor[39m ([35mconst[39m { key[33m,[39m option } [35mof[39m semDescricao) {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m201 passed[39m[22m[90m (203)[39m
+[2m   Start at [22m 07:33:06
+[2m   Duration [22m 6.15s[2m (transform 1.15s, setup 6.77s, import 2.02s, tests 1.89s, environment 30.29s)[22m
+
+
+real	0m17.323s
+user	0m0.276s
+sys	0m0.743s
+EXIT=1

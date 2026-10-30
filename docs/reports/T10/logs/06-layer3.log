@@ -1,0 +1,68 @@
+Test run for C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\bin\Debug\net10.0\TemplateGenerator.Matrix.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.10)
+[xUnit.net 00:00:00.51]   Discovering: TemplateGenerator.Matrix.Tests
+[xUnit.net 00:00:01.85]   Discovered:  TemplateGenerator.Matrix.Tests
+[xUnit.net 00:00:02.24]   Starting:    TemplateGenerator.Matrix.Tests
+  Passed TemplateGenerator.Matrix.Tests.Layer3.OpenApiResponsesTests.Sem_autenticacao_o_documento_declara_as_respostas_reais_e_nenhum_401 [26 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Sem_token_todo_o_CRUD_responde_401_e_a_saude_continua_publica [2 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Assinatura_invalida_responde_401_RF19 [895 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Token_expirado_responde_401_RF19_sem_folga_de_relogio [31 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Token_valido_do_provedor_externo_acessa_o_CRUD_protegido [79 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Emissor_errado_responde_401_RF19 [15 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Audiencia_errada_responde_401_RF19 [7 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeSimpleSemBancoTests.Swagger_responde_ou_nao_conforme_a_selecao [16 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Swagger_responde_ou_nao_conforme_a_selecao [380 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Emissor_errado_responde_401_RF19 [273 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Sem_token_todo_o_CRUD_responde_401_e_a_saude_continua_publica [21 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Assinatura_invalida_responde_401_RF19 [126 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Token_expirado_responde_401_RF19_sem_folga_de_relogio [18 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Audiencia_errada_responde_401_RF19 [5 ms]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.DatabaseRuntimeTests.Simple_com_SQLite_migra_pelo_README_e_os_dados_sobrevivem_ao_reinicio [43 s]
+[xUnit.net 00:00:48.33]     TemplateGenerator.Matrix.Tests.Layer3.DatabaseRuntimeTests.Clean_com_PostgreSQL_migra_num_database_descartavel_e_persiste_no_reinicio [FAIL]
+[xUnit.net 00:00:48.33]       System.InvalidOperationException : O teste de PostgreSQL não tem credencial para se autenticar no serviço nativo. Defina a variável de ambiente 'PGPASSWORD' (e, se diferirem do padrão, 'PGHOST', 'PGPORT' e 'PGUSER') com a senha de um usuário que possa criar banco (CREATEDB), e rode a suíte de novo. Este teste FALHA de propósito em vez de pular: um teste de PostgreSQL pulado some da cobertura sem ninguém perceber (ADR-0005; critério 6 de T05). Adivinhar a senha não é o caminho.
+[xUnit.net 00:00:48.34]       Stack Trace:
+[xUnit.net 00:00:48.34]         C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\DisposablePostgres.cs(75,0): at TemplateGenerator.Matrix.Tests.Layer3.DisposablePostgres.CreateAsync(CancellationToken cancellationToken)
+[xUnit.net 00:00:48.34]         C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\DatabaseRuntimeTests.cs(66,0): at TemplateGenerator.Matrix.Tests.Layer3.DatabaseRuntimeTests.Clean_com_PostgreSQL_migra_num_database_descartavel_e_persiste_no_reinicio()
+[xUnit.net 00:00:48.34]         --- End of stack trace from previous location ---
+  Passed TemplateGenerator.Matrix.Tests.Layer3.JwtRuntimeCleanSqliteTests.Token_valido_do_provedor_externo_acessa_o_CRUD_protegido [2 s]
+  Failed TemplateGenerator.Matrix.Tests.Layer3.DatabaseRuntimeTests.Clean_com_PostgreSQL_migra_num_database_descartavel_e_persiste_no_reinicio [1 s]
+  Error Message:
+   System.InvalidOperationException : O teste de PostgreSQL não tem credencial para se autenticar no serviço nativo. Defina a variável de ambiente 'PGPASSWORD' (e, se diferirem do padrão, 'PGHOST', 'PGPORT' e 'PGUSER') com a senha de um usuário que possa criar banco (CREATEDB), e rode a suíte de novo. Este teste FALHA de propósito em vez de pular: um teste de PostgreSQL pulado some da cobertura sem ninguém perceber (ADR-0005; critério 6 de T05). Adivinhar a senha não é o caminho.
+  Stack Trace:
+     at TemplateGenerator.Matrix.Tests.Layer3.DisposablePostgres.CreateAsync(CancellationToken cancellationToken) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\DisposablePostgres.cs:line 75
+   at TemplateGenerator.Matrix.Tests.Layer3.DatabaseRuntimeTests.Clean_com_PostgreSQL_migra_num_database_descartavel_e_persiste_no_reinicio() in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\DatabaseRuntimeTests.cs:line 66
+--- End of stack trace from previous location ---
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.A_Clean_compila_sobe_e_atende_o_mesmo_CRUD_que_a_Simples [46 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Simple_com_SQLite_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [51 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.Com_swagger_o_projeto_compila_sobe_atende_o_CRUD_e_esquece_tudo_no_reinicio [9 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.Com_swagger_fora_de_Development_nenhuma_rota_de_documentacao_responde [6 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.OpenApiResponsesTests.Com_identity_o_documento_declara_o_401_em_items_e_em_auth_manage [37 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.GeneratedProjectRuntimeTests.Sem_swagger_o_projeto_sobe_igual_e_nenhuma_rota_de_documentacao_responde [6 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.OpenApiResponsesTests.Com_jwt_o_documento_declara_as_respostas_reais_e_o_401_em_items [8 s]
+  Passed TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Clean_com_SQLite_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [43 s]
+[xUnit.net 00:01:37.59]     TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Clean_com_PostgreSQL_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [FAIL]
+[xUnit.net 00:01:37.60]       System.InvalidOperationException : O teste de PostgreSQL não tem credencial para se autenticar no serviço nativo. Defina a variável de ambiente 'PGPASSWORD' (e, se diferirem do padrão, 'PGHOST', 'PGPORT' e 'PGUSER') com a senha de um usuário que possa criar banco (CREATEDB), e rode a suíte de novo. Este teste FALHA de propósito em vez de pular: um teste de PostgreSQL pulado some da cobertura sem ninguém perceber (ADR-0005; critério 6 de T05). Adivinhar a senha não é o caminho.
+[xUnit.net 00:01:37.60]       Stack Trace:
+[xUnit.net 00:01:37.60]         C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\DisposablePostgres.cs(75,0): at TemplateGenerator.Matrix.Tests.Layer3.DisposablePostgres.CreateAsync(CancellationToken cancellationToken)
+[xUnit.net 00:01:37.60]         C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\IdentityRuntimeTests.cs(91,0): at TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Clean_com_PostgreSQL_e_Identity_cadastra_loga_renova_e_protege_o_CRUD()
+[xUnit.net 00:01:37.60]         --- End of stack trace from previous location ---
+[xUnit.net 00:01:37.60]   Finished:    TemplateGenerator.Matrix.Tests (ID = '1f54fb58e1af225135dd492f0a20fd84a1806fa8dfae512b3640a4d1b39cbe32')
+  Failed TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Clean_com_PostgreSQL_e_Identity_cadastra_loga_renova_e_protege_o_CRUD [562 ms]
+  Error Message:
+   System.InvalidOperationException : O teste de PostgreSQL não tem credencial para se autenticar no serviço nativo. Defina a variável de ambiente 'PGPASSWORD' (e, se diferirem do padrão, 'PGHOST', 'PGPORT' e 'PGUSER') com a senha de um usuário que possa criar banco (CREATEDB), e rode a suíte de novo. Este teste FALHA de propósito em vez de pular: um teste de PostgreSQL pulado some da cobertura sem ninguém perceber (ADR-0005; critério 6 de T05). Adivinhar a senha não é o caminho.
+  Stack Trace:
+     at TemplateGenerator.Matrix.Tests.Layer3.DisposablePostgres.CreateAsync(CancellationToken cancellationToken) in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\DisposablePostgres.cs:line 75
+   at TemplateGenerator.Matrix.Tests.Layer3.IdentityRuntimeTests.Clean_com_PostgreSQL_e_Identity_cadastra_loga_renova_e_protege_o_CRUD() in C:\Users\2273129\Documents\Projects\TemplateGenerator\tests\TemplateGenerator.Matrix.Tests\Layer3\IdentityRuntimeTests.cs:line 91
+--- End of stack trace from previous location ---
+
+Test Run Failed.
+Total tests: 26
+     Passed: 24
+     Failed: 2
+ Total time: 1.6395 Minutes
+
+real	1m39.860s
+user	0m0.031s
+sys	0m0.062s
+EXIT=1
